@@ -13,6 +13,7 @@
 /*****************************************************************/
 
 #include <stdio.h>
+#include <string.h>  /*060902 needs this for strlen() */
 #define INIT_ATOM_TABLE 1
 #include "atomprops.h"
 
