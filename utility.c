@@ -13,7 +13,9 @@
 /* Copyright (C) 1999 J. Michael Word                            */
 /*****************************************************************/
 
+#include <stdlib.h>  /*060902  needs this for exit() */
 #include <stdio.h>
+#include <string.h>  /*060902  needs this for strlen() */
 #include <ctype.h>
 
 void note(char *message) {

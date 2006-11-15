@@ -13,6 +13,7 @@
 /* Copyright (C) 1999 J. Michael Word                            */
 /*****************************************************************/
 
+#include <stdlib.h> /*060902 needs this for malloc() */
 #include <string.h>
 #include <ctype.h>
 #include "utility.h"

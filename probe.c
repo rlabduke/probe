@@ -48,13 +48,18 @@
 #define INLINE_FOR_SPEED 1
 
 static char *versionString =
-  "probe: version 2.11.060129, Copyright 1996-2006, J. Michael Word";
+  "probe: version 2.11.061018, Copyright 1996-2006, J. Michael Word";
+/*"probe: version 2.11.060831, Copyright 1996-2006, J. Michael Word";*/
+/*minor work: 2.11.060212*/
+/*"probe: version 2.11.060129, Copyright 1996-2006, J. Michael Word";*/
 /*"probe: version 2.11.050121, Copyright 1996-2005, J. Michael Word";*/
 /*"probe: version 2.11.041112, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
    /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char *shortVersionStr = "Probe V2.11.060129"; 
+static char *shortVersionStr = "probe.2.11.061018"; 
+/*static char *shortVersionStr = "probe.2.11.060831"; */
+/*static char *shortVersionStr = "Probe V2.11.060129";*/
 /*static char *shortVersionStr = "Probe V2.11.050121";*/
 /*static char *shortVersionStr = "Probe V2.11.041112";*/ /*041112 version change*/
 /*static char *shortVersionStr = "Probe V2.10.031014dcr041101";*/
@@ -124,6 +129,9 @@ static float OccupancyCutoff      =0.02; /* global occupancy below which atom ha
    /*mechanism seems to be atom->flags | IGNORE_FLAG */
    /*050119 atoms irrespective of occ now put into neighbor bins for bonding*/
    /* but atom->occ < OccupancyCutoff are not allowed to show clashes*/
+
+static int OccupancyCriteria = TRUE; /*global: use occupancy criteria 060831*/
+   /*explicit default: unset by -noocc flag, 060831*/
 
 static char *OutPointColor = "gray";
 
@@ -1654,6 +1662,9 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	 else if(n = compArgStr(p+1, "MINOCCupancy", 6)){
 	    OccupancyCutoff = parseReal(p, n+1, 10);
 	 }
+	 else if(n = compArgStr(p+1, "NOOCCupancy", 5)){
+	    OccupancyCriteria = FALSE; /*060831*/
+	 }
 	 else if(compArgStr(p+1, "OFORMAT", 7)){
 	    OutputFmtType = 1;
 	 }
@@ -2726,7 +2737,8 @@ void examineDots(atom *src, int type, atom *scratch,
    if (src->elem == ignoreAtom) { return; }
    /*050119 but there seems no way to ever set an atom->elem = ignoreAtom !?*/
 
-   if (src->occ < OccupancyCutoff) {/*050119*/ return; }
+   if (OccupancyCriteria && src->occ < OccupancyCutoff) /*Occ.Crit. 060831*/
+      {/*050119*/ return; }
 
    cause = NULL; /* who is responsible for the dot */
 
@@ -2803,7 +2815,8 @@ void examineDots(atom *src, int type, atom *scratch,
 
          if (targ->elem == ignoreAtom) {/* will not contribute */}
 
-         else if (targ->occ < OccupancyCutoff) {/*050119 will not contribute */}
+         else if (OccupancyCriteria && targ->occ < OccupancyCutoff) 
+            {/*050119 will not contribute */}   /*Occ.Crit. 060831*/
 
          else if (skipthisMCMC) {/* will not contribute */}
 
@@ -4843,7 +4856,9 @@ fprintf(outf,"050121 remove -nomodeltest stuff, mage now sends model # \n");
 fprintf(outf,"060129 jEdit type fold-comments on each subroutine \n");
 fprintf(outf,"  single vdw contact button replaces both wide and small \n");
 fprintf(outf,"  -mastername flags extra master={name} (default: dots)\n");
-
+fprintf(outf,"060212 something about hets also marked prot,rna,dna... \n");
+fprintf(outf,"060831 -NOOCC atoms NOT filtered by occ value \n");
+fprintf(outf,"061018 not treat HIS as aromatic ACCEPTOR \n");
 exit(0);
 
 }/*dump_changes()*/

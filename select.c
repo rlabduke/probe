@@ -16,6 +16,7 @@
 /*}}}select.c general comments  */
 
 /*{{{--includes                                                              */
+#include <string.h>  /*060902 needs this for strstr() */
 #include "select.h"
 #include "atomprops.h"
 #include "stdconntable.h"
@@ -60,7 +61,7 @@ static ResidueAndAtomPair AromaticAtomsTbl[] = {
 ":PSU:",   ": H6 : D6 : H1 : HN1: D1 : DN1: H3 : HN3: D3 : DN3:",        0,
 ":  I:",                    ": H8 : H2 : H1 : HN1: D8 : D2 : D1 : DN1:", 0,
 ":PHE:", ": CG : CD1: CD2: CE1: CE2: CZ :",                TEST_ACCEPT_ANGLE_PROP,
-":HIS:", ": ND1: CD2: CE1: NE2: CG :",                     TEST_ACCEPT_ANGLE_PROP,
+":HIS:", ": ND1: CD2: CE1: NE2: CG :", 0,
 ":TYR:", ": CG : CD1: CD2: CE1: CE2: CZ :",                TEST_ACCEPT_ANGLE_PROP,
 ":TRP:", ": CG : CD1: CD2: NE1: CE2: CE3: CZ2: CZ3: CH2:", TEST_ACCEPT_ANGLE_PROP,
 ":  U:URA:UTP:UDP:UMP:PSU:",
@@ -78,6 +79,10 @@ static ResidueAndAtomPair AromaticAtomsTbl[] = {
 ":HEM:", ": N A: C1A: C2A: C3A: C4A: N B: C1B: C2B: C3B: C4B:", TEST_ACCEPT_ANGLE_PROP,
 ":HEM:", ": N C: C1C: C2C: C3C: C4C: N D: C1D: C2D: C3D: C4D:", TEST_ACCEPT_ANGLE_PROP,
 0, 0, 0};
+
+/*061018 not allow HIS to accept H-bonds as as aromatic ring system 
+":HIS:", ": ND1: CD2: CE1: NE2: CG :", TEST_ACCEPT_ANGLE_PROP,      */
+
 /*}}}AromaticAtomsTbl[] ___________________________________________*/
 /*{{{AAList                  ***/
 static char *AAList = ":GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:\
