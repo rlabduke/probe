@@ -158,7 +158,10 @@ void surfDots(atom *src, int type, atom *scratch,
 	float spikelen, dotNode *results[][NODEWIDTH]);
 void initResults(dotNode *results[][NODEWIDTH]);
 void freeResults(dotNode *results[][NODEWIDTH]);
-void writeOutput(FILE *outf, char *groupname, dotNode *results[][NODEWIDTH], int drawSpike, int method); /*041020 method for better kinemage keywords*/
+void writeOutput(FILE *outf, char *groupname, dotNode *results[][NODEWIDTH],
+                 int drawSpike, int method, char *extramastername); 
+                /*041020 method for better kinemage keywords*/
+                /*060129 extra master name controls original vs fitted dots*/ 
 void writeAltFmtO(FILE *outf, int showBegin, int showEnd,
       char* groupname, dotNode *results[][NODEWIDTH], int drawSpike);
 void writeAltFmtXV(FILE *outf, int showBegin, int showEnd,

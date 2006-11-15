@@ -1,3 +1,6 @@
+
+/*{{{--probe.c general comments                                              */
+
 /* name: probe.c                         */
 /* author: J. Michael Word               */
 /* date written: 2/26/96                 */
@@ -13,6 +16,10 @@
 /* Copyright (C) 1996-2004 J. Michael Word                       */
 /*****************************************************************/
 
+/*Jan 2006 DCR compromise comments to enable jEdit type folding {{{ }}}  */
+/* without messing up vi type beginning-end bracket identification shift % */
+/* So jEdit folds have to stay within code regions, esp subroutines 060129*/
+
 /*Oct 2004 DCR modifications to version 2.10.031014  starting with dcr041007 */
 /*dcr: sorry Mike, but changing to Berkeley-Altman brackets really helps me!*/
 /*i.e. some routines changed: opening and closing brackets vertically in line*/
@@ -23,13 +30,15 @@
 /*050111:  in trying to track behavior of autobondrot mode, the lack of */
 /*global mode state is a severe limitation.  */
 /*probe trys to be so object oriented as to not have global modal states */
-/*but given the existance of a whole slew of prob.c global parameters,  */
+/*but given the existance of a whole slew of probe.c global parameters,  */
 /*a few more would only help clear up dependencies and program flow! */
 /*hence logical Lautobondrot as a probe.c global*/
 
 
 /* modifications: see dump_changes() */
+/*}}}--probe.c general comments */
 
+/*{{{--includes and declarations   (globals for probe.c)                     */
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -39,18 +48,22 @@
 #define INLINE_FOR_SPEED 1
 
 static char *versionString =
-  "probe: version 2.11.050121, Copyright 1996-2005, J. Michael Word";
+  "probe: version 2.11.060129, Copyright 1996-2006, J. Michael Word";
+/*"probe: version 2.11.050121, Copyright 1996-2005, J. Michael Word";*/
 /*"probe: version 2.11.041112, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
    /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char *shortVersionStr = "Probe V2.11.050121"; 
+static char *shortVersionStr = "Probe V2.11.060129"; 
+/*static char *shortVersionStr = "Probe V2.11.050121";*/
 /*static char *shortVersionStr = "Probe V2.11.041112";*/ /*041112 version change*/
 /*static char *shortVersionStr = "Probe V2.10.031014dcr041101";*/
 /*static char *shortVersionStr = "Probe V2.9 ( 10/14/2003)";*/
 static char *referenceString = "Word, et. al. (1999) J. Mol. Biol. 285, 1711-1733.";
 static char *electronicReference = "http://kinemage.biochem.duke.edu";
 
+static int LMasterName = FALSE; /*global extra master={name} on lists 060129*/
+static int LMergeContacts = TRUE; /*global combine wide & close contacts 060129*/
 static int Lautobondrot = FALSE; /* global flag for AUTOBONDROT mode 050111*/
 static int ImplicitH = FALSE; /* global controling dot radii     */
 static int UsePolarH = TRUE;  /* global controling VDW radii of polar Hs */
@@ -148,8 +161,9 @@ static int  modelToProcess = 0; /*global model specified for processing 041114*/
 		(atptr)->atomname, (atptr)->altConf,\
 		(atptr)->r->resname, (atptr)->r->resid,\
 		(atptr)->r->resInsCode, (atptr)->r->rescnt, (endtxt)))
+/*}}}--includes and declarations */
 
-/****main()*******************************************************************/
+/*{{{main()***************************** MAIN ********************************/
 int main(int argc, char **argv) {
    int rc = 0;
    FILE *outf = stdout;
@@ -161,8 +175,9 @@ int main(int argc, char **argv) {
    rc = mainProbeProc(argc, argv, outf);
    return rc;
 }
-/*___main()__________________________________________________________________*/
+/*}}}main()__________________________________________________________________*/
 
+/*{{{mainProbeProc()******** called from main() ******************************/
 int mainProbeProc(int argc, char **argv, FILE *outf)
 {/*mainProbeProc()*/
    int method;
@@ -320,14 +335,14 @@ int mainProbeProc(int argc, char **argv, FILE *outf)
       }
 
          srcPat = getPat(srcArg,   "pattern 1", Verbose);
-         modelSrc = modelInPattern(srcPat); /*041114*/
+         modelSrc = modelInPattern(srcPat); /*parse.c 041114*/
 if(Verbose && modelSrc > 0)
 {
    sprintf(message, "specified src  model==%d", modelSrc);
    note(message);
 }
         targPat = getPat(targArg,  "pattern 2", Verbose);
-        modelTarg = modelInPattern(targPat); /*041114*/
+        modelTarg = modelInPattern(targPat); /*parse.c 041114*/
 if(Verbose && modelSrc > 0)
 {
    sprintf(message, "specified targ model==%d", modelTarg);
@@ -452,8 +467,11 @@ if(Verbose && modelSrc > 0)
 
    return 0; /*to probe.c/main() */
 }/*mainProbeProc()*/
+/*}}}mainProbeProc()_________________________________________________________*/
 
-atom * newMovingAtom(char *rec, void *userdata) {
+/*{{{newMovingAtom()**********************************************************/
+atom * newMovingAtom(char *rec, void *userdata) 
+{
    atom* a = NULL;
    movingAtomBuildInfo *m = (movingAtomBuildInfo *)userdata;
 
@@ -494,8 +512,11 @@ atom * newMovingAtom(char *rec, void *userdata) {
    }
    return a;
 }
+/*}}}newMovingAtom()_________________________________________________________*/
 
-void deleteMovingAtom(atom *a, void *userdata) {
+/*{{{deleteMovingAtom()*******************************************************/
+void deleteMovingAtom(atom *a, void *userdata) 
+{
    movingAtomBuildInfo *m = (movingAtomBuildInfo *)userdata;
    if (m && m->scratchRes) {
       deleteResidueData(m->scratchRes); /* clean up extra memory */
@@ -503,11 +524,18 @@ void deleteMovingAtom(atom *a, void *userdata) {
    }
    deleteAtom(a);
 }
+/*}}}deleteMovingAtom()______________________________________________________*/
 
+/*{{{movingDoCommand()********************************************************/
 void movingDoCommand(char* orientationName, double scoreBias,
 		  atom *allMovingAtoms, void *userdata) 
 {/*movingDoCommand() for autobondrot*/
    /*orientationName holds the angle values as a character string*/
+
+/* NOTE: allMainAtoms/abins & allMovingAtoms/bbins must be disjoint */
+/*       sets of atoms (none in common) or allMovingAtoms/bbins can */
+/*       be NULL.                                                   */
+/*       allMovingAtoms refers to autobondrot set of atoms          */
 
    movingCommandInfo *m = (movingCommandInfo *)userdata;
    region boundingBoxB, nonMovingBB;
@@ -578,12 +606,9 @@ void movingDoCommand(char* orientationName, double scoreBias,
       disposeBins(bbins);
    }
 }/*movingDoCommand() for autobondrot*/
+/*}}}movingDoCommand()_______________________________________________________*/
 
-/* NOTE: allMainAtoms/abins & allMovingAtoms/bbins must be disjoint */
-/*       sets of atoms (none in common) or allMovingAtoms/bbins can */
-/*       be NULL.                                                   */
-/*       allMovingAtoms refers to autobondrot set of atoms          */
-
+/*{{{doCommand()************ called from mainProbeProc() *********************/
 void doCommand(FILE *outf, int method,
    atom *allMainAtoms, atomBins *abins,
    atom *allMovingAtoms, atomBins *bbins,
@@ -592,6 +617,12 @@ void doCommand(FILE *outf, int method,
    int drawSpike, int sayGroup, char* groupLabel,
    int argc, char **argv, char message[]) 
 {
+
+/* NOTE: allMainAtoms/abins & allMovingAtoms/bbins must be disjoint */
+/*       sets of atoms (none in common) or allMovingAtoms/bbins can */
+/*       be NULL.                                                   */
+/*       allMovingAtoms refers to autobondrot set of atoms          */
+
    /*doCommand is called from mainProbeProc() with rawname=="" */
    /* and called from movingDoCommand() with rawname==orientationName */
    /* which holds the string of the current autobondrot cycle's angle values*/
@@ -606,6 +637,8 @@ void doCommand(FILE *outf, int method,
    int usesMovingAtoms = FALSE;
    
    int  j=0;
+
+   char extrastr[32]; /*060129 for extra master to control orig vs fitted dots*/
 
    /*allMovingAtoms is closest thing to a flag for autobondrot mode*/
    /*so if it exists and bbins exist (dcr?: mobile atoms near enough?) */
@@ -628,7 +661,8 @@ void doCommand(FILE *outf, int method,
 	      "stype:ttype:x:y:z:sBval:tBval");
       }
    }
-   if (method == SELFINTERSECT) {/*expected default method*/
+   if (method == SELFINTERSECT) 
+   {/*{{{(method == SELFINTERSECT)___expected default method___****/
     if (Verbose && !(countDots && rawOutput)) { note("SelfIntersect"); }
     
     /*SELFINTERSECT case, using one input file (and where srcPat == targPat)*/
@@ -727,13 +761,15 @@ if(Verbose)
                             groupLabel?groupLabel:"dots");
                }
 	    }
-	    writeOutput(outf, "self dots", rslts, drawSpike, method);
+            sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
+	    writeOutput(outf, "self dots", rslts, drawSpike, method, extrastr);
             
 	 }/*kinemage output*/
       }
     }/*loop over models*/
-   }/*_____(method == SELFINTERSECT)_________________________________________*/ 
-   else if (method == INTERSECTONCE) {
+   }/*}}}(method == SELFINTERSECT)________________________________*/ 
+   else if (method == INTERSECTONCE) 
+   {/*{{{(method == INTERSECTONCE)*********************************/
       if (Verbose && !(countDots && rawOutput)) { note("IntersectOnce"); }
 
       genDotIntersect(allMainAtoms, abins, allMovingAtoms, bbins,
@@ -796,11 +832,13 @@ if(Verbose)
 	       fprintf(outf, "@group dominant {%s}\n",
 		     groupLabel?groupLabel:"dots");
 	    }
-	    writeOutput(outf, "once dots", rslts, drawSpike, method);
+            sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
+	    writeOutput(outf, "once dots", rslts, drawSpike, method, extrastr);
 	 }
       }
-   }/*_______(method == INTERSECTONCE)_______________________________________*/
-   else if (method == INTERSECTBOTHWAYS) {
+   }/*}}}(method == INTERSECTONCE)________________________________*/
+   else if (method == INTERSECTBOTHWAYS) 
+   {/*{{{(method == INTERSECTBOTHWAYS)*****************************/
       if (Verbose && !(countDots && rawOutput)) { note("IntersectBothWays"); }
       if (countDots) {
 	 if (!rawOutput) {
@@ -870,7 +908,8 @@ if(Verbose)
             /*dcr041101 Lines,Pass==0 no output for this pass*/
 	 }
 	 else {
-	    writeOutput(outf, "1->2", rslts, drawSpike, method);
+            sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
+	    writeOutput(outf, "1->2", rslts, drawSpike, method, extrastr);
 
             if(ContactSUMMARY) /*dcr041101 Lines,Pass*/
                {countsummary(outf,"IntersectBothWays 1->2", 9, 0);} 
@@ -920,15 +959,17 @@ if(Verbose)
             /*dcr041101 Lines,Pass==2 output sum of 2 passes*/
 	 }
 	 else {
-	    writeOutput(outf, "2->1", rslts, drawSpike, method);
+            sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
+	    writeOutput(outf, "2->1", rslts, drawSpike, method, extrastr);
 
             if(ContactSUMMARY) /*dcr041101 Lines,Pass*/
                {countsummary(outf,"IntersectBothWays 2->1", 9, 2);} 
                /*dcr041101 Lines,Pass==2 output sum of 2 passes*/
 	 }
       }
-   }/*(method == INTERSECTBOTHWAYS)*/
-   else if (method == EXTERNALSURFACE) {
+   }/*}}}(method == INTERSECTBOTHWAYS)____________________________*/
+   else if (method == EXTERNALSURFACE) 
+   {/*{{{(method == EXTERNALSURFACE)*******************************/
       if (Verbose && !(countDots && rawOutput)) { note("ExternalSurface"); }
 
       genDotSurface(allMainAtoms, abins, allMovingAtoms, bbins,
@@ -981,11 +1022,13 @@ if(Verbose)
 	       fprintf(outf, "@group dominant {%s}\n",
 		  groupLabel?groupLabel:"dots");
 	    }
-	    writeOutput(outf, "extern dots", rslts, FALSE, method);
+            sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
+	    writeOutput(outf, "extern dots", rslts, FALSE, method, extrastr);
 	 }
       }
-   }/*____(method == EXTERNALSURFACE)_________________________________________*/
-   else if (method == DUMPATOMCOUNT) {
+   }/*}}}(method == EXTERNALSURFACE)______________________________*/
+   else if (method == DUMPATOMCOUNT) 
+   {/*{{{(method == DUMPATOMCOUNT)*********************************/
       if (Verbose && !rawOutput) {
 	 note("dumpAtomInfo");
 	 descrCommand(outf, "program:", "command:", argc, argv);
@@ -1014,12 +1057,15 @@ if(Verbose)
       else {
 	 fprintf(outf, "atoms selected: %d\n", nsel);
       }
-   }/*(method == DUMPATOMCOUNT)*/
+   }/*}}}(method == DUMPATOMCOUNT)_______________________________*/
 
    freeResults(rslts);
 }/*doCommand()*/
+/*}}}doCommand()_____________________________________________________________*/
 
-void descrCommand(FILE *outf, char *hdr1, char *hdr2, int argc, char **argv) {
+/*{{{descrCommand()***********************************************************/
+void descrCommand(FILE *outf, char *hdr1, char *hdr2, int argc, char **argv) 
+{
    int i = 0;
    time_t t;
    char *ts = NULL;
@@ -1035,8 +1081,11 @@ void descrCommand(FILE *outf, char *hdr1, char *hdr2, int argc, char **argv) {
    }
    fprintf(outf, "\n");
 }
+/*}}}descrCommand()__________________________________________________________*/
 
-void loadDotSpheres(pointSet dots[], float density) {
+/*{{{loadDotSpheres()*********************************************************/
+void loadDotSpheres(pointSet dots[], float density) 
+{
    int i = 0;
 
    for (i = 0; i < NUMATOMTYPES; i++) {
@@ -1044,15 +1093,22 @@ void loadDotSpheres(pointSet dots[], float density) {
    }
    dotSphere(&COdots, getRadius(atomC, 1), density);
 }
-void unloadDotSpheres(pointSet dots[]) {
+/*}}}loadDotSpheres()________________________________________________________*/
+
+/*{{{unloadDotSpheres()*******************************************************/
+void unloadDotSpheres(pointSet dots[]) 
+{
    int i = 0;
 
    for (i = 0; i < NUMATOMTYPES; i++) {
       freeDotSphere(&(dots[i]));
    }
 }
+/*}}}unloadDotSpheres()______________________________________________________*/
 
-void probehelp(int longlist) {
+/*{{{probehelp()**************************************************************/
+void probehelp(int longlist) 
+{
    fprintf(stderr, "\nSyntax: probe input.pdb >> out.kin\n");
    fprintf(stderr, "    or: probe [flags] \"src pattern\" [\"target pattern\"] pdbfiles... >> out.kin\n\n");
    fprintf(stderr, "Flags:\n");
@@ -1064,6 +1120,7 @@ void probehelp(int longlist) {
    fprintf(stderr, "  -AUTObondrot filename    read and process an autobondrot file\n");
 if (! longlist) {
    fprintf(stderr, "\n  shortcuts: <<NO FLAGS>>, -SCSurface, -EXPOsed, -ASurface, -ACCESS, -SCAN0, -SCAN1\n");
+   fprintf(stderr, "\n most simple dotkin: probe -self all -kinemage input.pdb > out.kin\n");
 }
 else { /*longlist option*/
    fprintf(stderr, "\n  shortcuts:\n");
@@ -1115,9 +1172,14 @@ else { /*longlist option*/
    fprintf(stderr, "  -DOCHO       recognize CH..O Hbonds\n");
    fprintf(stderr, "  -CHO#.#      scale factor for CH..O Hbond score (default=%.1f)\n", CHOHBfactor);
    fprintf(stderr, "  -PolarH      use short radii of polar hydrogens (default)\n");
-   fprintf(stderr, "  -NOPolarH    do not shorten radii of polar hydrogens\n\n");
-   fprintf(stderr, "  -NOFACEhbond do not identify HBonds to aromatic faces\n");
+   fprintf(stderr, "  -NOPolarH    do not shorten radii of polar hydrogens\n");
+   fprintf(stderr, "  -NOFACEhbond do not identify HBonds to aromatic faces\n\n");
+
    fprintf(stderr, "  -Name \"name\" specify the group name (default \"dots\")\n");
+   fprintf(stderr, "  -DOTMASTER  group name used as extra master={name} on lists\n"); /*060129*/
+   fprintf(stderr, "  -NOGroup     do not generate @group statement in .kin format output\n");
+   fprintf(stderr, "  -KINemage    add @kinemage 1 statement to top of .kin format output\n\n");
+
    fprintf(stderr, "  -Countdots   produce a count of dots-not a dotlist\n");
    fprintf(stderr, "  -Unformated  output raw dot info\n");
    fprintf(stderr, "  -OFORMAT     output dot info formatted for display in O\n");
@@ -1134,8 +1196,6 @@ else { /*longlist option*/
    fprintf(stderr, "  -DIVLow#.#   Division for Bump categories    (default -0.4)\n");
    fprintf(stderr, "  -DIVHigh#.#  Division for Contact categories (default  0.25)\n");
    fprintf(stderr, "  -MINOCCupancy#.#  Occupancy below this is same as zero (default  0.02)\n");
-   fprintf(stderr, "  -KINemage    add @kinemage 1 statement to top of .kin format output\n");
-   fprintf(stderr, "  -NOGroup     do not generate @group statement in .kin format output\n");
    fprintf(stderr, "  -ELEMent     add master buttons for different elements in kin output\n");
    fprintf(stderr, "  -NOHBOUT     do not output contacts for HBonds\n");
    fprintf(stderr, "  -NOCLASHOUT  do not output contacts for clashes\n");
@@ -1235,14 +1295,18 @@ if (longlist) { /*more longlist*/
    fprintf(stderr, "\n%s\n", versionString);
    exit(0);
 }/*probehelp()*/
+/*}}}probehelp()_____________________________________________________________*/
 
+/*{{{probeversion()***********************************************************/
 void probeversion(void) /*VERSION  dcr041009*/
 {/*stdout one liner version for, e.g., MolProbity  dcr041009*/
    /*beware: orig defaults get superseded by shortcuts, like raw "probe"*/
    printf("%s\n", shortVersionStr);
    exit(0);
 }
+/*}}}probeversion()__________________________________________________________*/
 
+/*{{{processCommandline()**** called from mainProbeProc() ********************/
 atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 			float *density, float *probeRad,
 			int *drawSpike, float *spikelen, int *countDots,
@@ -1533,6 +1597,9 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	       halt("no group name after -Name flag");
 	    }
 	 }
+	 else if(compArgStr(p+1, "DOTMASTER", 9)){
+                 LMasterName = TRUE; /*extra master={name} on lists 060129*/
+	 }
 	 else if(compArgStr(p+1, "IGNORE", 6)){
 	    if (++i < argc) {
 	       *ignoreArg = argv[i];
@@ -1768,8 +1835,11 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 
    return atomlist; /*loaded under some conditions, but not if autobondrot!*/
 }/*processCommandline()*/
+/*}}}processCommandline()____________________________________________________*/
 
-void initEndData(chainEndData_t *ed) {
+/*{{{initEndData()************************************************************/
+void initEndData(chainEndData_t *ed) 
+{
    int i = 0;
    for (i = 0; i < 8; i++) { ed->ambigN[i] = NULL; ed->ambigO[i] = NULL; }
    ed->res_mc_oxy_cnt = 0;
@@ -1779,10 +1849,13 @@ void initEndData(chainEndData_t *ed) {
    ed->Ctmarkers = 0;
    for (i = 0; i < 4; i++) { ed->hisNHcount[i] = 0; }
 }
+/*}}}initEndData()___________________________________________________________*/
 
+/*{{{hisNHcheck()*************************************************************/
 /* His ring atoms start out with a positive charge.                       */
 /* Here we remove the charge for His residues without two ring NH protons.*/
-void hisNHcheck(chainEndData_t *ed, atom *atomlist, int rescnt) {
+void hisNHcheck(chainEndData_t *ed, atom *atomlist, int rescnt) 
+{
    int i = 0;
    atom *rat = NULL;
 
@@ -1811,15 +1884,21 @@ void hisNHcheck(chainEndData_t *ed, atom *atomlist, int rescnt) {
       for (i = 0; i < 4; i++) { ed->hisNHcount[i] = 0; }
    }/*is a histidine*/
 }
+/*}}}hisNHcheck()____________________________________________________________*/
 
+/*{{{resCheck()***************************************************************/
 /* called after each residue is read */
-void resCheck(chainEndData_t *ed, atom *atomlist, int rescnt) {
+void resCheck(chainEndData_t *ed, atom *atomlist, int rescnt) 
+{
     hisNHcheck(ed, atomlist, rescnt);
 }
+/*}}}resCheck()______________________________________________________________*/
 
+/*{{{CtermCheck()*************************************************************/
 /* called when a new residue begins and at the end of all processing */
 /* to process the previous residue                                   */
-void CtermCheck(chainEndData_t *ed, int rescnt, int isChainEnd) {
+void CtermCheck(chainEndData_t *ed, int rescnt, int isChainEnd) 
+{
    int i = 0;
    /* avoid processing the first time 'cause there ain't no chain pending */
 
@@ -1850,10 +1929,13 @@ void CtermCheck(chainEndData_t *ed, int rescnt, int isChainEnd) {
       initEndData(ed); /* reset the end data record */
    }
 }
+/*}}}CtermCheck()____________________________________________________________*/
 
+/*{{{noticedNt()**************************************************************/
 /* called when we have an indicator that residue is at N terminus */
 /* to look for ambigN and mark charged */
-void noticedNt(chainEndData_t *ed, int rescnt) {
+void noticedNt(chainEndData_t *ed, int rescnt) 
+{
    int i = 0;
 
    for (i = 4; i < 8; i++) { /* only array[4-7] contains last Ns */
@@ -1866,9 +1948,13 @@ void noticedNt(chainEndData_t *ed, int rescnt) {
       else { break; }
    }
 }
+/*}}}noticedNt()_____________________________________________________________*/
+
+/*{{{noticedCt()**************************************************************/
 /* called when we have an indicator that residue is at C terminus */
 /* to look for ambigO and mark charged */
-void noticedCt(chainEndData_t *ed, int rescnt) {
+void noticedCt(chainEndData_t *ed, int rescnt) 
+{
    int i = 0;
 
    for (i = 0; i < 8; i++) { /* array[0-7] contains last Os */
@@ -1880,9 +1966,12 @@ void noticedCt(chainEndData_t *ed, int rescnt) {
       else { break; }
    }
 }
+/*}}}noticedCt()_____________________________________________________________*/
 
+/*{{{NtermCheck()*************************************************************/
 /* called whenever a new residue begins */
-void NtermCheck(chainEndData_t *ed, int rescnt, int isChainEnd) {
+void NtermCheck(chainEndData_t *ed, int rescnt, int isChainEnd) 
+{
    int i = 0;
    
    ed->res_mc_oxy_cnt = 0; /* reset Oxygen data for each residue */
@@ -1896,8 +1985,12 @@ void NtermCheck(chainEndData_t *ed, int rescnt, int isChainEnd) {
       ed->first = rescnt; /* first residue */
    }
 }
+/*}}}NtermCheck()____________________________________________________________*/
+
+/*{{{ProcessResInfo()*** called from loadAtoms() & movingAtomListProcessing()*/
 /* called for each atom read in */
-void ProcessResInfo(chainEndData_t *ed, atom *a) {
+void ProcessResInfo(chainEndData_t *ed, atom *a) 
+{
    int i = 0;
 
    if (strstr("HIS:his", a->r->resname)) {/*is a histidine*/
@@ -1979,8 +2072,11 @@ void ProcessResInfo(chainEndData_t *ed, atom *a) {
    }
 
 }
+/*}}}ProcessResInfo()________________________________________________________*/
 
-void movingAtomListProcessing(atom *initAtomLst, void *userdata) {
+/*{{{movingAtomListProcessing()***********************************************/
+void movingAtomListProcessing(atom *initAtomLst, void *userdata) 
+{
    int previd = 0, rescnt = 0;
    char prevInsCode = ' ', prevChain = '?';
    atom *a = NULL, *prevAtomLst = NULL, *nexta = NULL;
@@ -2018,9 +2114,12 @@ void movingAtomListProcessing(atom *initAtomLst, void *userdata) {
    if (rescnt) { resCheck(&endData, prevAtomLst, rescnt); }
    CtermCheck(&endData, rescnt, TRUE);
 }
+/*}}}movingAtomListProcessing()______________________________________________*/
 
+/*{{{loadAtoms()************* called from processCommandline() ***************/
 atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
-		  residue **reslstptr) {
+		  residue **reslstptr) 
+{
    int previd = 0, rescnt = 0, model = 0;
    char *rec, prevInsCode = ' ', prevChain = '?';
    atom *a = NULL;
@@ -2108,9 +2207,12 @@ if(Verbose)
 
    return atomlist;
 }
+/*}}}loadAtoms()_____________________________________________________________*/
 
+/*{{{binAtoms()***************************************************************/
 atomBins* binAtoms(atom *theAtoms, region *boundingBox, char serialNum,
-		  float probeRad, int keepUnselected, int selflags) {
+		  float probeRad, int keepUnselected, int selflags) 
+{
    atom *a = NULL;
    atomBins *bins = NULL;
 
@@ -2129,8 +2231,11 @@ atomBins* binAtoms(atom *theAtoms, region *boundingBox, char serialNum,
    /* note: addNeighbor() also called in updateHydrogenInfo() */
    return bins;
 }
+/*}}}binAtoms()______________________________________________________________*/
 
-float getRadius(int at, int useCOScale) {
+/*{{{getRadius()**************************************************************/
+float getRadius(int at, int useCOScale) 
+{
    float rad = 0.0, sf = RadScaleFactor;
 
    if (useCOScale){ sf *= CORadScale; }
@@ -2140,8 +2245,11 @@ float getRadius(int at, int useCOScale) {
 
    return (rad*sf) + RadScaleOffset;
 }
+/*}}}getRadius()_____________________________________________________________*/
 
-ringInfo * newRingInfo(ringInfo **head, point3d* ctr, point3d* norm) {
+/*{{{newRingInfo()************************************************************/
+ringInfo * newRingInfo(ringInfo **head, point3d* ctr, point3d* norm) 
+{
    ringInfo *ri = NULL;
    ri = (ringInfo *)malloc(sizeof(ringInfo));
    if (ri) {
@@ -2156,8 +2264,11 @@ ringInfo * newRingInfo(ringInfo **head, point3d* ctr, point3d* norm) {
    }
    return ri;
 }
+/*}}}newRingInfo()___________________________________________________________*/
 
-void deleteRingInfoList(ringInfo *ri) { /* kill entire list */
+/*{{{deleteRingInfoList()*****************************************************/
+void deleteRingInfoList(ringInfo *ri) 
+{ /* kill entire list */
    ringInfo *p = NULL, *nxt = NULL;
    p = ri;
    while(p) {
@@ -2166,8 +2277,11 @@ void deleteRingInfoList(ringInfo *ri) { /* kill entire list */
       p = nxt;
    }
 }
+/*}}}deleteRingInfoList()____________________________________________________*/
 
-residue * newResidueData() { /* new blank residue */
+/*{{{newResidueData()*********************************************************/
+residue * newResidueData() 
+{ /* new blank residue */
    residue *r = NULL;
    r = (residue *)malloc(sizeof(residue));
    if (r) {
@@ -2185,20 +2299,29 @@ residue * newResidueData() { /* new blank residue */
    }
    return r;
 }
+/*}}}newResidueData()________________________________________________________*/
 
-int resDiffersFromPrev(residue *r1, residue *r2) {
+/*{{{resDiffersFromPrev()*****************************************************/
+int resDiffersFromPrev(residue *r1, residue *r2) 
+{
    if (r1 == NULL || r2 == NULL) { return 1; }
    return (! IS_THE_SAME_RES(r1, r2));
 }
+/*}}}resDiffersFromPrev()____________________________________________________*/
 
-void deleteResidueData(residue *r) {
+/*{{{deleteResidueData()******************************************************/
+void deleteResidueData(residue *r) 
+{
    if (r) {
       deleteRingInfoList(r->ring);
       free(r);
    }
 }
+/*}}}deleteResidueData()_____________________________________________________*/
 
-void disposeListOfResidues(residue *theRes) {
+/*{{{disposeListOfResidues()**************************************************/
+void disposeListOfResidues(residue *theRes) 
+{
    residue *r = NULL, *nextr = NULL;
 
    for(r=theRes; r; r = nextr) {
@@ -2206,9 +2329,12 @@ void disposeListOfResidues(residue *theRes) {
       deleteResidueData(r);
    }
 }
+/*}}}disposeListOfResidues()_________________________________________________*/
 
+/*{{{dumpRes()****************************************************************/
 /* dumpRes() used for debugging */
-void dumpRes(residue *theRes) {
+void dumpRes(residue *theRes) 
+{
    residue *r = NULL;
    atom *a = NULL;
    for(r = theRes; r; r = r->nextRes) {
@@ -2222,14 +2348,20 @@ void dumpRes(residue *theRes) {
       fprintf(stderr, "\n");
    }
 }
+/*}}}dumpRes()_______________________________________________________________*/
 
-void deleteAtom(atom *a) {
+/*{{{deleteAtom()*************************************************************/
+void deleteAtom(atom *a) 
+{
    if (a) {
       free(a);
    }
 }
+/*}}}deleteAtom()____________________________________________________________*/
 
-void disposeListOfAtoms(atom *theAtoms) {
+/*{{{disposeListOfAtoms()*****************************************************/
+void disposeListOfAtoms(atom *theAtoms) 
+{
    atom *a = NULL, *nexta = NULL;
 
    for(a=theAtoms; a; a = nexta) {
@@ -2237,7 +2369,9 @@ void disposeListOfAtoms(atom *theAtoms) {
       deleteAtom(a);
    }
 }
+/*}}}disposeListOfAtoms()____________________________________________________*/
 
+/*{{{newAtom() <--loadAtoms(),newMovingAtom(); -->various property tests *****/
 atom * newAtom(char *rec, int file, int model, residue * resDataBuf) 
 {/*newAtom()*/
    atom *a = NULL;
@@ -2299,8 +2433,8 @@ atom * newAtom(char *rec, int file, int model, residue * resDataBuf)
 	 }
       }
 
-      setProperties(a, isHet(rec), HB2aromFace, PermitCHXHB);
-
+      setProperties(a, isHet(rec), HB2aromFace, PermitCHXHB); /*select.c*/
+        /*This is where (e.g.) both HET_PROP and DNA_PROP are set for the atom*/
       if (ByNABaseColor) {  /* forces coloring by base rather than atom type */
 	 a->atomclass = naBaseCategory(a);
       }
@@ -2322,15 +2456,22 @@ atom * newAtom(char *rec, int file, int model, residue * resDataBuf)
    }
    return a;
 }/*newAtom()*/
+/*}}}newAtom()_______________________________________________________________*/
 
+/*{{{selectSource() <--mainProbeProc(),newMovingAtom(); -->select/matchPat() */
 void selectSource(atom *theAtoms, pattern *srcPat, int srcFlag,
-		  pattern *targPat, int targFlg, pattern *ignorePat) {
+		  pattern *targPat, int targFlg, pattern *ignorePat) 
+{
    atom *src = NULL;
 
-   for(src = theAtoms; src; src = src->next) {
-      if ((DoHet || ! (src->props &   HET_PROP))
-      &&  (DoH2O || ! (src->props & WATER_PROP)) ) {
-
+   for(src = theAtoms; src; src = src->next) 
+   {
+      if(   (DoHet || ! (src->props &   HET_PROP) )
+         && (DoH2O || ! (src->props & WATER_PROP) ) ) 
+      {
+         /*060212 hets marked as prot,dna,rna could be excluded by these tests*/
+         /* if src||target was specified as not-prot,dna,rna,... */
+         /* seemingly because atoms of hets are also assigned those types */
 	 if (srcPat && matchPat(src,  srcPat)) { src->flags |= srcFlag; }
 	 if(targPat && matchPat(src, targPat)) { src->flags |= targFlg; }
 
@@ -2345,7 +2486,9 @@ void selectSource(atom *theAtoms, pattern *srcPat, int srcFlag,
       }
    }
 }
+/*}}}selectSource()__________________________________________________________*/
 
+/*{{{atomsClose()*************************************************************/
 /*atomsClose() only called from findTouchingAtoms() */
 int atomsClose(atom *a, atom *b, float probeRad) 
 {
@@ -2365,16 +2508,23 @@ int atomsClose(atom *a, atom *b, float probeRad)
    }
    return nearpt;
 }
+/*}}}atomsClose()____________________________________________________________*/
 
-int inRange(point3d *p, point3d *q, float lim) {
+/*{{{inRange()****************************************************************/
+int inRange(point3d *p, point3d *q, float lim) 
+{
    return v3distanceSq(p, q) <= (lim*lim);
 }
+/*}}}inRange()_______________________________________________________________*/
 
-float gapSize(point3d *p, point3d *q, float qrad) {
+/*{{{gapSize()****************************************************************/
+float gapSize(point3d *p, point3d *q, float qrad) 
+{
    return v3distance(p, q) - qrad;
 }
+/*}}}gapSize()_______________________________________________________________*/
 
-
+/*{{{findTouchingAtoms()******************************************************/
 /* findTouchingAtoms() - Note: resets bond marks! Returns list of close atoms */
 /*that are in the set of bins here called abins */
 /*in the form of the first atom that is close to the src-atom where */
@@ -2470,20 +2620,24 @@ fprintf(stderr, "f(%c != %c) %s%d %s [%d, %d, %d] <1..%d, 1..%d, 1..%d>\n",
 
    return head;
 }/*findTouchingAtoms*/
+/*}}}findTouchingAtoms()_____________________________________________________*/
 
+/*{{{dotClassIndex()**********************************************************/
 /* dotClassIndex() - maps dot type to class index   */
 /*                   t == 0  --> 0,1 : contact dot  */
 /*                   t <  0  --> 2,3 : bump         */
 /*                   t >  0  --> 4   : hbond        */
-int dotClassIndex(int t, float mingap) {
+int dotClassIndex(int t, float mingap) 
+{
    int idx = 0;
    if      (t == 0) { idx = (mingap > HighGoodCut) ? 0 : 1; } /* contact */
    else if (t  < 0) { idx = (mingap >  LowGoodCut) ? 2 : 3; } /* clash   */
    else             { idx = 4;                              } /* hbonds  */
    return idx;
 }
+/*}}}dotClassIndex()_________________________________________________________*/
 
-/****saveDot() called from examineDots() and from SurfDots() ******************/
+/*{{{saveDot() called from examineDots() and from SurfDots() *****************/
 void saveDot(atom *src, atom *targ, int type, point3d *loc, point3d *spike,
    dotNode *results[][NODEWIDTH], int ovrlaptype, float mingap, char ptmaster) 
 {/*saveDot()*/
@@ -2518,9 +2672,12 @@ void saveDot(atom *src, atom *targ, int type, point3d *loc, point3d *spike,
    } /* otherwise we forget about the dot */
 #endif
 }/*saveDot()*/
+/*}}}saveDot_________________________________________________________________*/
 
+/*{{{newDot()*****************************************************************/
 dotNode* newDot(atom *src, atom* targ, point3d *loc, point3d *spike, 
-          int ovrlaptype, float gap, char masterchr) { /*ptmaster dcr041009*/
+          int ovrlaptype, float gap, char masterchr) 
+{ /*ptmaster dcr041009*/
    dotNode* d = NULL;
 
    d = (dotNode *)malloc(sizeof(dotNode));
@@ -2538,14 +2695,18 @@ dotNode* newDot(atom *src, atom* targ, point3d *loc, point3d *spike,
 
    return d;
 }
+/*}}}newDot()________________________________________________________________*/
 
+/*{{{INRANGEINLINE()**********************************************************/
 #define INRANGEINLINE(a, b, lim) \
 (((((a).x-(b).x)*((a).x-(b).x))+\
   (((a).y-(b).y)*((a).y-(b).y))+\
   (((a).z-(b).z)*((a).z-(b).z))) <= ((lim)*(lim)))
 
   /*returns true when distance-sq between a and b <= limit-sq */ 
+/*}}}INRANGEINLINE()_________________________________________________________*/
 
+/*{{{examineDots()*********** called from genDotIntersect() ******************/
 void examineDots(atom *src, int type, atom *scratch,
 		pointSet dots[], float probeRad,
 		float spikelen, int targFlg, dotNode *results[][NODEWIDTH]) 
@@ -2877,8 +3038,9 @@ void examineDots(atom *src, int type, atom *scratch,
       }/*dot is ok, atom that this dot hits is called cause */
    }/*loop over dots on src dot-ball */
 }/*examineDots()*/
+/*}}}examineDots()___________________________________________________________*/
 
-
+/*{{{markBonds()**************************************************************/
 /*markBonds() decides which atoms are bonded to each other and thus */
 /*decides under what conditions close atoms will NOT be considered to clash*/
 /*this seems to be the only subroutine that uses atom->bondedto information*/
@@ -3093,12 +3255,15 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
 
    }/*for(loop over neighbors)*/
 }/*markBonds*/
+/*}}}markBonds()_____________________________________________________________*/
 
+/*{{{fixupLongBondChains()****************************************************/
 /* fixupLongBondChains() - unmark and remove from the bonded set    */
 /*                         atoms which are more than cutoff bonds   */
 /*                         from the source when neither src or targ */
 /*                         is a hydrogen                            */
-void fixupLongBondChains(atom *src, atom *neighbors, int cutoff) {
+void fixupLongBondChains(atom *src, atom *neighbors, int cutoff) 
+{
    atom *targ = NULL;
 
    if (! isHatom(src->elem)) {
@@ -3109,8 +3274,11 @@ void fixupLongBondChains(atom *src, atom *neighbors, int cutoff) {
       }
    }
 }
+/*}}}fixupLongBondChains()___________________________________________________*/
 
-int dotType(atom *src, atom *atomList, int recalcOnly) {
+/*{{{dotType()****************************************************************/
+int dotType(atom *src, atom *atomList, int recalcOnly) 
+{
    atom *a = NULL;
    int rslt = src->atomclass;
 
@@ -3137,8 +3305,11 @@ int dotType(atom *src, atom *atomList, int recalcOnly) {
 
    return rslt;
 }
+/*}}}dotType()_______________________________________________________________*/
 
-void debugBondingLists(atom *src, atom *neighbors) {
+/*{{{debugBondingLists()******************************************************/
+void debugBondingLists(atom *src, atom *neighbors) 
+{
    atom *targ = NULL;
    int i = 0;
 
@@ -3156,13 +3327,19 @@ void debugBondingLists(atom *src, atom *neighbors) {
    }
    fprintf(stdout, "\n");
 }
+/*}}}debugBondingLists()_____________________________________________________*/
 
+/*{{{genDotIntersect()*** called from doCommand() *** calls examineDots() ****/
 /*genDotIntersect() called from doCommand during processing of modes: */
 /*once with srcFlag==1, targFlag==2 in modes SELFINTERSECT,INTERSECTONCE, */
 /*and twice from INTERSECTBOTHWAYS first with srcFlag,targFlag == 1,2 then 2,1*/
 /*autobondrot static atoms are allMainAtoms with abin bins*/
 /* mobile atoms are allMovingAtoms with bbins bins*/
 
+/* NOTE: allMainAtoms/abins & allMovingAtoms/bbins must be disjoint */
+/*       sets of atoms (none in common) or allMovingAtoms/bbins can */
+/*       be NULL.                                                   */
+/*       allMovingAtoms refers to autobondrot set of atoms          */
 
 void genDotIntersect(atom *allMainAtoms, atomBins *abins,
 			atom *allMovingAtoms, atomBins *bbins,
@@ -3249,13 +3426,21 @@ void genDotIntersect(atom *allMainAtoms, atomBins *abins,
       }/*for: loop over allMovingAtoms taking each in turn as the src-atom*/
    }/*if: usesMovingAtoms==autobondrot*/
 }/*genDotIntersect()*/
+/*}}}genDotIntersect()_______________________________________________________*/
 
-/****genDotSurface() only called when method == EXTERNALSURFACE **************/
+/*{{{genDotSurface() only called when method == EXTERNALSURFACE **************/
+
+/* NOTE: allMainAtoms/abins & allMovingAtoms/bbins must be disjoint */
+/*       sets of atoms (none in common) or allMovingAtoms/bbins can */
+/*       be NULL.                                                   */
+/*       allMovingAtoms refers to autobondrot set of atoms          */
+
 void genDotSurface(atom *allMainAtoms, atomBins *abins,
 			atom *allMovingAtoms, atomBins *bbins,
 			pointSet dots[],
 			float probeRad, float spikelen, int srcFlag,
-			dotNode *results[][NODEWIDTH]) {
+			dotNode *results[][NODEWIDTH]) 
+{
    atom *src = NULL, *atomList = NULL, *atomList2 = NULL;
    int type = 0, usesMovingAtoms = FALSE;
    int dummy = TRUE;
@@ -3310,10 +3495,12 @@ void genDotSurface(atom *allMainAtoms, atomBins *abins,
       }
    }
 }
+/*}}}genDotIntersect()_______________________________________________________*/
 
-/****surfDots() only called from genDotSurface(), method == EXTERNALSURFACE ***/
+/*{{{surfDots() only called from genDotSurface(), method == EXTERNALSURFACE **/
 void surfDots(atom *src, int type, atom *scratch, pointSet dots[],
-		float probeRad, float spikelen, dotNode *results[][NODEWIDTH]) {
+		float probeRad, float spikelen, dotNode *results[][NODEWIDTH]) 
+{
    atom *targ;
    int i, nearpt, ok;
    point3d dotloc, dotvect, exploc, spikeloc;
@@ -3379,8 +3566,11 @@ void surfDots(atom *src, int type, atom *scratch, pointSet dots[],
       }
    }
 }/*surfDots()*/
+/*}}}genDotIntersect()_______________________________________________________*/
 
-void initResults(dotNode *results[][NODEWIDTH]) {
+/*{{{initResults()************************************************************/
+void initResults(dotNode *results[][NODEWIDTH]) 
+{
    int i, j;
 
    for (i = 0; i < NUMATOMTYPES; i++) {
@@ -3389,7 +3579,11 @@ void initResults(dotNode *results[][NODEWIDTH]) {
       }
    }
 }
-void freeResults(dotNode *results[][NODEWIDTH]) {
+/*}}}initResults()___________________________________________________________*/
+
+/*{{{freeResults()************************************************************/
+void freeResults(dotNode *results[][NODEWIDTH]) 
+{
    int i, j;
    dotNode *node, *next;
 
@@ -3403,8 +3597,11 @@ void freeResults(dotNode *results[][NODEWIDTH]) {
       }
    }
 }
+/*}}}freeResults()___________________________________________________________*/
 
-char* assignGapColorForKin(float gap, int class) {
+/*{{{assignGapColorForKin()***************************************************/
+char* assignGapColorForKin(float gap, int class) 
+{
    char *colorValue = "";
    if (class == 4)     { colorValue = "greentint "; } /* hbond */
    else if (gap > 0.35){ colorValue = "blue ";      }
@@ -3418,8 +3615,11 @@ char* assignGapColorForKin(float gap, int class) {
    else                { colorValue = "hotpink ";   }
    return colorValue;
 }
+/*}}}assignGapColorForKin()__________________________________________________*/
 
-char* assignGapColorForO(float gap, int class) {
+/*{{{assignGapColorForO()*****************************************************/
+char* assignGapColorForO(float gap, int class) 
+{
    char *colorValue = "";
    if (class == 4)     { colorValue = "pale_green ";      } /* hbond */
    else if (gap > 0.35){ colorValue = "cornflower_blue "; }
@@ -3433,11 +3633,18 @@ char* assignGapColorForO(float gap, int class) {
    else                { colorValue = "orange_red ";      }
    return colorValue;
 }
+/*}}}assignGapColorForO()____________________________________________________*/
 
-char* assignGapColorForXV(float gap, int class) {
+/*{{{assignGapColorForXV()****************************************************/
+char* assignGapColorForXV(float gap, int class) 
+{
    return assignGapColorForKin(gap, class);
 }
-char* convertKinColorToO(char* incolor) {
+/*}}}assignGapColorForXV()___________________________________________________*/
+
+/*{{{convertKinColorToO()*****************************************************/
+char* convertKinColorToO(char* incolor) 
+{
    char *outcolor = "light_gray";
         if (strcmp(incolor, "red"       ) == 0) { outcolor = "red";             }
    else if (strcmp(incolor, "green"     ) == 0) { outcolor = "green";           }
@@ -3464,22 +3671,44 @@ char* convertKinColorToO(char* incolor) {
    else                                         { outcolor = "light_gray";      }
    return outcolor;
 }
-char* convertKinColorToXV(char* incolor) {
+/*}}}convertKinColorToO()____________________________________________________*/
+
+/*{{{convertKinColorToXV()****************************************************/
+char* convertKinColorToXV(char* incolor) 
+{
    return incolor;
 }
+/*}}}convertKinColorToXV()___________________________________________________*/
 
-void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int spike, int method) /*dcr041020 need method for better kinemage keywords*/
+/*{{{writeOutput()************************************************************/
+void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int spike, int method, char* extrastr)
 { /*writeOutput for kinemage*/
+   /*dcr041020 need method for better kinemage keywords*/
+   /* 060129 extrastr for extra master to control orig vs fitted dots */
    int i, j;
    dotNode *node;
    atom *a;
    char *color = "";
-   char *mast[NODEWIDTH] = {"wide contact", "close contact", "small overlap", "bad overlap", "H-bonds"};
+   char *mast[NODEWIDTH] = {"wide  contact", "close contact", "small overlap", "bad overlap", "H-bonds"};
    char *surfacestr = "surface"; /*041020*/
+   char *contactstr = "vdw contact"; /*060129*/
+   char extraMstr[32]; /*fill below with extra master name 060129*/
    char pointid[100], lastpointid[100];
-   char ptmast[6]={'\0','\0','\0','\0','\0','\0'}; /*dcr041009 string to hold 'M' or 'O'*/
+   char ptmast[6]={'\0','\0','\0','\0','\0','\0'}; 
+   /*dcr041009 string to hold 'M' (McMc), 'S' (ScSc), 'P' (McSc), 'O' (other)*/
    /*dcr041009 ptmaster part of each dotNode member of results[][]*/
    char masterchr=' '; /*dcr041017*/
+
+   if(LMergeContacts)  /*060129*/
+   {
+      mast[0] = contactstr;
+      mast[1] = contactstr;
+   }
+   if(LMasterName)  /*060129*/
+   {
+      sprintf(extraMstr," master={%s}",extrastr);
+   }
+   else{extraMstr[0] = '\0';} /*occupies no space in output*/
 
    fprintf(outf, "@subgroup dominant {%s}\n", groupname);
    /*list masters for contact types dcr041020*/
@@ -3492,6 +3721,7 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
    {/*fine control over masters names   dcr041020*/
       if (OutputVDWs && !OnlyBadOut) { /*dcr041010*/
          fprintf(outf, "@master {%s}\n", mast[0]);
+        if(!LMergeContacts)
          fprintf(outf, "@master {%s}\n", mast[1]);
       }
       if (OutputClashes || OnlyBadOut) { /*dcr041010*/
@@ -3531,39 +3761,39 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
 	    if (j == 0 || j == 1) {/* contact */
 	       if (AtomMasters) {
 	          fprintf(outf,
-		  "@dotlist {x} color=%s master={%s dots} master={%s}%s\n",
-		     getColor(i), getAtomName(i), mast[j],
+		  "@dotlist {x} color=%s master={%s dots} master={%s}%s%s\n",
+		     getColor(i), getAtomName(i), mast[j],extraMstr,
 		     LensDots ? " lens" : "");
 	       }
 	       else {
 	          fprintf(outf,
-		  "@dotlist {x} color=%s master={%s}%s\n",
-		     getColor(i), mast[j],
+		  "@dotlist {x} color=%s master={%s}%s%s\n",
+		     getColor(i), mast[j],extraMstr,
 		     LensDots ? " lens" : "");
 	       }
 	    }
 	    else if ((j == 2 || j == 3) && spike) {/* bump w/ spike */
 	       if (AtomMasters) {
 	          fprintf(outf,
-		  "@vectorlist {x} color=%s master={%s dots} master={%s}\n",
-		     getColor(i), getAtomName(i), mast[j]);
+		  "@vectorlist {x} color=%s master={%s dots} master={%s}%s\n",
+		     getColor(i), getAtomName(i), mast[j],extraMstr);
 	       }
 	       else {
 	          fprintf(outf,
-		  "@vectorlist {x} color=%s master={%s}\n",
-		     getColor(i), mast[j]);
+		  "@vectorlist {x} color=%s master={%s}%s\n",
+		     getColor(i), mast[j],extraMstr);
 	       }
 	    }
 	    else {/* bump w/o spike or H-bond */
 	       if (AtomMasters) {
 	          fprintf(outf,
-		  "@dotlist {x} color=%s master={%s dots} master={%s}\n",
-		     getColor(i), getAtomName(i), mast[j]);
+		  "@dotlist {x} color=%s master={%s dots} master={%s}%s\n",
+		     getColor(i), getAtomName(i), mast[j],extraMstr);
 	       }
 	       else {
 	          fprintf(outf,
-		  "@dotlist {x} color=%s master={%s}\n",
-		     getColor(i), mast[j]);
+		  "@dotlist {x} color=%s master={%s}%s\n",
+		     getColor(i), mast[j],extraMstr);
 	       }
 	    }
 	    lastpointid[0] = '\0'; /* reset */
@@ -3618,9 +3848,12 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
       }/*j: wide contact, close contact, small overlap, bad overlap, H-bonds*/
    }/*i: Hatom varients + rest of periodic table + base types, see atomprops.h*/
 }/*writeOutput for kinemage*/
+/*}}}writeOutput()___________________________________________________________*/
 
+/*{{{writeAltFmtO()***********************************************************/
 void writeAltFmtO(FILE *outf, int showBegin, int showEnd,
-      char* groupname, dotNode *results[][NODEWIDTH], int spike) {
+      char* groupname, dotNode *results[][NODEWIDTH], int spike) 
+{
    int i, j, numGroups, gn;
    dotNode *node;
    char *color = "", *prevColor = "";
@@ -3677,8 +3910,12 @@ void writeAltFmtO(FILE *outf, int showBegin, int showEnd,
       fprintf(outf, "end_object\n");
    }
 }
+/*}}}writeAltFmtO()__________________________________________________________*/
+
+/*{{{writeAltFmtXV()**********************************************************/
 void writeAltFmtXV(FILE *outf, int showBegin, int showEnd,
-      char* groupname, dotNode *results[][NODEWIDTH], int spike) {
+      char* groupname, dotNode *results[][NODEWIDTH], int spike) 
+{
    int i, j;
    dotNode *node;
    char *color = "";
@@ -3725,8 +3962,11 @@ void writeAltFmtXV(FILE *outf, int showBegin, int showEnd,
    }
    else              { fprintf(outf, "#  endgroup: %s\n", groupname); }
 }
+/*}}}writeAltFmtXV()_________________________________________________________*/
 
-float dot2bullsEye(point3d *dot, atom *src, atom *targ) {
+/*{{{dot2bullsEye()***********************************************************/
+float dot2bullsEye(point3d *dot, atom *src, atom *targ) 
+{
         point3d targ2srcVec, targSurfacePoint;
 
         v3sub(&(src->loc), &(targ->loc), &targ2srcVec);
@@ -3734,7 +3974,11 @@ float dot2bullsEye(point3d *dot, atom *src, atom *targ) {
         v3add(&targ2srcVec, &(targ->loc), &targSurfacePoint);
  	return v3distance(dot, &targSurfacePoint);
 }
-float dot2srcCenter(point3d *dot, atom *src, atom *targ) {
+/*}}}dot2bullsEye()__________________________________________________________*/
+
+/*{{{dot2srcCenter()**********************************************************/
+float dot2srcCenter(point3d *dot, atom *src, atom *targ) 
+{
         point3d src2targVec, srcSurfacePoint;
 
         v3sub(&(targ->loc), &(src->loc), &src2targVec);
@@ -3742,13 +3986,19 @@ float dot2srcCenter(point3d *dot, atom *src, atom *targ) {
         v3add(&src2targVec, &(src->loc), &srcSurfacePoint);
  	return v3distance(dot, &srcSurfacePoint);
 }
+/*}}}dot2srcCenter()_________________________________________________________*/
 
-float kissEdge2bullsEye(float ra, float rb, float rp) {
+/*{{{kissEdge2bullsEye()******************************************************/
+float kissEdge2bullsEye(float ra, float rb, float rp) 
+{
  	return 2.0*ra*sqrt(rb*rp/((ra+rb)*(ra+rp)));
 }
+/*}}}kissEdge2bullsEye()_____________________________________________________*/
 
+/*{{{writeRaw()***************************************************************/
 void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
-	       float probeRad, char* label, float density) {
+	       float probeRad, char* label, float density) 
+{
    int i, j;
    dotNode *node;
    atom *a, *t;
@@ -3817,11 +4067,14 @@ void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
       }
    }
 }
+/*}}}writeRaw()______________________________________________________________*/
 
+/*{{{enumerate()**************************************************************/
 void enumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
                float probeRad, int method,
 	       int nsel, int spike, int outdots, int numSkinDots,
-	       float density) {
+	       float density) 
+{
    int i, j, doit;
    float gs, hs, bs, hslen, bslen, tgs, ths, tbs, thslen, tbslen, psas, tsas;
    float dtgp, score, tGscore, tHscore, tBscore, tscore, scoreValue, a_radius;
@@ -3957,7 +4210,9 @@ void enumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
       }
    }
 }
+/*}}}enumerate()_____________________________________________________________*/
 
+/*{{{rawEnumerate()***********************************************************/
 void rawEnumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
                int method, int nsel, int spike, int outdots, int numSkinDots,
 	       float density, char *namestring, char *rawname, double scoreBias)
@@ -4060,8 +4315,11 @@ void rawEnumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
    /* contains the autobondrot angle values in the order in which processed*/
 
 }/*rawEnumerate*/
+/*}}}rawEnumerate()__________________________________________________________*/
 
-int countSelected(atom *theAtoms, int srcFlag) {
+/*{{{countSelected()**********************************************************/
+int countSelected(atom *theAtoms, int srcFlag) 
+{
    atom *a = NULL;
    int ns = 0;
    for(a = theAtoms; a; a = a->next) {
@@ -4069,10 +4327,19 @@ int countSelected(atom *theAtoms, int srcFlag) {
    }
    return ns;
 }
+/*}}}countSelected()_________________________________________________________*/
+
+/*{{{enumDotSkin()************************************************************/
+
+/* NOTE: allMainAtoms/abins & allMovingAtoms/bbins must be disjoint */
+/*       sets of atoms (none in common) or allMovingAtoms/bbins can */
+/*       be NULL.                                                   */
+/*       allMovingAtoms refers to autobondrot set of atoms          */
 
 int enumDotSkin(atom *allMainAtoms, atomBins *abins,
 	    atom *allMovingAtoms, atomBins *bbins,
-	    pointSet dots[], int srcFlag) {
+	    pointSet dots[], int srcFlag) 
+{
    atom *src = NULL, *atomList = NULL, *atomList2 = NULL;
    int dotTotal = 0, usesMovingAtoms = FALSE;
    int dummy = TRUE;
@@ -4124,8 +4391,11 @@ int enumDotSkin(atom *allMainAtoms, atomBins *abins,
    }
    return dotTotal;
 }
+/*}}}enumDotSkin()___________________________________________________________*/
 
-int countSkin(atom *src, atom *scratch, pointSet dots[]) {
+/*{{{countSkin()**************************************************************/
+int countSkin(atom *src, atom *scratch, pointSet dots[]) 
+{
    atom *targ = NULL;
    int i = 0, within = 0, ok = 0;
    point3d dotloc, dotvect;
@@ -4169,12 +4439,19 @@ int countSkin(atom *src, atom *scratch, pointSet dots[]) {
    }
    return dotCnt;
 }
+/*}}}countSkin()_____________________________________________________________*/
 
+/*{{{updateHydrogenInfo()*****************************************************/
 /* Make polor hydrogens HB donors.                                  */
 /* Waters without hydrogens are protonated with "phantoms".         */
 /* If we are using moving atoms, all the new water H atoms go there */
 
 /* can return a list of new atom "clones" which are just the MainAtoms waters */
+
+/* NOTE: allMainAtoms/abins & allMovingAtoms/bbins must be disjoint */
+/*       sets of atoms (none in common) or allMovingAtoms/bbins can */
+/*       be NULL.                                                   */
+/*       allMovingAtoms refers to autobondrot set of atoms          */
 
 /*usual call: (i.e. NOT autobondrot) 
       updateHydrogenInfo(outf,         allMainAtoms,        abins,
@@ -4183,7 +4460,8 @@ int countSkin(atom *src, atom *scratch, pointSet dots[]) {
 */
 atom* updateHydrogenInfo(FILE *outf, atom *allMainAtoms,   atomBins *abins,
 				    atom *allMovingAtoms, atomBins *bbins,
-				    int selectedFlag, int mustSaveMainWater) {
+				    int selectedFlag, int mustSaveMainWater) 
+{
    atom *src = NULL, *orig = NULL, *atomList = NULL, *a = NULL;
    atom *newH = NULL, *tempStaticList = NULL, *mainWaterStorage = NULL;
    int type = 0, newHcount = 0, i = 0, whichList = 0;
@@ -4439,8 +4717,11 @@ fprintf(stderr,
    }
    return mainWaterStorage;
 }/*updateHydrogenInfo*/
+/*}}}updateHydrogenInfo()____________________________________________________*/
 
-void dump_changes(FILE *outf) {
+/*{{{dump_changes()***********************************************************/
+void dump_changes(FILE *outf) 
+{
 fprintf(outf, "Probe change log:\n");
 fprintf(outf, "\n");
 fprintf(outf, "Note: Not captured prior to Aug 1998.\n");
@@ -4559,11 +4840,16 @@ fprintf(outf,"041114 more fussing with NMR models\n");
 fprintf(outf,"050111,17,18,19 flow, esp. autobondrot, annotations...\n");
 fprintf(outf,"050119 very low occ atoms have presence but not show contacts\n");
 fprintf(outf,"050121 remove -nomodeltest stuff, mage now sends model # \n");
+fprintf(outf,"060129 jEdit type fold-comments on each subroutine \n");
+fprintf(outf,"  single vdw contact button replaces both wide and small \n");
+fprintf(outf,"  -mastername flags extra master={name} (default: dots)\n");
 
 exit(0);
 
 }/*dump_changes()*/
+/*}}}dump_changes()__________________________________________________________*/
 
+/*{{{countsummary()***********************************************************/
 /*
 filename: mcmc wide: mcmc close : mcmc small : mcmc bad: mcmc h- bond: 
 mcmc sum: scsc wide: scsc close: scsc small: scsc bad: scsc h-bond: 
@@ -4572,7 +4858,7 @@ mcsc sum: other wide: other close: other small: other bad: other
 h-bond: other sum: wide sum: close sum: small sum: bad sum: h-bond 
 sum: 
 */
-/****countsummary()***********************************************************/
+
 void countsummary(FILE *outf, char* modestr, int Lines, int Pass) /*dcr041101*/
 {
    char message[200];
@@ -4699,5 +4985,4 @@ void countsummary(FILE *outf, char* modestr, int Lines, int Pass) /*dcr041101*/
   }
  }/*output*/
 }
-/*___countsummary()___________________________________________________________*/
-
+/*}}}countsummary()__________________________________________________________*/

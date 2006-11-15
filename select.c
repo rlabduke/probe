@@ -1,3 +1,4 @@
+/*{{{select.c general comments                                               */
 /* name: select.c                                */
 /* author: J. Michael Word                       */
 /* date written: 2/20/96                         */
@@ -12,13 +13,20 @@
 /*               ** Absolutely no Warranty **                    */
 /* Copyright (C) 1999 J. Michael Word                            */
 /*****************************************************************/
+/*}}}select.c general comments  */
 
+/*{{{--includes                                                              */
 #include "select.h"
 #include "atomprops.h"
 #include "stdconntable.h"
 #include "utility.h"
+
+/*}}}--includes  */
+
+/*{{{getPat() ****************************************************************/
 /*select.h includes parse.h, so why is getPat here instead of in parse.c ? */
-pattern* getPat(char *line, char *which, int verbose) {
+pattern* getPat(char *line, char *which, int verbose) 
+{
    pattern *pat;
 
    if (!line) return NULL;
@@ -32,7 +40,11 @@ pattern* getPat(char *line, char *which, int verbose) {
 	
    return pat;
 }
+/*}}}getPat() _______________________________________________________________*/
 
+/*{{{declarations ...           globals                                      */
+
+/*{{{AromaticAtomsTbl[]      ***/
 static ResidueAndAtomPair AromaticAtomsTbl[] = {
 ":PHE:", ": HD1: HD2: HE1: HE2: HZ : DD1: DD2: DE1: DE2: DZ :", 0,
 ":HIS:", ": HD1: HD2: HE1: HE2: DD1: DD2: DE1: DE2:",           0,
@@ -66,20 +78,27 @@ static ResidueAndAtomPair AromaticAtomsTbl[] = {
 ":HEM:", ": N A: C1A: C2A: C3A: C4A: N B: C1B: C2B: C3B: C4B:", TEST_ACCEPT_ANGLE_PROP,
 ":HEM:", ": N C: C1C: C2C: C3C: C4C: N D: C1D: C2D: C3D: C4D:", TEST_ACCEPT_ANGLE_PROP,
 0, 0, 0};
-
+/*}}}AromaticAtomsTbl[] ___________________________________________*/
+/*{{{AAList                  ***/
 static char *AAList = ":GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:\
 SER:THR:TYR:HIS:CYS:ASN:GLN:TRP:ASX:GLX:ACE:FOR:NH2:NME:MSE:AIB:ABU:PCA:";
-
+/*}}}AAList  */
+/*{{{HphobicAAList           ***/
 static char *HphobicAAList = ":ALA:VAL:PHE:MET:ILE:LEU:TYR:CYS:TRP:MSE:AIB:ABU:";
+/*}}}HphobicAAList */
+/*{{{HphilicAAList           ***/
 static char *HphilicAAList = ":SER:THR:ASN:GLN:";
-
+/*}}}HphilicAAList */
+/*{{{AromaticAAList          ***/
 static char *AromaticAAList = ":PHE:HIS:TYR:TRP:HEM:";
-
+/*}}}AromaticAAList */
+/*{{{NAList                  ***/
 static char *NAList = ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:\
 CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:\
 GSP:H2U:PSU:1MG:2MG:M2G:7MG:5MC:5MU:T6A:1MA:RIA:\
 OMC:OMG: YG:  I:";
-
+/*}}}NAList */
+/*{{{NAbackboneList          ***/
 static char *NAbackboneList = ": P  : O1P: O2P: PA : PB : PG :\
 : O1A: O2A: O3A: O1B: O2B: O3B: O1G: O2G: O3G: S1G:\
 : O5*: C5*: C4*: O4*: C3*: O3*: C2*: O2*: C1*:\
@@ -88,7 +107,8 @@ static char *NAbackboneList = ": P  : O1P: O2P: PA : PB : PG :\
 :2H5*:*H51:*H52:H5'': H5':1H2*:2H2*:\
 : H2*:H2'':2HO*:*HO2: H2': H3T: H5T:\
 :3HO*:*HO3:5HO*:*HO5:";
-
+/*}}}NAbackboneList */
+/*{{{NAbaseGrouping[]         **/
 /* used to treat similar nucleic acid bases similarly */
 static ResidueAndAtomPair NAbaseGrouping[] = {
 ":  U:URA:UTP:UDP:UMP:  T:THY:TTP:TDP:TMP:5MU:",     "", baseTU,
@@ -97,12 +117,14 @@ static ResidueAndAtomPair NAbaseGrouping[] = {
 ":  G:GUA:GTP:GDP:GMP:GSP:1MG:2MG:M2G:7MG:OMG:",     "", baseG,
 ":  I: YG:H2U:PSU:",                                 "", baseOther,
 0, 0, 0};
-
+/*}}}NAbaseGrouping[] */
+/*{{{MethylResList           ***/
 /* for identifying methyl groups */
 static char *MethylResList =
 ":THR:ALA:MET:LEU:VAL:ILE:  T:THY:AIB:ABU:ACE:MSE:NME:HEM:\
  :OMG:OMC:1MA:1MG:2MG:M2G:5MU:5MC:7MG: YG:T6A:";
-
+ /*}}}MethylResList */
+ /*{{{MethylAtomsTbl[]       ***/
 static ResidueAndAtomPair MethylAtomsTbl[] = { /* including xplor names */
 ":THR:", ": CG2:1HG2:2HG2:3HG2:HG21:HG22:HG23:",      0,
 ":ALA:", ": CB :1HB :2HB :3HB : HB1: HB2: HB3:",      0,
@@ -141,10 +163,12 @@ static ResidueAndAtomPair MethylAtomsTbl[] = { /* including xplor names */
           : C24:1H24:2H24:3H24:H242:H242:H243:", 0,
 ":T6A:", ": C15:1H15:2H15:3H15:H152:H152:H153:", 0,
 0, 0, 0};
-
+/*}}}MethylAtomsTbl[] */
+/*{{{ChargedAAList           ***/
 /* for computing charge state (currently treating HIS as charged) */
 static char *ChargedAAList = ":ASP:GLU:LYS:ARG:HIS:HEM:";
-
+/*}}}ChargedAAList */
+/*{{{ChargedAAAtomsTbl[]     ***/
 static ResidueAndAtomPair ChargedAAAtomsTbl[] = {
 ":ASP:", ": OD1: OD2:",                              NEGATIVE_PROP,
 ":GLU:", ": OE1: OE2:",                              NEGATIVE_PROP,
@@ -158,20 +182,24 @@ static ResidueAndAtomPair ChargedAAAtomsTbl[] = {
           : CG : CD2: CE1:",                         POSITIVE_PROP,
 ":HEM:", ": O1A: O2A: O1D: O2D:",                    NEGATIVE_PROP,
 0, 0, 0};
-
+/*}}}ChargedAAAtomsTbl[] */
+/*{{{AlwaysChargedAtomsList  ***/
 static char *AlwaysChargedAtomsList =
 ":1H  :2H  :3H  :1D  :2D  :3D  : HT1: HT2: HT3: DT1: DT2: DT3:\
  : NT : OXT:1OXT:2OXT:";
-
+ /*}}}AlwaysChargedAtomsList */
+ /*{{{AmbigChargedAtomsList  ***/
 static char *AmbigChargedAtomsList = ": O  : N  :";
-
+/*}}}AmbigChargedAtomsList */
+/*{{{ChargedNucAcidAtomsList ***/
 static char *ChargedNucAcidAtomsList = ": P  : O1P: O2P:\
  PA : PB : PG : O1A: O2A: O3A: O1B: O2B: O3B: O1G: O2G: O3G:\
  S1G:";
-
-
+ /*}}}ChargedNucAcidAtomsList */
+ /*{{{WaterList              ***/
 static char *WaterList = ":HOH:DOD:H2O:D2O:WAT:TIP:SOL:MTO:";
-
+/*}}}WaterList */
+/*{{{DonorAcceptorAtomTbl[]  ***/
 static ResidueAndAtomPair DonorAcceptorAtomTbl[] = {
 ":GLY:ALA:VAL:PHE:PRO:MET:ILE:LEU:ASP:GLU:LYS:ARG:\
  :SER:THR:TYR:HIS:CYS:ASN:GLN:TRP:ASX:GLX:NH2:NME:MSE:AIB:ABU:PCA:",
@@ -285,7 +313,10 @@ static ResidueAndAtomPair DonorAcceptorAtomTbl[] = {
 /* also, the aromatic heavy atoms are considered H bond acceptors (see setAromaticProp) */
 
 0, 0, 0};
+/*}}}DonorAcceptorAtomTbl[] */
+/*}}}declarations */
 
+/*{{{naBaseCategory() ********************************************************/
 /* used to assign a category to atoms to allow coloring */
 /* dots by base rather than atom type */
 /* naBaseCategory() must be called after setProperties() */
@@ -306,7 +337,9 @@ int naBaseCategory(atom *a) {
    }
    else return nonBase; /* backbone or not recognized as a nucleic acid */
 }
+/*}}}naBaseCategory() _______________________________________________________*/
 
+/*{{{setAromaticProp() *******************************************************/
 /* hunt for aromatic atoms and set AROMATIC property & atomHarom */
 
 void setAromaticProp(atom *a) {
@@ -325,7 +358,9 @@ void setAromaticProp(atom *a) {
       }
    }
 }
+/*}}}setAromaticProp() ______________________________________________________*/
 
+/*{{{setMethylProp() *********************************************************/
 /* hunt for Methyl atoms and set METHYL property */
 
 void setMethylProp(atom *a) {
@@ -341,18 +376,29 @@ void setMethylProp(atom *a) {
       }
    }
 }
+/*}}}setMethylProp()_________________________________________________________*/
 
+/*{{{isCarbonylAtom() ********************************************************/
 int isCarbonylAtom(atom *a) { /* limitation: this will not handle het groups properly */
    return (strstr(AAList, a->r->resname) && (!strcmp(a->atomname,  " C  ")))
    ||((strstr(":ASP:ASN:ASX:",a->r->resname))&&(strstr(": CG :",a->atomname)))
    ||((strstr(":GLU:GLN:GLX:",a->r->resname))&&(strstr(": CD :",a->atomname)));
 }
+/*}}}isCarbonylAtom() _______________________________________________________*/
 
+/*{{{setProperties() *********************************************************/
 /* set property flags for this atom and return T/F as an indicator     */
 /*        that this atom is important in figuring out if N and O atoms */
 /*        are in the N or C terminus                                   */
 /* later functions can look through a list of these atoms to see if    */
 /* atoms marked MAYBECHG_PROP are in a terminal residue                */
+
+/*060212 Properties as specified in current pdb-format files, */
+/*are not logically complete.  HETATM records and residue names that are*/
+/*known valid protein or nucleic acid names can occur both in regions that */
+/*are protein/nucleic chain and regions that are het-chains */
+/*   The only way to beat this is to accummulate evidence of the type of */
+/*region as atoms are read in, then set a new and different flag for region*/
 
 void setProperties(atom *a, int hetflag, int hb2aromaticFace, int chohb) {
    char *s;
@@ -516,12 +562,18 @@ void setProperties(atom *a, int hetflag, int hb2aromaticFace, int chohb) {
    }
 
 }/*setProperties*/
+/*}}}setProperties() ________________________________________________________*/
 
-int matchPat(atom *a, pattern *pat) {
+/*{{{matchPat() ************* only called from probe.c/selectSource() ********/
+/* recursive at OR,AND,NOT nodes; TRUE,FALSE nodes allow those logic choices*/
+int matchPat(atom *a, pattern *pat) 
+{
   int lp, rc = FALSE;
 
-  if (pat) {
-   switch(pat->type) {
+  if (pat) 
+  {
+   switch(pat->type) 
+   {
    case     OR_NODE: rc = matchPat(a, pat->lhs) ?
 			   TRUE : matchPat(a, pat->rhs); break;
    case    AND_NODE: rc = matchPat(a, pat->lhs) ?
@@ -567,11 +619,13 @@ int matchPat(atom *a, pattern *pat) {
          sprintf(msg, "unknown pattern type: %d", pat->type);
          halt(msg);
       }
-   }
+   }/*switch*/
   }
   return rc;
 }
+/*}}}matchPat() _____________________________________________________________*/
 
+/*{{{atomWithinDistance() ****************************************************/
 /* is the atom within the specified distance from the given point? */
 int atomWithinDistance(atom *a, float *fvec) {
    double dx = a->loc.x - fvec[1];
@@ -579,7 +633,9 @@ int atomWithinDistance(atom *a, float *fvec) {
    double dz = a->loc.z - fvec[3];
    return ((dx*dx)+(dy*dy)+(dz*dz)) < (fvec[0]*fvec[0]);
 }
+/*}}}atomWithinDistance() ___________________________________________________*/
 
+/*{{{setHydrogenParentName() *************************************************/
 /* Set the parent atom name for a hydrogen     */
 /* if can be determined from the hydrogen name.*/
 /* These parent names are used when a hydrogen */
@@ -590,7 +646,9 @@ char * setHydrogenParentName(char *rname, char *aname) {
 
    return searchForStdBondingPartner(rname, aname, TRUE);
 }
+/*}}}setHydrogenParentName() ________________________________________________*/
 
+/*{{{setMainchainBonding() ***************************************************/
 /* For heavy atoms, set the name of atoms which would bond with */
 /* in standard residues.                                        */
 /* This is used only when the -STDBOND flag                     */
@@ -600,3 +658,4 @@ char * setMainchainBonding(char *rname, char *aname) {
 
    return searchForStdBondingPartner(rname, aname, FALSE);
 }
+/*}}}setMainchainBonding() __________________________________________________*/
