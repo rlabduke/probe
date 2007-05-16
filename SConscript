@@ -8,7 +8,7 @@ env = env_base.Copy(
 )
 
 exe = env.Program(
-  target=["#exe/probe"],
+  target=["#probe/exe/probe"],
   source=[
     "probe.c",
     "dots.c",
@@ -21,6 +21,3 @@ exe = env.Program(
     "atomprops.c",
     "stdconntable.c",
     "autobondrot.c"])
-libtbx.env.write_dispatcher_in_bin(
-  source_file=exe[0].get_abspath(),
-  target_file="probe")
