@@ -15,6 +15,21 @@
 #ifndef ATOMPROPS_H
 #define ATOMPROPS_H 1
 
+#define HE_RESNAMES \
+ "currently there are none RMI 070711"
+
+#define HF_RESNAMES \
+ ":PHF:HF3:HF5:"
+
+#define HG_RESNAMES \
+ ": HG:HG2:HGB:HGC:HGI:MAC:MBO:MMC:PHG:PMB:AAS:AMS:BE7:CMH:EMC:EMT:"
+
+#define HO_RESNAMES \
+ ": HO:HO3:"
+
+#define HS_RESNAMES \
+ "currently there are none RMI 070711"
+
 typedef struct atomProp_t {
    int    type;  /* atom identifier         */
    int    atno;  /* atomic number           */
@@ -27,7 +42,8 @@ typedef struct atomProp_t {
 } atomProp;
 
 void initalizeAtomTbl(void);
-int identifyAtom(char* name, int Verbose); /*dcr041007 allow warning choice*/
+int fixAtomName(const char* atomname, char resname[], int position); /*rmi070719 add resname info to identifyAtom*/
+int identifyAtom(char* name, char resname[], int Verbose); /*dcr041007 allow warning choice*/
 
 int   getAtno(int a);
 char* getAtomName(int a);
