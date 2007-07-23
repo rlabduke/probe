@@ -2411,12 +2411,12 @@ atom * newAtom(char *rec, int file, int model, residue * resDataBuf)
       a->binSerialNum = '?'; /* set when we bin */
       if (strstr(":ASX:GLX:ASN:GLN:", a->r->resname) /* special case treats undecided */
       && (a->atomname[1] == 'A')) {             /* as an oxygen */
-	 a->elem = identifyAtom(" O  ",Verbose); /*dcr041007 allow warning*/
+	 a->elem = identifyAtom(" O  ", a->r->resname, Verbose); /*dcr041007 allow warning  add resname to call rmi070719*/
 	 sprintf(msg, "atom %s will be treated as oxygen", a->atomname);
 	 warn(msg);
       }
       else { /* normal case */
-	 a->elem = identifyAtom(a->atomname,Verbose);/*dcr041007 allow warning*/
+	 a->elem = identifyAtom(a->atomname, a->r->resname, Verbose);/*dcr041007 allow warning  add resname to call rmi070719*/
       }
 
       /*next section seems to be the only place where atom->bondedto is set.*/
