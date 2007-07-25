@@ -264,9 +264,9 @@ static ResidueAndAtomPair DonorAcceptorAtomTbl[] = {
 ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:\
  :CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:GSP:\
  :H2U:PSU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I: DA: DT: DC: DG: DI:",
-  ":2HO*:3HO*:5HO*: H3': H3T: H5T:HO3':HO5':\
-   :2DO*:3DO*:5DO*: D3': D3T: D5T:DO3':DO5':",
-//  ":2HO*:3HO*:5HO*: H2': H3': H5': H3T: H5T:HO3':HO5':\  RMI removed H2' and H5' 070723
+  ":2HO*:3HO*:5HO*: H3T: H5T:HO3':HO5':\
+   :2DO*:3DO*:5DO*: D3T: D5T:DO3':DO5':",
+//  ":2HO*:3HO*:5HO*: H2': H3': H5': H3T: H5T:HO3':HO5':\  RMI removed H2', H3' and H5' 070723
 //   :2DO*:3DO*:5DO*: D2': D3': D5': D3T: D5T:DO3':DO5':",
                                                          DONOR_PROP,
 ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:\
