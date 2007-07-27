@@ -16,6 +16,9 @@
 /* Copyright (C) 1996-2004 J. Michael Word                       */
 /*****************************************************************/
 
+/*Updated to work with the remediated PDB names rmi 070727 */
+
+
 /*Jan 2006 DCR compromise comments to enable jEdit type folding {{{ }}}  */
 /* without messing up vi type beginning-end bracket identification shift % */
 /* So jEdit folds have to stay within code regions, esp subroutines 060129*/
@@ -48,7 +51,8 @@
 #define INLINE_FOR_SPEED 1
 
 static char *versionString =
-  "probe: version 2.11.061018, Copyright 1996-2006, J. Michael Word";
+  "probe: version 2.12.070727, Copyright 1996-2007, J. Michael Word";
+/*"probe: version 2.11.061018, Copyright 1996-2006, J. Michael Word";*/
 /*"probe: version 2.11.060831, Copyright 1996-2006, J. Michael Word";*/
 /*minor work: 2.11.060212*/
 /*"probe: version 2.11.060129, Copyright 1996-2006, J. Michael Word";*/
@@ -57,8 +61,9 @@ static char *versionString =
 /*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
    /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char *shortVersionStr = "probe.2.11.061018"; 
-/*static char *shortVersionStr = "probe.2.11.060831"; */
+static char *shortVersionStr = "probe.2.12.070727";
+/*static char *shortVersionStr = "probe.2.11.061018";*/
+/*static char *shortVersionStr = "probe.2.11.060831";*/
 /*static char *shortVersionStr = "Probe V2.11.060129";*/
 /*static char *shortVersionStr = "Probe V2.11.050121";*/
 /*static char *shortVersionStr = "Probe V2.11.041112";*/ /*041112 version change*/
