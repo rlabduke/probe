@@ -3827,10 +3827,17 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
                ptmast[4] = ' '; /*need trailing space*/
                ptmast[5] = '\0'; /*end string*/
             }
-	    sprintf(pointid, "%s%c %s%d%c",
-		  a->atomname, a->altConf,
-		  a->r->resname, a->r->resid,
-		  a->r->resInsCode);
+//	    sprintf(pointid, "%s%c %s%d%c",
+//		  a->atomname, a->altConf,
+//		  a->r->resname, a->r->resid,
+//		  a->r->resInsCode);
+
+            sprintf(pointid, "%s%c%s%d%c%c",
+                  a->atomname, a->altConf,
+                  a->r->resname, a->r->resid,
+                  a->r->resInsCode, a->r->chain);
+
+
 	    if (strcmp(pointid, lastpointid)) {
 	       strcpy(lastpointid, pointid);
 	       fprintf(outf, "{%s}", pointid);
