@@ -17,7 +17,8 @@
 /*****************************************************************/
 
 /*Updated to work with the remediated PDB names rmi 070727 */
-
+/* Essentially ennumerated additional possible atom names and added */
+/* the residue name info to the routine that assigns element type */
 
 /*Jan 2006 DCR compromise comments to enable jEdit type folding {{{ }}}  */
 /* without messing up vi type beginning-end bracket identification shift % */
