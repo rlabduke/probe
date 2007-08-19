@@ -23,6 +23,14 @@
 #define MIN(x,y) (((x)<(y))? (x):(y))
 #define MAX(x,y) (((x)>(y))? (x):(y))
 
+#if defined(__DECCXX_VER) || defined(_MSC_VER)
+#define NEEDSTRCASECMP
+#endif
+#ifdef NEEDSTRCASECMP
+int strncasecmp(const char *buf, const char *pat, int sz);
+int strcasecmp(const char *buf, const char *pat);
+#endif
+
 void note(char *message);
 void warn(char *message);
 void errmsg(char *message);
