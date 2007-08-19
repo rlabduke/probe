@@ -13,10 +13,31 @@
 /* Copyright (C) 1999 J. Michael Word                            */
 /*****************************************************************/
 
+#include "utility.h"
 #include <stdlib.h>  /*060902  needs this for exit() */
 #include <stdio.h>
 #include <string.h>  /*060902  needs this for strlen() */
 #include <ctype.h>
+
+#ifdef NEEDSTRCASECMP
+int strncasecmp(const char *buf, const char *pat, int sz) {
+	int rc = 0;
+        int i = 0;
+	for(; i < sz; i++) {
+		if (tolower(buf[i]) != tolower(pat[i])) { rc = 1; break; }
+		else if (buf[i] == '\0') { break; }
+	}
+	return rc;
+}
+int strcasecmp(const char *buf, const char *pat) {
+	int rc = 0;
+        int i = 0;
+	for(; buf[i] && pat[i]; i++) {
+		if (tolower(buf[i]) != tolower(pat[i])) { rc = 1; break; }
+	}
+	return rc;
+}
+#endif
 
 void note(char *message) {
    fprintf(stderr, "%s\n", message);
