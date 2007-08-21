@@ -55,9 +55,9 @@ int   atomHasProp(int a, int f) {
 
 int fixAtomName(const char* atomname, char resname[], int position) { /* no bool in C */
    char resn[6];
-   sprintf(resn, ":%-3.3s:", resname);
-   char name[5] = "    ";
+   char name[5];
    int i;
+   sprintf(resn, ":%-3.3s:", resname);
    for (i = 0; i < 4; i++) { // uppercase the input
       if (atomname[i] == '\0') { break; }
       name[i] = toupper(atomname[i]); 
@@ -69,8 +69,9 @@ int fixAtomName(const char* atomname, char resname[], int position) { /* no bool
            case 'G': if (strstr(HG_RESNAMES, resn) != NULL) { return 1; }
            case 'O': if (strstr(HO_RESNAMES, resn) != NULL) { return 1; }
            case 'S': if (strstr(HS_RESNAMES, resn) != NULL) { return 1; }
-        return 0; 
+           default: break;
 	}
+   return 0; 
 }
 
 int identifyAtom(char* name, char resname[], int Verbose) {  /*dcr041007 allow warning choice*/
