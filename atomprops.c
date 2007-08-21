@@ -55,7 +55,7 @@ int   atomHasProp(int a, int f) {
 
 int fixAtomName(const char* atomname, char resname[], int position) { /* no bool in C */
    char resn[6];
-   char name[5];
+   char name[5] = "    ";
    int i;
    sprintf(resn, ":%-3.3s:", resname);
    for (i = 0; i < 4; i++) { // uppercase the input
