@@ -58,7 +58,7 @@ int fixAtomName(const char* atomname, char resname[], int position) { /* no bool
    char name[5] = "    ";
    int i;
    sprintf(resn, ":%-3.3s:", resname);
-   for (i = 0; i < 4; i++) { // uppercase the input
+   for (i = 0; i < 4; i++) { /* uppercase the input */
       if (atomname[i] == '\0') { break; }
       name[i] = toupper(atomname[i]); 
    }
@@ -98,7 +98,7 @@ int identifyAtom(char* name, char resname[], int Verbose) {  /*dcr041007 allow w
         case 'F': n = fixAtomName(name,resname,2) ? atomHf : atomH; break;
         case 'G': n = fixAtomName(name,resname,2) ? atomHg : atomH; break;
         case 'O': n = fixAtomName(name,resname,2) ? atomHo : atomH; break;
-//        case 'S': n = fixAtomName(name,resname,2) ? atomHs : atomH; break;
+/*        case 'S': n = fixAtomName(name,resname,2) ? atomHs : atomH; break; */
         default : n = atomH; break;
         } break;
       case 'I': n = atomI; break;
@@ -208,22 +208,22 @@ int identifyAtom(char* name, char resname[], int Verbose) {  /*dcr041007 allow w
       case 'F': n = fixAtomName(name,resname,1) ? atomHf : atomH; break;
       case 'G': n = fixAtomName(name,resname,1) ? atomHg : atomH; break;
       case 'O': n = fixAtomName(name,resname,1) ? atomHo : atomH; break;
-//      case 'S': n = fixAtomName(name,resname,1) ? atomHs : atomH; break;
+/*      case 'S': n = fixAtomName(name,resname,1) ? atomHs : atomH; break; */
       default : n = atomH; break;
       } break;
 
-//    case 'E':
-//	 if (isdigit(name[2])) { n = atomH; emitWarning = 1;}/* Hepsilon?? */
-//	 else {n = atomHe; emitWarning = 1;}
-//	 break;
-//      case 'F': n = atomHf; emitWarning = 1;break;
-//      case 'G':
-//	 if (isdigit(name[2])) { n = atomH; emitWarning = 1;}/* Hgamma?? */
-//	 else {n = atomHg; emitWarning = 1;}
-//	 break;
-//      case 'O': n = atomHo; emitWarning = 1;break;
-//      default:  n = atomH;  emitWarning = 1;break;
-//      } break;
+/*    case 'E': */
+/*  if (isdigit(name[2])) { n = atomH; emitWarning = 1;} *//* Hepsilon?? */
+/*  else {n = atomHe; emitWarning = 1;} */
+/*  break; */
+/*      case 'F': n = atomHf; emitWarning = 1;break; */
+/*      case 'G': */
+/*  if (isdigit(name[2])) { n = atomH; emitWarning = 1;} *//* Hgamma?? */
+/*  else {n = atomHg; emitWarning = 1;} */
+/*  break; */
+/*      case 'O': n = atomHo; emitWarning = 1;break; */
+/*      default:  n = atomH;  emitWarning = 1;break; */
+/*      } break; */
 
    case 'I':
       switch(name[1]) {
