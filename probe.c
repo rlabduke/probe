@@ -4872,6 +4872,12 @@ fprintf(outf,"  -mastername flags extra master={name} (default: dots)\n");
 fprintf(outf,"060212 something about hets also marked prot,rna,dna... \n");
 fprintf(outf,"060831 -NOOCC atoms NOT filtered by occ value \n");
 fprintf(outf,"061018 not treat HIS as aromatic ACCEPTOR \n");
+fprintf(outf,"070801 rmi Updated for wwPDB remediation and PDB v3.0 \n"); 
+fprintf(outf,"070801 Recognizes both new and old heavy atom names \n");
+fprintf(outf,"       Recognizes both new and old residue names for DNA \n");
+fprintf(outf,"       Builds atom connectivity and is able to generate contact dots on \n");
+fprintf(outf,"   Xplor, PDBv2.3, PDBv3.0, or files with mixed format even within a \n");
+fprintf(outf,"   single residue \n");
 exit(0);
 
 }/*dump_changes()*/
