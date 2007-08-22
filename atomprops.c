@@ -213,12 +213,12 @@ int identifyAtom(char* name, char resname[], int Verbose) {  /*dcr041007 allow w
       } break;
 
 /*    case 'E': */
-/*  if (isdigit(name[2])) { n = atomH; emitWarning = 1;} *//* Hepsilon?? */
+/*  if (isdigit(name[2])) { n = atomH; emitWarning = 1;} */ /* Hepsilon?? */
 /*  else {n = atomHe; emitWarning = 1;} */
 /*  break; */
 /*      case 'F': n = atomHf; emitWarning = 1;break; */
 /*      case 'G': */
-/*  if (isdigit(name[2])) { n = atomH; emitWarning = 1;} *//* Hgamma?? */
+/*  if (isdigit(name[2])) { n = atomH; emitWarning = 1;} */ /* Hgamma?? */
 /*  else {n = atomHg; emitWarning = 1;} */
 /*  break; */
 /*      case 'O': n = atomHo; emitWarning = 1;break; */
