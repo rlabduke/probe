@@ -90,7 +90,7 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"CYS:2HB ", " CB ", NULL},
 {"CYS: HB1", " CB ", NULL},
 {"CYS: HB2", " CB ", NULL},
-//{"CYS: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"CYS: HB2", " CB ", NULL},*/ /* remediated names RMI 070718 */
 {"CYS: HB3", " CB ", NULL}, /*  */
 {"CYS: HG ", " SG ", NULL}, /* check for SH2 ? reduce has HG2 and HG3...  */
 #ifdef ALLOW_TRUNCATED_H_NAMES
@@ -114,7 +114,7 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"ASP:2HB ", " CB ", NULL},
 {"ASP: HB1", " CB ", NULL},
 {"ASP: HB2", " CB ", NULL},
-//{"ASP: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"ASP: HB2", " CB ", NULL},*/ /* remediated names RMI 070718 */
 {"ASP: HB3", " CB ", NULL}, /*  */
 #ifdef ALLOW_TRUNCATED_H_NAMES
 {"ASP: HT ", " N  : NT ", NULL},
@@ -137,13 +137,13 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"GLU:2HB ", " CB ", NULL},
 {"GLU: HB1", " CB ", NULL},
 {"GLU: HB2", " CB ", NULL},
-//{"GLU: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"GLU: HB2", " CB ", NULL}, */ /* remediated names RMI 070718 */
 {"GLU: HB3", " CB ", NULL}, /*  */
 {"GLU:1HG ", " CG ", NULL},
 {"GLU:2HG ", " CG ", NULL},
 {"GLU: HG1", " CG ", NULL},
 {"GLU: HG2", " CG ", NULL},
-//{"GLU: HG2", " CG ", NULL}, /* remediated names RMI 070718 */
+/* {"GLU: HG2", " CG ", NULL},  */ /* remediated names RMI 070718 */
 {"GLU: HG3", " CG ", NULL}, /*  */
 #ifdef ALLOW_TRUNCATED_H_NAMES
 {"GLU: HT ", " N  : NT ", NULL},
@@ -167,7 +167,7 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"PHE:2HB ", " CB ", NULL},
 {"PHE: HB1", " CB ", NULL},
 {"PHE: HB2", " CB ", NULL},
-//{"PHE: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"PHE: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"PHE: HB3", " CB ", NULL}, /*  */
 {"PHE: HD1", " CD1", NULL},
 {"PHE: HD2", " CD2", NULL},
@@ -196,7 +196,7 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"GLY:2HA ", " CA ", NULL},
 {"GLY: HA1", " CA ", NULL},
 {"GLY: HA2", " CA ", NULL},
-//{"GLY: HA2", " CA ", NULL}, /* remediated names RMI 070718 */
+/* {"GLY: HA2", " CA ", NULL},  */ /* remediated names RMI 070718 */
 {"GLY: HA3", " CA ", NULL}, /*  */
 #ifdef ALLOW_TRUNCATED_H_NAMES
 {"GLY: HT ", " N  : NT ", NULL},
@@ -219,7 +219,7 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"HIS:2HB ", " CB ", NULL},
 {"HIS: HB1", " CB ", NULL},
 {"HIS: HB2", " CB ", NULL},
-//{"HIS: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"HIS: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"HIS: HB3", " CB ", NULL}, /*  */
 {"HIS: HD1", " ND1", NULL},
 {"HIS: HD2", " CD2", NULL},
@@ -290,25 +290,25 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"LYS:2HB ", " CB ", NULL},
 {"LYS: HB1", " CB ", NULL},
 {"LYS: HB2", " CB ", NULL},
-//{"LYS: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"LYS: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"LYS: HB3", " CB ", NULL}, /*  */
 {"LYS:1HG ", " CG ", NULL},
 {"LYS:2HG ", " CG ", NULL},
 {"LYS: HG1", " CG ", NULL},
 {"LYS: HG2", " CG ", NULL},
-//{"LYS: HG2", " CG ", NULL}, /* remediated names RMI 070718 */
+/* {"LYS: HG2", " CG ", NULL},  */ /* remediated names RMI 070718 */
 {"LYS: HG3", " CG ", NULL}, /*  */
 {"LYS:1HD ", " CD ", NULL},
 {"LYS:2HD ", " CD ", NULL},
 {"LYS: HD1", " CD ", NULL},
 {"LYS: HD2", " CD ", NULL},
-//{"LYS: HD2", " CD ", NULL}, /* remediated names RMI 070718 */
+/* {"LYS: HD2", " CD ", NULL},  */ /* remediated names RMI 070718 */
 {"LYS: HD3", " CD ", NULL}, /*  */
 {"LYS:1HE ", " CE ", NULL},
 {"LYS:2HE ", " CE ", NULL},
 {"LYS: HE1", " CE ", NULL},
 {"LYS: HE2", " CE ", NULL},
-//{"LYS: HE2", " CE ", NULL}, /* remediated names RMI 070718 */
+/* {"LYS: HE2", " CE ", NULL},  */ /* remediated names RMI 070718 */
 {"LYS: HE3", " CE ", NULL}, /*  */
 {"LYS:1HZ ", " NZ ", NULL},
 {"LYS:2HZ ", " NZ ", NULL},
@@ -341,7 +341,7 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"LEU:2HB ", " CB ", NULL},
 {"LEU: HB1", " CB ", NULL},
 {"LEU: HB2", " CB ", NULL},
-//{"LEU: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"LEU: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"LEU: HB3", " CB ", NULL}, /*  */
 {"LEU: HG ", " CG ", NULL},
 {"LEU:1HD1", " CD1", NULL},
@@ -382,13 +382,13 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"MET:2HB ", " CB ", NULL},
 {"MET: HB1", " CB ", NULL},
 {"MET: HB2", " CB ", NULL},
-//{"MET: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"MET: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"MET: HB3", " CB ", NULL}, /*  */
 {"MET:1HG ", " CG ", NULL},
 {"MET:2HG ", " CG ", NULL},
 {"MET: HG1", " CG ", NULL},
 {"MET: HG2", " CG ", NULL},
-//{"MET: HG2", " CG ", NULL}, /* remediated names RMI 070718 */
+/* {"MET: HG2", " CG ", NULL},  */ /* remediated names RMI 070718 */
 {"MET: HG3", " CG ", NULL}, /*  */
 {"MET:1HE ", " CE ", NULL},
 {"MET:2HE ", " CE ", NULL},
@@ -419,7 +419,7 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"ASN:2HB ", " CB ", NULL},
 {"ASN: HB1", " CB ", NULL},
 {"ASN: HB2", " CB ", NULL},
-//{"ASN: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"ASN: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"ASN: HB3", " CB ", NULL}, /*  */
 {"ASN:1HD2", " ND2", NULL},
 {"ASN:2HD2", " ND2", NULL},
@@ -442,19 +442,19 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"PRO:2HB ", " CB ", NULL},
 {"PRO: HB1", " CB ", NULL},
 {"PRO: HB2", " CB ", NULL},
-//{"PRO: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"PRO: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"PRO: HB3", " CB ", NULL}, /*  */
 {"PRO:1HG ", " CG ", NULL},
 {"PRO:2HG ", " CG ", NULL},
 {"PRO: HG1", " CG ", NULL},
 {"PRO: HG2", " CG ", NULL},
-//{"PRO: HG2", " CG ", NULL}, /* remediated names RMI 070718 */
+/* {"PRO: HG2", " CG ", NULL},  */ /* remediated names RMI 070718 */
 {"PRO: HG3", " CG ", NULL}, /*  */
 {"PRO:1HD ", " CD ", NULL},
 {"PRO:2HD ", " CD ", NULL},
 {"PRO: HD1", " CD ", NULL},
 {"PRO: HD2", " CD ", NULL},
-//{"PRO: HD2", " CD ", NULL}, /* remediated names RMI 070718 */
+/* {"PRO: HD2", " CD ", NULL},  */ /* remediated names RMI 070718 */
 {"PRO: HD3", " CD ", NULL}, /*  */
 #ifdef ALLOW_TRUNCATED_H_NAMES
 {"PRO: HT ", " N  : NT ", NULL},
@@ -479,13 +479,13 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"GLN:2HB ", " CB ", NULL},
 {"GLN: HB1", " CB ", NULL},
 {"GLN: HB2", " CB ", NULL},
-//{"GLN: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"GLN: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"GLN: HB3", " CB ", NULL}, /*  */
 {"GLN:1HG ", " CG ", NULL},
 {"GLN:2HG ", " CG ", NULL},
 {"GLN: HG1", " CG ", NULL},
 {"GLN: HG2", " CG ", NULL},
-//{"GLN: HG2", " CG ", NULL}, /* remediated names RMI 070718 */
+/* {"GLN: HG2", " CG ", NULL},  */ /* remediated names RMI 070718 */
 {"GLN: HG3", " CG ", NULL}, /*  */
 {"GLN:1HE2", " NE2", NULL},
 {"GLN:2HE2", " NE2", NULL},
@@ -516,19 +516,19 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"ARG:2HB ", " CB ", NULL},
 {"ARG: HB1", " CB ", NULL},
 {"ARG: HB2", " CB ", NULL},
-//{"ARG: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"ARG: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"ARG: HB3", " CB ", NULL}, /*  */
 {"ARG:1HG ", " CG ", NULL},
 {"ARG:2HG ", " CG ", NULL},
 {"ARG: HG1", " CG ", NULL},
 {"ARG: HG2", " CG ", NULL},
-//{"ARG: HG2", " CG ", NULL}, /* remediated names RMI 070718 */
+/* {"ARG: HG2", " CG ", NULL},  */ /* remediated names RMI 070718 */
 {"ARG: HG3", " CG ", NULL}, /*  */
 {"ARG:1HD ", " CD ", NULL},
 {"ARG:2HD ", " CD ", NULL},
 {"ARG: HD1", " CD ", NULL},
 {"ARG: HD2", " CD ", NULL},
-//{"ARG: HD2", " CD ", NULL}, /* remediated names RMI 070718 */
+/* {"ARG: HD2", " CD ", NULL},  */ /* remediated names RMI 070718 */
 {"ARG: HD3", " CD ", NULL}, /*  */
 {"ARG: HE ", " NE ", NULL},
 {"ARG:1HH1", " NH1", NULL},
@@ -566,7 +566,7 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"SER:2HB ", " CB ", NULL},
 {"SER: HB1", " CB ", NULL},
 {"SER: HB2", " CB ", NULL},
-//{"SER: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"SER: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"SER: HB3", " CB ", NULL}, /*  */
 {"SER: HG ", " OG ", NULL},
 #ifdef ALLOW_TRUNCATED_H_NAMES
@@ -653,7 +653,7 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"TRP:2HB ", " CB ", NULL},
 {"TRP: HB1", " CB ", NULL},
 {"TRP: HB2", " CB ", NULL},
-//{"TRP: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"TRP: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"TRP: HB3", " CB ", NULL}, /*  */
 {"TRP: HD1", " CD1", NULL},
 {"TRP: HE1", " NE1", NULL},
@@ -686,7 +686,7 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"TYR:2HB ", " CB ", NULL},
 {"TYR: HB1", " CB ", NULL},
 {"TYR: HB2", " CB ", NULL},
-//{"TYR: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"TYR: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"TYR: HB3", " CB ", NULL}, /*  */
 {"TYR: HD1", " CD1", NULL},
 {"TYR: HD2", " CD2", NULL},
@@ -718,7 +718,7 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"ASX:2HB ", " CB ", NULL},
 {"ASX: HB1", " CB ", NULL},
 {"ASX: HB2", " CB ", NULL},
-//{"ASX: HB2", " CB ", NULL}, /* remediated names RMI 070718  */
+/* {"ASX: HB2", " CB ", NULL},  */ /* remediated names RMI 070718  */
 {"ASX: HB3", " CB ", NULL}, /*  */
 #ifdef ALLOW_TRUNCATED_H_NAMES
 {"ASX: HT ", " N  : NT ", NULL},
@@ -741,13 +741,13 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"GLX:2HB ", " CB ", NULL},
 {"GLX: HB1", " CB ", NULL},
 {"GLX: HB2", " CB ", NULL},
-//{"GLX: HB2", " CB ", NULL}, /* remediated names RMI 070718 */
+/* {"GLX: HB2", " CB ", NULL},  */ /* remediated names RMI 070718 */
 {"GLX: HB3", " CB ", NULL}, /*  */
 {"GLX:1HG ", " CG ", NULL},
 {"GLX:2HG ", " CG ", NULL},
 {"GLX: HG1", " CG ", NULL},
 {"GLX: HG2", " CG ", NULL},
-//{"GLX: HG2", " CG ", NULL}, /* remediated names RMI 070718 */
+/* {"GLX: HG2", " CG ", NULL},  */ /* remediated names RMI 070718 */
 {"GLX: HG3", " CG ", NULL}, /*  */
 #ifdef ALLOW_TRUNCATED_H_NAMES
 {"GLX: HT ", " N  : NT ", NULL},
@@ -786,7 +786,7 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"  U:*HO5", " O5*", NULL},
 {"  U:HO5'", " O5'", NULL}, /* remediated names RMI 070718 */
 {"  U: HN3", " N3 ", NULL},
-//{"  U: H3 ", " N3 ", NULL}, /* remediated names RMI 070718 */
+/* {"  U: H3 ", " N3 ", NULL},  */ /* remediated names RMI 070718 */
 {"  U: H6 ", " C6 ", NULL},
 #ifdef ALLOW_TRUNCATED_H_NAMES
 {"  U: H1 ", " C1*: C1'", NULL},
