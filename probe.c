@@ -75,7 +75,7 @@ static char *electronicReference = "http://kinemage.biochem.duke.edu/";
 
 static int LMasterName = FALSE; /*global extra master={name} on lists 060129*/
 static int LMergeContacts = TRUE; /*global combine wide & close contacts 060129*/
-static int Lautobondrot = FALSE; /* global flag for AUTOBONDROT mode 050111*/
+/*static int Lautobondrot = FALSE;*/ /* global flag for AUTOBONDROT mode 050111*/
 static int ImplicitH = FALSE; /* global controling dot radii     */
 static int UsePolarH = TRUE;  /* global controling VDW radii of polar Hs */
 static int Verbose   = TRUE;  /* global flag for output messages */
@@ -127,7 +127,7 @@ static float LowGoodCut           =-0.4;/* global cutoff for good bin */
 static float HighGoodCut          = 0.25;/* global cutoff for good bin */
 
 static float OccupancyCutoff      =0.02; /* global occupancy below which atom has presence but no clashes */
-   /*unfortunately, one needs intervening atoms to avoid clashes between atoms*
+   /*unfortunately, one needs intervening atoms to avoid clashes between atoms*/
    /*that are separated by <= Maxbonded, which thus needs to pass through any*/
    /*atom no matter what it's own occupancy happens to be */
    /*050118 atom->occ < OccupancyCutoff neither clash nor transfer bonded info*/
@@ -1332,7 +1332,6 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 {/*processCommandline()*/
    /*gets running conditions from the commandline as well as */
    /*loads atomlist from in file, returns atomlist which becomes allMainAtoms*/
-   /*atomlist = 
    /* atomlist = probe.c/loadAtoms() */
 
    /*called with address of mabis, i.e. mabip moving atom build info ptr */
@@ -1765,7 +1764,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
                     halt(message);
 		  }
 	       }
-               Lautobondrot = TRUE; /*050111 probe.c global logical */
+               /*Lautobondrot = TRUE;*/ /*050111 probe.c global logical */
 	       *countDots = TRUE;
 	       *rawOutput = TRUE;
                /*autobondrot mode does NOT read from input file at this time*/
@@ -2661,7 +2660,6 @@ void saveDot(atom *src, atom *targ, int type, point3d *loc, point3d *spike,
    /*ptmaster dcr041009*/
    dotNode* dot = NULL;
    int which = 0, idx = 0;
-   int LOK = 1; /*dcr041010*/
 
    /*overlaptype:  -1 bump, 0 touch, +1 H bond */
    /*entering from SurfDots needs no further Logical filtering*/
@@ -3132,7 +3130,7 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
 /*BUT one does need to allow for deletions in residue order!*/
 /*SO this is a FEATURE, NOT a BUG */
 /*and the work-around is to restrict the tau deviation to what is more */
-/*reasonable for tau anyway of  -8, thus -5 to +10 around ideal 111.1 *
+/*reasonable for tau anyway of  -8, thus -5 to +10 around ideal 111.1 */
 /*might be the best range for getting a feel for allowable phi,psi regions*/
 
 	 /* conditions for allowing a bond to be formed... */
