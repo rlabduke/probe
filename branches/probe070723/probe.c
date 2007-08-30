@@ -446,7 +446,7 @@ if(Verbose && modelSrc > 0)
          /* also calls autobondrot/describeXformDB()            */
          /*  which writes the header-comments to the .map file! */
 
-	 if (mabis.close) { close(mabis.inf); }
+	 if (mabis.close) { fclose(mabis.inf); }
 
 	 autobondrot(stderr, xdb, movingDoCommand, &mcis,
 		  deleteMovingAtom, &mabis, Verbose);
