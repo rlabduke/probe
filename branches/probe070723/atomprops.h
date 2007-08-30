@@ -100,7 +100,7 @@ enum atomIdentifiers {
 /* Advanced Inorganic Chemistry, Cotton & Wilkinson, 1962, p93. */
 
 /* from above: struct atomProp, NUMATOMTYPES from enum of atomIdentifiers*/
-   /*type;   atom identifier         /*
+   /*type;   atom identifier         */
    /*atno;   atomic number           */
    /*name;   atom name               */
    /*eRad;   (explicit H) VDW radius */
