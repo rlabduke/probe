@@ -53,7 +53,28 @@ int   atomHasProp(int a, int f) {
    return AtomTblIndex[a]->flags & f;
 }
 
-int identifyAtom(char* name, int Verbose) {  /*dcr041007 allow warning choice*/
+int fixAtomName(const char* atomname, char resname[], int position) { /* no bool in C */
+   char resn[6];
+   char name[5] = "    ";
+   int i;
+   sprintf(resn, ":%-3.3s:", resname);
+   for (i = 0; i < 4; i++) { /* uppercase the input */
+      if (atomname[i] == '\0') { break; }
+      name[i] = toupper(atomname[i]); 
+   }
+   name[i] = '\0';
+        switch(name[position]) {
+           case 'E': if (strstr(HE_RESNAMES, resn) != NULL) { return 1; }
+           case 'F': if (strstr(HF_RESNAMES, resn) != NULL) { return 1; }
+           case 'G': if (strstr(HG_RESNAMES, resn) != NULL) { return 1; }
+           case 'O': if (strstr(HO_RESNAMES, resn) != NULL) { return 1; }
+           case 'S': if (strstr(HS_RESNAMES, resn) != NULL) { return 1; }
+           default: break;
+	}
+   return 0; 
+}
+
+int identifyAtom(char* name, char resname[], int Verbose) {  /*dcr041007 allow warning choice*/
    int n = -1, emitWarning = 0;
 
    switch(name[0]) {
@@ -71,7 +92,15 @@ int identifyAtom(char* name, int Verbose) {  /*dcr041007 allow warning choice*/
       case 'C': n = atomC; break;
       case 'D': n = atomH; break;
       case 'F': n = atomF; break;
-      case 'H': n = atomH; break;
+      case 'H':
+        switch(name[2]) {
+        case 'E': n = fixAtomName(name,resname,2) ? atomHe : atomH; break; 
+        case 'F': n = fixAtomName(name,resname,2) ? atomHf : atomH; break;
+        case 'G': n = fixAtomName(name,resname,2) ? atomHg : atomH; break;
+        case 'O': n = fixAtomName(name,resname,2) ? atomHo : atomH; break;
+/*        case 'S': n = fixAtomName(name,resname,2) ? atomHs : atomH; break; */
+        default : n = atomH; break;
+        } break;
       case 'I': n = atomI; break;
       case 'K': n = atomK; break;
       case 'N': n = atomN; break;
@@ -175,18 +204,27 @@ int identifyAtom(char* name, int Verbose) {  /*dcr041007 allow warning choice*/
       } break;
    case 'H':
       switch(name[1]) {
-      case 'E':
-	 if (isdigit(name[2])) { n = atomH; emitWarning = 1;}/* Hepsilon?? */
-	 else {n = atomHe; emitWarning = 1;}
-	 break;
-      case 'F': n = atomHf; emitWarning = 1;break;
-      case 'G':
-	 if (isdigit(name[2])) { n = atomH; emitWarning = 1;}/* Hgamma?? */
-	 else {n = atomHg; emitWarning = 1;}
-	 break;
-      case 'O': n = atomHo; emitWarning = 1;break;
-      default:  n = atomH;  emitWarning = 1;break;
+      case 'E': n = fixAtomName(name,resname,1) ? atomHe : atomH; break;
+      case 'F': n = fixAtomName(name,resname,1) ? atomHf : atomH; break;
+      case 'G': n = fixAtomName(name,resname,1) ? atomHg : atomH; break;
+      case 'O': n = fixAtomName(name,resname,1) ? atomHo : atomH; break;
+/*      case 'S': n = fixAtomName(name,resname,1) ? atomHs : atomH; break; */
+      default : n = atomH; break;
       } break;
+
+/*    case 'E': */
+/*  if (isdigit(name[2])) { n = atomH; emitWarning = 1;} */ /* Hepsilon?? */
+/*  else {n = atomHe; emitWarning = 1;} */
+/*  break; */
+/*      case 'F': n = atomHf; emitWarning = 1;break; */
+/*      case 'G': */
+/*  if (isdigit(name[2])) { n = atomH; emitWarning = 1;} */ /* Hgamma?? */
+/*  else {n = atomHg; emitWarning = 1;} */
+/*  break; */
+/*      case 'O': n = atomHo; emitWarning = 1;break; */
+/*      default:  n = atomH;  emitWarning = 1;break; */
+/*      } break; */
+
    case 'I':
       switch(name[1]) {
       case 'N': n = atomIn; break;
@@ -326,6 +364,7 @@ int identifyAtom(char* name, int Verbose) {  /*dcr041007 allow warning choice*/
    }
    if (emitWarning && Verbose) {/*Verbose controlled dcr041007*/
       char warnstr[5]={'_','_','_','_','\0'}; /*dcr041007*/
+      char warnresn[5]={'_','_','_','_','\0'}; /*rmi070719*/
       char* atstr;
       int j=0;
       while(name[j]!='\0'&&warnstr[j]!='\0')
@@ -334,10 +373,17 @@ int identifyAtom(char* name, int Verbose) {  /*dcr041007 allow warning choice*/
          else             {warnstr[j]=name[j];}
          j++;
       }
+      j=0;
+      while(resname[j]!='\0'&&warnresn[j]!='\0')
+      {/*explicitly show blanks so can understand residue/atom name problem*/
+         if(name[j]==' ') {warnresn[j]='_';}
+         else             {warnresn[j]=resname[j];}
+         j++;
+      }
       atstr = getAtomName(n);
       if(strlen(atstr)==1)
-           {fprintf(stderr,"WARNING: atom %s will be treated as  %s\n",warnstr,atstr);}
-      else {fprintf(stderr,"WARNING: atom %s will be treated as %s\n",warnstr,atstr);}
+           {fprintf(stderr,"WARNING: atom %s from resn %s will be treated as  %s\n",warnstr,warnresn,atstr);}
+      else {fprintf(stderr,"WARNING: atom %s from resn %s will be treated as %s\n",warnstr,warnresn,atstr);}
          /*name, getAtomName(n));*/
    }
 
