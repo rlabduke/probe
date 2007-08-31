@@ -16,6 +16,10 @@
 /* Copyright (C) 1996-2004 J. Michael Word                       */
 /*****************************************************************/
 
+/*Updated to work with the remediated PDB names rmi 070727 */
+/* Essentially ennumerated additional possible atom names and added */
+/* the residue name info to the routine that assigns element type */
+
 /*Jan 2006 DCR compromise comments to enable jEdit type folding {{{ }}}  */
 /* without messing up vi type beginning-end bracket identification shift % */
 /* So jEdit folds have to stay within code regions, esp subroutines 060129*/
@@ -48,7 +52,9 @@
 #define INLINE_FOR_SPEED 1
 
 static char *versionString =
-  "probe: version 2.11.061018, Copyright 1996-2006, J. Michael Word";
+  "probe: version 2.12.070830, Copyright 1996-2007, J. Michael Word";
+/*"probe: version 2.12.070821, Copyright 1996-2007, J. Michael Word";*/
+/*"probe: version 2.11.061018, Copyright 1996-2006, J. Michael Word";*/
 /*"probe: version 2.11.060831, Copyright 1996-2006, J. Michael Word";*/
 /*minor work: 2.11.060212*/
 /*"probe: version 2.11.060129, Copyright 1996-2006, J. Michael Word";*/
@@ -57,19 +63,20 @@ static char *versionString =
 /*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
    /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char *shortVersionStr = "probe.2.11.061018"; 
-/*static char *shortVersionStr = "probe.2.11.060831"; */
+static char *shortVersionStr = "probe.2.12.070830";
+/*static char *shortVersionStr = "probe.2.11.061018";*/
+/*static char *shortVersionStr = "probe.2.11.060831";*/
 /*static char *shortVersionStr = "Probe V2.11.060129";*/
 /*static char *shortVersionStr = "Probe V2.11.050121";*/
 /*static char *shortVersionStr = "Probe V2.11.041112";*/ /*041112 version change*/
 /*static char *shortVersionStr = "Probe V2.10.031014dcr041101";*/
 /*static char *shortVersionStr = "Probe V2.9 ( 10/14/2003)";*/
 static char *referenceString = "Word, et. al. (1999) J. Mol. Biol. 285, 1711-1733.";
-static char *electronicReference = "http://kinemage.biochem.duke.edu";
+static char *electronicReference = "http://kinemage.biochem.duke.edu/";
 
 static int LMasterName = FALSE; /*global extra master={name} on lists 060129*/
 static int LMergeContacts = TRUE; /*global combine wide & close contacts 060129*/
-static int Lautobondrot = FALSE; /* global flag for AUTOBONDROT mode 050111*/
+/*static int Lautobondrot = FALSE;*/ /* global flag for AUTOBONDROT mode 050111*/
 static int ImplicitH = FALSE; /* global controling dot radii     */
 static int UsePolarH = TRUE;  /* global controling VDW radii of polar Hs */
 static int Verbose   = TRUE;  /* global flag for output messages */
@@ -121,7 +128,7 @@ static float LowGoodCut           =-0.4;/* global cutoff for good bin */
 static float HighGoodCut          = 0.25;/* global cutoff for good bin */
 
 static float OccupancyCutoff      =0.02; /* global occupancy below which atom has presence but no clashes */
-   /*unfortunately, one needs intervening atoms to avoid clashes between atoms*
+   /*unfortunately, one needs intervening atoms to avoid clashes between atoms*/
    /*that are separated by <= Maxbonded, which thus needs to pass through any*/
    /*atom no matter what it's own occupancy happens to be */
    /*050118 atom->occ < OccupancyCutoff neither clash nor transfer bonded info*/
@@ -440,7 +447,7 @@ if(Verbose && modelSrc > 0)
          /* also calls autobondrot/describeXformDB()            */
          /*  which writes the header-comments to the .map file! */
 
-	 if (mabis.close) { close(mabis.inf); }
+	 if (mabis.close) { fclose(mabis.inf); }
 
 	 autobondrot(stderr, xdb, movingDoCommand, &mcis,
 		  deleteMovingAtom, &mabis, Verbose);
@@ -1326,7 +1333,6 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 {/*processCommandline()*/
    /*gets running conditions from the commandline as well as */
    /*loads atomlist from in file, returns atomlist which becomes allMainAtoms*/
-   /*atomlist = 
    /* atomlist = probe.c/loadAtoms() */
 
    /*called with address of mabis, i.e. mabip moving atom build info ptr */
@@ -1759,7 +1765,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
                     halt(message);
 		  }
 	       }
-               Lautobondrot = TRUE; /*050111 probe.c global logical */
+               /*Lautobondrot = TRUE;*/ /*050111 probe.c global logical */
 	       *countDots = TRUE;
 	       *rawOutput = TRUE;
                /*autobondrot mode does NOT read from input file at this time*/
@@ -2411,12 +2417,12 @@ atom * newAtom(char *rec, int file, int model, residue * resDataBuf)
       a->binSerialNum = '?'; /* set when we bin */
       if (strstr(":ASX:GLX:ASN:GLN:", a->r->resname) /* special case treats undecided */
       && (a->atomname[1] == 'A')) {             /* as an oxygen */
-	 a->elem = identifyAtom(" O  ",Verbose); /*dcr041007 allow warning*/
+	 a->elem = identifyAtom(" O  ", a->r->resname, Verbose); /*dcr041007 allow warning  add resname to call rmi070719*/
 	 sprintf(msg, "atom %s will be treated as oxygen", a->atomname);
 	 warn(msg);
       }
       else { /* normal case */
-	 a->elem = identifyAtom(a->atomname,Verbose);/*dcr041007 allow warning*/
+	 a->elem = identifyAtom(a->atomname, a->r->resname, Verbose);/*dcr041007 allow warning  add resname to call rmi070719*/
       }
 
       /*next section seems to be the only place where atom->bondedto is set.*/
@@ -2655,7 +2661,6 @@ void saveDot(atom *src, atom *targ, int type, point3d *loc, point3d *spike,
    /*ptmaster dcr041009*/
    dotNode* dot = NULL;
    int which = 0, idx = 0;
-   int LOK = 1; /*dcr041010*/
 
    /*overlaptype:  -1 bump, 0 touch, +1 H bond */
    /*entering from SurfDots needs no further Logical filtering*/
@@ -3126,7 +3131,7 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
 /*BUT one does need to allow for deletions in residue order!*/
 /*SO this is a FEATURE, NOT a BUG */
 /*and the work-around is to restrict the tau deviation to what is more */
-/*reasonable for tau anyway of  -8, thus -5 to +10 around ideal 111.1 *
+/*reasonable for tau anyway of  -8, thus -5 to +10 around ideal 111.1 */
 /*might be the best range for getting a feel for allowable phi,psi regions*/
 
 	 /* conditions for allowing a bond to be formed... */
@@ -3827,10 +3832,17 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
                ptmast[4] = ' '; /*need trailing space*/
                ptmast[5] = '\0'; /*end string*/
             }
-	    sprintf(pointid, "%s%c %s%d%c",
-		  a->atomname, a->altConf,
-		  a->r->resname, a->r->resid,
-		  a->r->resInsCode);
+/*     sprintf(pointid, "%s%c %s%d%c", */
+/* 	  a->atomname, a->altConf, */
+/* 	  a->r->resname, a->r->resid, */
+/* 	  a->r->resInsCode); */
+
+            sprintf(pointid, "%s%c%s%d%c%c",
+                  a->atomname, a->altConf,
+                  a->r->resname, a->r->resid,
+                  a->r->resInsCode, a->r->chain);
+
+
 	    if (strcmp(pointid, lastpointid)) {
 	       strcpy(lastpointid, pointid);
 	       fprintf(outf, "{%s}", pointid);
@@ -4859,6 +4871,13 @@ fprintf(outf,"  -mastername flags extra master={name} (default: dots)\n");
 fprintf(outf,"060212 something about hets also marked prot,rna,dna... \n");
 fprintf(outf,"060831 -NOOCC atoms NOT filtered by occ value \n");
 fprintf(outf,"061018 not treat HIS as aromatic ACCEPTOR \n");
+fprintf(outf,"070801 rmi Updated for wwPDB remediation and PDB v3.0 \n"); 
+fprintf(outf,"070801 Recognizes both new and old heavy atom names \n");
+fprintf(outf,"       Recognizes both new and old residue names for DNA \n");
+fprintf(outf,"       Builds atom connectivity and is able to generate contact dots on \n");
+fprintf(outf,"   Xplor, PDBv2.3, PDBv3.0, or files with mixed format even within a \n");
+fprintf(outf,"   single residue \n");
+fprintf(outf,"070821 add strcasecmp to utility.c    rwgk \n");
 exit(0);
 
 }/*dump_changes()*/

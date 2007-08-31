@@ -6,6 +6,8 @@ env = env_base.Copy(
   CCFLAGS=env_etc.ccflags_base,
   LIBS=env_etc.libm
 )
+if (env_etc.compiler != "win32_cl"):
+  env.Replace(LINK=env_base["CC"])
 
 exe = env.Program(
   target=["#probe/exe/probe"],
