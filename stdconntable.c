@@ -860,15 +860,9 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"  T:H5A1", " C5A", NULL},
 {"  T:H5A2", " C5A", NULL},
 {"  T:H5A3", " C5A", NULL},
-{"  T: H71", " C7 ", NULL}, /* remediated names RMI 070718 */
-{"  T: H72", " C7 ", NULL}, /*  */
-{"  T: H73", " C7 ", NULL}, /*  */
-{"  T: H71", " C5A", NULL}, /* remediated names RMI 070905 */
-{"  T: H72", " C5A", NULL}, /*  */
-{"  T: H73", " C5A", NULL}, /*  */
-{"  T: H71", " C5M", NULL}, /* remediated names RMI 070905 */
-{"  T: H72", " C5M", NULL}, /*  */
-{"  T: H73", " C5M", NULL}, /*  */
+{"  T: H71", " C7 : C5A: C5M", NULL}, /* remediated names RMI 070718 */
+{"  T: H72", " C7 : C5A: C5M", NULL}, /*  */
+{"  T: H73", " C7 : C5A: C5M", NULL}, /*  */
 {"  T: H6 ", " C6 ", NULL},
 #ifdef ALLOW_TRUNCATED_H_NAMES
 {"  T: H1 ", " C1*: C1'", NULL},

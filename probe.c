@@ -52,7 +52,7 @@
 #define INLINE_FOR_SPEED 1
 
 static char *versionString =
-  "probe: version 2.12.070830, Copyright 1996-2007, J. Michael Word";
+  "probe: version 2.12.070905, Copyright 1996-2007, J. Michael Word";
 /*"probe: version 2.12.070821, Copyright 1996-2007, J. Michael Word";*/
 /*"probe: version 2.11.061018, Copyright 1996-2006, J. Michael Word";*/
 /*"probe: version 2.11.060831, Copyright 1996-2006, J. Michael Word";*/
@@ -63,7 +63,7 @@ static char *versionString =
 /*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
    /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char *shortVersionStr = "probe.2.12.070830";
+static char *shortVersionStr = "probe.2.12.070905";
 /*static char *shortVersionStr = "probe.2.11.061018";*/
 /*static char *shortVersionStr = "probe.2.11.060831";*/
 /*static char *shortVersionStr = "Probe V2.11.060129";*/
@@ -4878,6 +4878,7 @@ fprintf(outf,"       Builds atom connectivity and is able to generate contact do
 fprintf(outf,"   Xplor, PDBv2.3, PDBv3.0, or files with mixed format even within a \n");
 fprintf(outf,"   single residue \n");
 fprintf(outf,"070821 add strcasecmp to utility.c    rwgk \n");
+fprintf(outf,"070905 add alternate names of thymine methyl \n");
 exit(0);
 
 }/*dump_changes()*/
