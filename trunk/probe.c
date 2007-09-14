@@ -4881,6 +4881,7 @@ fprintf(outf,"   single residue \n");
 fprintf(outf,"070821 add strcasecmp to utility.c    rwgk \n");
 fprintf(outf,"070905 add alternate names of thymine methyl \n");
 fprintf(outf,"070913 add detail on probe unformatted to help \n");
+fprintf(outf,"070913 fixed handling of mixed RNA files \n");
 exit(0);
 
 }/*dump_changes()*/
