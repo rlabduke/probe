@@ -80,8 +80,9 @@ typedef struct residue_t {
 	int  file;       /* which file did atom come from? */
 	int  model;      /* which model is the atom for? */
 
-	int  resid;      /* residue number */
-	int  rescnt;     /* residue order 1, 2, 3, ... */
+	int  resid;        /* residue number */
+        char Hy36resno[5]; /* Hybrid 36 residue number */
+	int  rescnt;       /* residue order 1, 2, 3, ... */
 
 	char  segid[5];  /* segment identifier   */
 	char resname[5]; /* residue name */

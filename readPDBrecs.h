@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include "utility.h"
 #include "geom3d.h"
+#include "hybrid_36_c.h"
 
 /* while parsing, the last rec is kept in globPDBrec */
 #define PDBRECSIZE 80
@@ -31,8 +32,11 @@ int isPseudoAtom(char *line);
 int isTer(char *line);
 int isModel(char *line);
 int parseModel(char *line);
+/*int parseAtomNumber(char *line);
+int parseResidueNumber(char *line);*/
 int parseAtomNumber(char *line);
-int parseResidueNumber(char *line);
+int parseResidueNumber(char *line); 
+void parseResidueHy36Num(char *line, char Hy36resno[]); 
 char parseChain(char *line);
 float parseOccupancy(char *line);
 float parseTempFactor(char *line);
