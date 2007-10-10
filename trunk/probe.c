@@ -52,7 +52,7 @@
 #define INLINE_FOR_SPEED 1
 
 static char *versionString =
-  "probe: version 2.12.070913, Copyright 1996-2007, J. Michael Word";
+  "probe: version 2.12.071010, Copyright 1996-2007, J. Michael Word";
 /*"probe: version 2.12.070821, Copyright 1996-2007, J. Michael Word";*/
 /*"probe: version 2.11.061018, Copyright 1996-2006, J. Michael Word";*/
 /*"probe: version 2.11.060831, Copyright 1996-2006, J. Michael Word";*/
@@ -63,7 +63,7 @@ static char *versionString =
 /*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
    /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char *shortVersionStr = "probe.2.12.070913";
+static char *shortVersionStr = "probe.2.12.071010";
 /*static char *shortVersionStr = "probe.2.11.061018";*/
 /*static char *shortVersionStr = "probe.2.11.060831";*/
 /*static char *shortVersionStr = "Probe V2.11.060129";*/
@@ -2411,19 +2411,20 @@ atom * newAtom(char *rec, int file, int model, residue * resDataBuf)
       a->r->file = file;
       a->r->model = model;
       a->r->chain = parseChain(rec);
-      a->r->resid = parseResidueNumber(rec);
-      a->r->resInsCode = parseResidueInsertionCode(rec);
+      a->r->resid = parseResidueNumber(rec); 
+      parseResidueHy36Num(rec, a->r->Hy36resno);  
+      a->r->resInsCode = parseResidueInsertionCode(rec); 
       a->r->rescnt = 0;
       a->altConf = parseAltLocCode(rec);
       a->binSerialNum = '?'; /* set when we bin */
       if (strstr(":ASX:GLX:ASN:GLN:", a->r->resname) /* special case treats undecided */
       && (a->atomname[1] == 'A')) {             /* as an oxygen */
-	 a->elem = identifyAtom(" O  ", a->r->resname, Verbose); /*dcr041007 allow warning  add resname to call rmi070719*/
+	 a->elem = identifyAtom(" O  ", a->r->resname, Verbose); /*dcr041007 allow warning  add resname to call */
 	 sprintf(msg, "atom %s will be treated as oxygen", a->atomname);
 	 warn(msg);
       }
       else { /* normal case */
-	 a->elem = identifyAtom(a->atomname, a->r->resname, Verbose);/*dcr041007 allow warning  add resname to call rmi070719*/
+	 a->elem = identifyAtom(a->atomname, a->r->resname, Verbose);/*dcr041007 allow warning  add resname to call */
       }
 
       /*next section seems to be the only place where atom->bondedto is set.*/
@@ -3255,15 +3256,15 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
 #ifdef DUMP_DEBUG_EXTRA
 	       if (DebugLevel > 7) 
                {
-		  fprintf(stdout, "{%4.4s%c%3.3s %c%4d%c}P %8.3f%8.3f%8.3f\n",
+		  fprintf(stdout, "{%4.4s%c%3.3s %c%4.4s%c}P %8.3f%8.3f%8.3f\n",
 			   src->atomname, src->altConf,
 			   src->r->resname, src->r->chain,
-			   src->r->resid, src->r->resInsCode,
+			   src->r->Hy36resno, src->r->resInsCode,
 			   src->loc.x, src->loc.y, src->loc.z);
-		  fprintf(stdout, "{%4.4s%c%3.3s %c%4d%c}L %8.3f%8.3f%8.3f\n",
+		  fprintf(stdout, "{%4.4s%c%3.3s %c%4.4s%c}L %8.3f%8.3f%8.3f\n",
 			   targ->atomname, targ->altConf,
 			   targ->r->resname, targ->r->chain,
-			   targ->r->resid, targ->r->resInsCode,
+			   targ->r->Hy36resno, targ->r->resInsCode,
 			   targ->loc.x, targ->loc.y, targ->loc.z);
 	       }
 #endif /*DUMP_DEBUG_EXTRA*/
@@ -3332,16 +3333,16 @@ void debugBondingLists(atom *src, atom *neighbors)
    atom *targ = NULL;
    int i = 0;
 
-   fprintf(stdout, "%4.4s%c%3.3s %c%4d%c(%c%d)",
+   fprintf(stdout, "%4.4s%c%3.3s %c%4.4s%c(%c%d)",
 			   src->atomname, src->altConf,
 			   src->r->resname, src->r->chain,
-			   src->r->resid, src->r->resInsCode,
+			   src->r->Hy36resno, src->r->resInsCode,
 			   src->binSerialNum, src->mark);
    for(targ = neighbors; targ; targ = targ->scratch) {
-      fprintf(stdout, ", %d: %4.4s%c%3.3s %c%4d%c(%c%d)", ++i,
+      fprintf(stdout, ", %d: %4.4s%c%3.3s %c%4.4s%c(%c%d)", ++i,
 			   targ->atomname, targ->altConf,
 			   targ->r->resname, targ->r->chain,
-			   targ->r->resid, targ->r->resInsCode,
+			   targ->r->Hy36resno, targ->r->resInsCode,
 			   targ->binSerialNum, targ->mark);
    }
    fprintf(stdout, "\n");
@@ -3838,9 +3839,9 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
 /* 	  a->r->resname, a->r->resid, */
 /* 	  a->r->resInsCode); */
 
-            sprintf(pointid, "%s%c%s%d%c%c",
+            sprintf(pointid, "%s%c%s%s%c%c",
                   a->atomname, a->altConf,
-                  a->r->resname, a->r->resid,
+                  a->r->resname, a->r->Hy36resno,
                   a->r->resInsCode, a->r->chain);
 
 
@@ -4039,13 +4040,13 @@ void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
 	    fprintf(outf, "%s:%s:%s:", label, groupname, mast[j]);
 
 	    a = node->a;
-	    fprintf(outf, "%c%4d%c%s %s%c:",
-		  a->r->chain, a->r->resid, a->r->resInsCode, a->r->resname,
+	    fprintf(outf, "%c%4.4s%c%s %s%c:",
+		  a->r->chain, a->r->Hy36resno, a->r->resInsCode, a->r->resname,
 		  a->atomname, a->altConf);
 	    t = node->t;
 	    if (t) {
-	       fprintf(outf, "%c%4d%c%s %s%c:",
-			t->r->chain, t->r->resid, t->r->resInsCode, t->r->resname,
+	       fprintf(outf, "%c%4.4s%c%s %s%c:",
+			t->r->chain, t->r->Hy36resno, t->r->resInsCode, t->r->resname,
 			t->atomname, t->altConf);
 	       gap = gapSize(&(a->loc), &(t->loc),
 			      (a->radius + t->radius));
@@ -4391,7 +4392,7 @@ int enumDotSkin(atom *allMainAtoms, atomBins *abins,
 
 	 if(Verbose && ShowTicks) {
 	    fprintf(stderr, "%s%d   \r",
-	               src->r->resname, src->r->resid);
+	               src->r->resname, src->r->Hy36resno);
 	 }
       }
    }
@@ -4410,7 +4411,7 @@ int enumDotSkin(atom *allMainAtoms, atomBins *abins,
 
 	    if(Verbose && ShowTicks) {
 	       fprintf(stderr, "%s%d   \r",
-	               src->r->resname, src->r->resid);
+	               src->r->resname, src->r->Hy36resno);
 	    }
 	 }
       }
@@ -4686,22 +4687,22 @@ atom* updateHydrogenInfo(FILE *outf, atom *allMainAtoms,   atomBins *abins,
 		     if (DumpNewHO) {
 if (DebugLevel>3) {
 fprintf(stderr,
-"HETATM%5d  H%-2d%c%3.3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f      new  H\n",
+"HETATM%5d  H%-2d%c%3.3s %c%4.4s%c   %8.3f%8.3f%8.3f%6.2f%6.2f      new  H\n",
 			   0, ++newHcount, newH->altConf,
 			   newH->r->resname, newH->r->chain,
-			   newH->r->resid, newH->r->resInsCode,
+			   newH->r->Hy36resno, newH->r->resInsCode,
 			   newH->loc.x, newH->loc.y, newH->loc.z,
 			   newH->occ, newH->bval);
 }
-			fprintf(outf, "{%4.4s%c%3.3s %c%4d%c}P %8.3f%8.3f%8.3f\n",
+			fprintf(outf, "{%4.4s%c%3.3s %c%4.4s%c}P %8.3f%8.3f%8.3f\n",
 			   orig->atomname, orig->altConf,
 			   orig->r->resname, orig->r->chain,
-			   orig->r->resid, orig->r->resInsCode,
+			   orig->r->Hy36resno, orig->r->resInsCode,
 			   orig->loc.x, orig->loc.y, orig->loc.z);
-			fprintf(outf, "{%4.4s%c%3.3s %c%4d%c}L %8.3f%8.3f%8.3f\n",
+			fprintf(outf, "{%4.4s%c%3.3s %c%4s%c}L %8.3f%8.3f%8.3f\n",
 			   newH->atomname, newH->altConf,
 			   newH->r->resname, newH->r->chain,
-			   newH->r->resid, newH->r->resInsCode,
+			   newH->r->Hy36resno, newH->r->resInsCode,
 			   newH->loc.x, newH->loc.y, newH->loc.z);
 		     }
 
@@ -4882,6 +4883,7 @@ fprintf(outf,"070821 add strcasecmp to utility.c    rwgk \n");
 fprintf(outf,"070905 add alternate names of thymine methyl \n");
 fprintf(outf,"070913 add detail on probe unformatted to help \n");
 fprintf(outf,"070913 fixed handling of mixed RNA files \n");
+fprintf(outf,"071010 added support for Hybrid36 atom and residue numbers \n"); 
 exit(0);
 
 }/*dump_changes()*/

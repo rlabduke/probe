@@ -15,6 +15,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <ctype.h>
+#include "hybrid_36_c.h"
 #include "readPDBrecs.h"
 
 char globPDBrec[PDBRECSIZE + 1];
@@ -124,6 +125,7 @@ int parseModel(char *line) {
    return parseInteger(line, 6, 8);
 }
 
+/*
 int parseAtomNumber(char *line) {
 	
    return parseInteger(line, 6, 5);
@@ -132,6 +134,46 @@ int parseAtomNumber(char *line) {
 int parseResidueNumber(char *line) {
 	
    return parseInteger(line, 22, 4);
+}
+*/
+
+int parseAtomNumber(char *line) {
+   char Hy36num[6]; 
+   Hy36num[0] = line[6];
+   Hy36num[1] = line[7];
+   Hy36num[2] = line[8];
+   Hy36num[3] = line[9];
+   Hy36num[4] = line[10];
+   Hy36num[5] = '\0';
+   int atomno; 
+   const char* errmsg = hy36decode(5, (char*)Hy36num, 5, &atomno);
+/*   if (errmsg) throw std::runtime_error(errmsg); 
+     fprintf(stderr, "ATOM NUMBER   %d\n", atomno); */
+
+   return atomno;
+}
+
+int parseResidueNumber(char *line) {
+   char Hy36resno[5];
+   Hy36resno[0] = line[22];
+   Hy36resno[1] = line[23];
+   Hy36resno[2] = line[24];
+   Hy36resno[3] = line[25];
+   Hy36resno[4] = '\0';
+   int resid; 
+   const char* errmsg = hy36decode(4, (char*)Hy36resno, 4, &resid);
+/*   if (errmsg) throw std::runtime_error(errmsg);  
+   fprintf(stderr, "RESIDUE NUMBER   %d\n", resid); */
+
+   return resid;
+}
+
+void parseResidueHy36Num(char *line, char Hy36resno[]) { 
+   Hy36resno[0] = line[22];
+   Hy36resno[1] = line[23];
+   Hy36resno[2] = line[24];
+   Hy36resno[3] = line[25];
+   Hy36resno[4] = '\0';
 }
 
 char parseChain(char *line) {
