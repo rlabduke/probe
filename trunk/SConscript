@@ -12,6 +12,7 @@ if (env_etc.compiler != "win32_cl"):
 exe = env.Program(
   target=["#probe/exe/probe"],
   source=[
+    "hybrid_36_c.c",
     "probe.c",
     "dots.c",
     "abin.c",
