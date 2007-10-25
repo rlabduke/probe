@@ -1080,6 +1080,331 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {"  G:2H2 ", " N2 ", NULL},
 #endif
 
+/* RNA for Coot and CCP4 Ar, Ur, Tr, Cr, Gr */
+
+{" UR: H1*", " C1*: C1'", NULL},
+{" UR: H1'", " C1*: C1'", NULL},
+{" UR: H3*", " C3*: C3'", NULL},
+{" UR: H3'", " C3*: C3'", NULL},
+{" UR: H4*", " C4*: C4'", NULL},
+{" UR: H4'", " C4*: C4'", NULL},
+{" UR:1H5*", " C5*: C5'", NULL},
+{" UR:2H5*", " C5*: C5'", NULL},
+{" UR:*H51", " C5*: C5'", NULL},
+{" UR:*H52", " C5*: C5'", NULL},
+{" UR:H5''", " C5*: C5'", NULL},
+{" UR: H5'", " C5*: C5'", NULL},
+{" UR:1H2*", " C2*: C2'", NULL},
+{" UR:2H2*", " C2*: C2'", NULL},
+{" UR: H2*", " C2*: C2'", NULL},
+{" UR:H2''", " C2*: C2'", NULL},
+{" UR: H2'", " C2*: C2'", NULL},
+{" UR:2HO*", " O2*: O2'", NULL},
+{" UR:*HO2", " O2*: O2'", NULL},
+{" UR:HO2'", " O2*: O2'", NULL}, /* remediated names RMI 070718 */
+{" UR: H3T", " O3*: O3'", NULL},
+{" UR: H5T", " O5*: O5'", NULL},
+{" UR:3HO*", " O3*: O3'", NULL},
+{" UR:*HO3", " O3*: O3'", NULL},
+{" UR:HO3'", " O3*: O3'", NULL}, /* remediated names RMI 070718 */
+{" UR:5HO*", " O5*: O5'", NULL},
+{" UR:*HO5", " O5*: O5'", NULL},
+{" UR:HO5'", " O5*: O5'", NULL}, /* remediated names RMI 070718 */
+{" UR: HN3", " N3 ", NULL},
+/* {"  U: H3 ", " N3 ", NULL},  */ /* remediated names RMI 070718 */
+{" UR: H6 ", " C6 ", NULL},
+#ifdef ALLOW_TRUNCATED_H_NAMES
+{" UR: H1 ", " C1*: C1'", NULL},
+{" UR: H4 ", " C4*: C4'", NULL},
+{" UR:1H5 ", " C5*: C5'", NULL},
+{" UR:2H5 ", " C5*: C5'", NULL},
+{" UR:*H5 ", " C5*", NULL},
+{" UR:H5' ", " C5'", NULL},
+{" UR:1H2 ", " C2*: C2'", NULL},
+{" UR:2H2 ", " C2*: C2'", NULL},
+{" UR: H2 ", " C2*: C2': O2*: O2'", NULL},
+{" UR:H2' ", " C2'", NULL},
+{" UR:2HO ", " O2*: O2'", NULL},
+{" UR:*HO ", " O2*: O3*: O5*", NULL},
+{" UR:3HO ", " O3*: O3'", NULL},
+{" UR:5HO ", " O5*: O5'", NULL},
+
+{" UR: HN ", " N3 ", NULL},
+
+{" UR: H3 ", " N3 : C3*: C3': O3*: O3'", NULL},
+{" UR: H5 ", " C5 : C5': C5*: O5*: O5'", NULL},
+#else
+{" UR: H3 ", " N3 ", NULL},
+{" UR: H5 ", " C5 ", NULL},
+#endif
+
+{" TR: H1*", " C1*: C1'", NULL},
+{" TR: H1'", " C1*: C1'", NULL},
+{" TR: H3*", " C3*: C3'", NULL},
+{" TR: H3'", " C3*: C3'", NULL},
+{" TR: H4*", " C4*: C4'", NULL},
+{" TR: H4'", " C4*: C4'", NULL},
+{" TR:1H5*", " C5*: C5'", NULL},
+{" TR:2H5*", " C5*: C5'", NULL},
+{" TR:*H51", " C5*: C5'", NULL},
+{" TR:*H52", " C5*: C5'", NULL},
+{" TR:H5''", " C5*: C5'", NULL},
+{" TR: H5'", " C5*: C5'", NULL},
+{" TR:1H2*", " C2*: C2'", NULL},
+{" TR:2H2*", " C2*: C2'", NULL},
+{" TR: H2*", " C2*: C2'", NULL},
+{" TR:H2''", " C2*: C2'", NULL},
+{" TR: H2'", " C2*: C2'", NULL},
+{" TR:2HO*", " O2*: O2'", NULL},
+{" TR:*HO2", " O2*: O2'", NULL},
+{" TR:HO2'", " O2*: O2'", NULL}, /* remediated names RMI 070718 */
+{" TR: H3T", " O3*: O3'", NULL},
+{" TR: H5T", " O5*: O5'", NULL},
+{" TR:3HO*", " O3*: O3'", NULL},
+{" TR:*HO3", " O3*: O3'", NULL},
+{" TR:HO3'", " O3*: O3'", NULL}, /* remediated names RMI 070718 */
+{" TR:5HO*", " O5*: O5'", NULL},
+{" TR:*HO5", " O5*: O5'", NULL},
+{" TR:HO5'", " O5*: O5'", NULL}, /* remediated names RMI 070718 */
+{" TR: HN3", " N3 ", NULL},
+{" TR:1H5M", " C7 : C5A: CA5: C5M", NULL},
+{" TR:2H5M", " C7 : C5A: CA5: C5M", NULL},
+{" TR:3H5M", " C7 : C5A: CA5: C5M", NULL},
+{" TR:1HM5", " C7 : C5A: CA5: C5M", NULL},
+{" TR:2HM5", " C7 : C5A: CA5: C5M", NULL},
+{" TR:3HM5", " C7 : C5A: CA5: C5M", NULL},
+{" TR:H5M1", " C7 : C5A: CA5: C5M", NULL},
+{" TR:H5M2", " C7 : C5A: CA5: C5M", NULL},
+{" TR:H5M3", " C7 : C5A: CA5: C5M", NULL},
+{" TR:1H5A", " C7 : C5A: CA5: C5M", NULL},
+{" TR:2H5A", " C7 : C5A: CA5: C5M", NULL},
+{" TR:3H5A", " C7 : C5A: CA5: C5M", NULL},
+{" TR:1HA5", " C7 : C5A: CA5: C5M", NULL},
+{" TR:2HA5", " C7 : C5A: CA5: C5M", NULL},
+{" TR:3HA5", " C7 : C5A: CA5: C5M", NULL},
+{" TR:H5A1", " C7 : C5A: CA5: C5M", NULL},
+{" TR:H5A2", " C7 : C5A: CA5: C5M", NULL},
+{" TR:H5A3", " C7 : C5A: CA5: C5M", NULL},
+{" TR: H71", " C7 : C5A: CA5: C5M", NULL}, /* remediated names RMI 070718 */
+{" TR: H72", " C7 : C5A: CA5: C5M", NULL}, /*  */
+{" TR: H73", " C7 : C5A: CA5: C5M", NULL}, /*  */
+{" TR: H6 ", " C6 ", NULL},
+#ifdef ALLOW_TRUNCATED_H_NAMES
+{" TR: H1 ", " C1*: C1'", NULL},
+{" TR: H4 ", " C4*: C4'", NULL},
+{" TR:*H5 ", " C5*", NULL},
+{" TR:H5' ", " C5'", NULL},
+{" TR: H5 ", " C5': C5*: O5*: O5'", NULL},
+{" TR:1H2 ", " C2*: C2'", NULL},
+{" TR:2H2 ", " C2*: C2'", NULL},
+{" TR: H2 ", " C2*: C2': O2*: O2'", NULL},
+{" TR:H2' ", " C2'", NULL},
+{" TR:2HO ", " O2*: O2'", NULL},
+{" TR:*HO ", " O2*: O3*: O5*", NULL},
+{" TR:3HO ", " O3*: O3'", NULL},
+{" TR:5HO ", " O5*: O5'", NULL},
+
+{" TR: HN ", " N3 ", NULL},
+{" TR:1H5 ", " C5M: C5A: C5*: C5'", NULL},
+{" TR:2H5 ", " C5M: C5A: C5*: C5'", NULL},
+{" TR:3H5 ", " C5M: C5A", NULL},
+{" TR:1HM ", " C5M: CM5", NULL},
+{" TR:2HM ", " C5M: CM5", NULL},
+{" TR:3HM ", " C5M: CM5", NULL},
+{" TR:1HA ", " C5A: CA5", NULL},
+{" TR:2HA ", " C5A: CA5", NULL},
+{" TR:3HA ", " C5A: CA5", NULL},
+{" TR:H5M ", " C5M", NULL},
+{" TR:H5A ", " C5A", NULL},
+
+{" TR: H3 ", " N3 : C3*: C3': O3*: O3'", NULL},
+#else
+{" TR: H3 ", " N3 ", NULL},
+#endif
+
+{" AR: H1*", " C1*: C1'", NULL},
+{" AR: H1'", " C1*: C1'", NULL},
+{" AR: H3*", " C3*: C3'", NULL},
+{" AR: H3'", " C3*: C3'", NULL},
+{" AR: H4*", " C4*: C4'", NULL},
+{" AR: H4'", " C4*: C4'", NULL},
+{" AR:1H5*", " C5*: C5'", NULL},
+{" AR:2H5*", " C5*: C5'", NULL},
+{" AR:*H51", " C5*: C5'", NULL},
+{" AR:*H52", " C5*: C5'", NULL},
+{" AR:H5''", " C5*: C5'", NULL},
+{" AR: H5'", " C5*: C5'", NULL},
+{" AR:1H2*", " C2*: C2'", NULL},
+{" AR:2H2*", " C2*: C2'", NULL},
+{" AR: H2*", " C2*: C2'", NULL},
+{" AR:H2''", " C2*: C2'", NULL},
+{" AR: H2'", " C2*: C2'", NULL},
+{" AR:2HO*", " O2*: O2'", NULL},
+{" AR:*HO2", " O2*: O2'", NULL},
+{" AR:HO2'", " O2*: O2'", NULL}, /* remediated names RMI 070718 */
+{" AR: H3T", " O3*: O3'", NULL},
+{" AR: H5T", " O5*: O5'", NULL},
+{" AR:3HO*", " O3*: O3'", NULL},
+{" AR:*HO3", " O3*: O3'", NULL},
+{" AR:HO3'", " O3*: O3'", NULL}, /* remediated names RMI 070718 */
+{" AR:5HO*", " O5*: O5'", NULL},
+{" AR:*HO5", " O5*: O5'", NULL},
+{" AR:HO5'", " O5*: O5'", NULL}, /* remediated names RMI 070718 */
+{" AR:1H6 ", " N6 ", NULL},
+{" AR:2H6 ", " N6 ", NULL},
+{" AR:1HN6", " N6 ", NULL},
+{" AR:2HN6", " N6 ", NULL},
+{" AR: H61", " N6 ", NULL},
+{" AR: H62", " N6 ", NULL},
+{" AR: H8 ", " C8 ", NULL},
+#ifdef ALLOW_TRUNCATED_H_NAMES
+{" AR: H1 ", " C1*: C1'", NULL},
+{" AR: H3 ", " C3*: C3': O3*: O3'", NULL},
+{" AR: H4 ", " C4*: C4'", NULL},
+{" AR:1H5 ", " C5*: C5'", NULL},
+{" AR:2H5 ", " C5*: C5'", NULL},
+{" AR:*H5 ", " C5*: C5'", NULL},
+{" AR:H5' ", " C5*: C5*", NULL},
+{" AR: H5 ", " C5': C5*: O5*: O5'", NULL},
+{" AR:1H2 ", " C2*: C2'", NULL},
+{" AR:2H2 ", " C2*: C2'", NULL},
+{" AR:H2' ", " C2*: C2'", NULL},
+{" AR:2HO ", " O2*: O2'", NULL},
+{" AR:*HO ", " O2*: O3*: O5*", NULL},
+{" AR:3HO ", " O3*: O3'", NULL},
+{" AR:5HO ", " O5*: O5'", NULL},
+
+{" AR:1HN ", " N6 ", NULL},
+{" AR:2HN ", " N6 ", NULL},
+{" AR: H6 ", " N6 ", NULL},
+
+{" AR: H2 ", " C2 : C2*: C2': O2*: O2'", NULL},
+#else
+{" AR: H2 ", " C2 ", NULL},
+#endif
+
+{" CR: H1*", " C1*: C1'", NULL},
+{" CR: H1'", " C1*: C1'", NULL},
+{" CR: H3*", " C3*: C3'", NULL},
+{" CR: H3'", " C3*: C3'", NULL},
+{" CR: H4*", " C4*: C4'", NULL},
+{" CR: H4'", " C4*: C4'", NULL},
+{" CR:1H5*", " C5*: C5'", NULL},
+{" CR:2H5*", " C5*: C5'", NULL},
+{" CR:*H51", " C5*: C5'", NULL},
+{" CR:*H52", " C5*: C5'", NULL},
+{" CR:H5''", " C5*: C5'", NULL},
+{" CR: H5'", " C5*: C5'", NULL},
+{" CR:1H2*", " C2*: C2'", NULL},
+{" CR:2H2*", " C2*: C2'", NULL},
+{" CR: H2*", " C2*: C2'", NULL},
+{" CR:H2''", " C2*: C2'", NULL},
+{" CR: H2'", " C2*: C2'", NULL},
+{" CR:2HO*", " O2*: O2'", NULL},
+{" CR:*HO2", " O2*: O2'", NULL},
+{" CR:HO2'", " O2*: O2'", NULL}, /* remediated names RMI 070718 */
+{" CR: H3T", " O3*: O3'", NULL},
+{" CR: H5T", " O5*: O5'", NULL},
+{" CR:3HO*", " O3*: O3'", NULL},
+{" CR:*HO3", " O3*: O3'", NULL},
+{" CR:HO3'", " O3*: O3'", NULL}, /* remediated names RMI 070718 */
+{" CR:5HO*", " O5*: O5'", NULL},
+{" CR:*HO5", " O5*: O5'", NULL},
+{" CR:HO5'", " O5*: O5'", NULL}, /* remediated names RMI 070718 */
+{" CR:1H4 ", " N4 ", NULL},
+{" CR:2H4 ", " N4 ", NULL},
+{" CR:1HN4", " N4 ", NULL},
+{" CR:2HN4", " N4 ", NULL},
+{" CR: H41", " N4 ", NULL},
+{" CR: H42", " N4 ", NULL},
+{" CR: H6 ", " C6 ", NULL},
+#ifdef ALLOW_TRUNCATED_H_NAMES
+{" CR: H1 ", " C1*: C1'", NULL},
+{" CR: H3 ", " C3*: C3': O3*: O3'", NULL},
+{" CR:1H5 ", " C5*: C5'", NULL},
+{" CR:2H5 ", " C5*: C5'", NULL},
+{" CR:*H5 ", " C5*", NULL},
+{" CR:H5' ", " C5'", NULL},
+{" CR:1H2 ", " C2*: C2'", NULL},
+{" CR:2H2 ", " C2*: C2'", NULL},
+{" CR: H2 ", " C2*: C2': O2*: O2'", NULL},
+{" CR:H2' ", " C2'", NULL},
+{" CR:2HO ", " O2*: O2'", NULL},
+{" CR:*HO ", " O2*: O3*: O5*", NULL},
+{" CR:3HO ", " O3*: O3'", NULL},
+{" CR:5HO ", " O5*: O5'", NULL},
+
+{" CR:1HN ", " N4 ", NULL},
+{" CR:2HN ", " N4 ", NULL},
+{" CR: H4 ", " N4 : C4*: C4'", NULL},
+
+{" CR: H5 ", " C5 : C5': C5*: O5*: O5'", NULL},
+#else
+{" CR: H5 ", " C5 ", NULL},
+#endif
+
+{" GR: H1*", " C1*: C1'", NULL},
+{" GR: H1'", " C1*: C1'", NULL},
+{" GR: H3*", " C3*: C3'", NULL},
+{" GR: H3'", " C3*: C3'", NULL},
+{" GR: H4*", " C4*: C4'", NULL},
+{" GR: H4'", " C4*: C4'", NULL},
+{" GR:1H5*", " C5*: C5'", NULL},
+{" GR:2H5*", " C5*: C5'", NULL},
+{" GR:*H51", " C5*: C5'", NULL},
+{" GR:*H52", " C5*: C5'", NULL},
+{" GR:H5''", " C5*: C5'", NULL},
+{" GR: H5'", " C5*: C5'", NULL},
+{" GR:1H2*", " C2*: C2'", NULL},
+{" GR:2H2*", " C2*: C2'", NULL},
+{" GR: H2*", " C2*: C2'", NULL},
+{" GR:H2''", " C2*: C2'", NULL},
+{" GR: H2'", " C2*: C2'", NULL},
+{" GR:2HO*", " O2*: O2'", NULL},
+{" GR:*HO2", " O2*: O2'", NULL},
+{" GR:HO2'", " O2*: O2'", NULL}, /* remediated names RMI 070718 */
+{" GR: H3T", " O3*: O3'", NULL},
+{" GR: H5T", " O5*: O5'", NULL},
+{" GR:3HO*", " O3*: O3'", NULL},
+{" GR:*HO3", " O3*: O3'", NULL},
+{" GR:HO3'", " O3*: O3'", NULL}, /* remediated names RMI 070718 */
+{" GR:5HO*", " O5*: O5'", NULL},
+{" GR:*HO5", " O5*: O5'", NULL},
+{" GR:HO5'", " O5*: O5'", NULL}, /* remediated names RMI 070718 */
+{" GR: HN1", " N1 ", NULL},
+{" GR:1HN2", " N2 ", NULL},
+{" GR:2HN2", " N2 ", NULL},
+{" GR: H21", " N2 ", NULL},
+{" GR: H22", " N2 ", NULL},
+{" GR: H8 ", " C8 ", NULL},
+#ifdef ALLOW_TRUNCATED_H_NAMES
+{" GR: H3 ", " C3*: C3': O3*: O3'", NULL},
+{" GR: H4 ", " C4*: C4'", NULL},
+{" GR:1H5 ", " C5*: C5'", NULL},
+{" GR:2H5 ", " C5*: C5'", NULL},
+{" GR:*H5 ", " C5*", NULL},
+{" GR:H5' ", " C5'", NULL},
+{" GR: H5 ", " C5': C5*: O5*: O5'", NULL},
+{" GR:H2' ", " C2'", NULL},
+{" GR:2HO ", " O2*: O2'", NULL},
+{" GR:*HO ", " O2*: O3*: O5*", NULL},
+{" GR:3HO ", " O3*: O3'", NULL},
+{" GR:5HO ", " O5*: O5'", NULL},
+
+{" GR: HN ", " N1 ", NULL},
+{" GR:1HN ", " N2 ", NULL},
+{" GR:2HN ", " N2 ", NULL},
+{" GR: H2 ", " N2 : C2*: C2': O2*: O2'", NULL},
+
+{" GR: H1 ", " N1 : C1*: C1'", NULL},
+{" GR:1H2 ", " N2 : C2*: C2'", NULL},
+{" GR:2H2 ", " N2 : C2*: C2'", NULL},
+#else
+{" GR: H1 ", " N1 ", NULL},
+{" GR:1H2 ", " N2 ", NULL},
+{" GR:2H2 ", " N2 ", NULL},
+#endif
+
 /* DNA in the remediated system is DA, DT, DG, DC */
 
 {" DT: H1*", " C1*", NULL},
@@ -2013,6 +2338,242 @@ static StdResConnTableEntry_t StandardResAtomConnRec[] = {
 {" DG: N3 ", " C2 : C4 ",      NULL},
 {" DG: C4 ", " N9 : C5 : N3 ", NULL},
 
+/* RNA for Coot and CCP4 Ar, Ur, Tr, Cr, Gr */
+
+{" UR: C1*", " N1 : C2*: O4*", NULL},
+{" UR: C1'", " N1 : C2': O4'", NULL},
+{" UR: C2*", " C3*: O2*: C1*", NULL},
+{" UR: O2*", " C2*",           NULL},
+{" UR: C3*", " C4*: O3*: C2*", NULL},
+{" UR: O3*", " C3*",           NULL},
+{" UR: C4*", " C5*: O4*: C3*", NULL},
+{" UR: O4*", " C4*: C1*",      NULL},
+{" UR: C5*", " C4*: O5*",      NULL},
+{" UR: O5*", " C5*: P  : PA ", NULL},
+{" UR: C2'", " C3': O2': C1'", NULL},
+{" UR: O2'", " C2'",           NULL},
+{" UR: C3'", " C4': O3': C2'", NULL},
+{" UR: O3'", " C3'",           NULL},
+{" UR: C4'", " C5': O4': C3'", NULL},
+{" UR: O4'", " C4': C1'",      NULL},
+{" UR: C5'", " C4': O5'",      NULL},
+{" UR: O5'", " C5': P  : PA ", NULL},
+{" UR: P  ", " O5*: O5': O1P: O2P: O3P: OP1: OP2: OP3", NULL}, /* remediated RMI 070718 */
+{" UR: O1P", " P  ",           NULL}, /*  */
+{" UR: O2P", " P  ",           NULL}, /*  */
+{" UR: O3P", " P  ",           NULL}, /*  */
+{" UR: OP1", " P  ",           NULL},
+{" UR: OP2", " P  ",           NULL},
+{" UR: OP3", " P  ",           NULL},
+{" UR: PA ", " O5*: O5': O1A: O2A: O3A", NULL},
+{" UR: O1A", " PA ",           NULL},
+{" UR: O2A", " PA ",           NULL},
+{" UR: O3A", " PA : PB ",      NULL},
+{" UR: PB ", " O5*: O5': O1B: O2B: O3B", NULL},
+{" UR: O1B", " PB ",           NULL},
+{" UR: O2B", " PB ",           NULL},
+{" UR: O3B", " PB : PG ",      NULL},
+{" UR: PG ", " O5*: O5': O1G: O2G: O3G : S1G", NULL},
+{" UR: O1G", " PG ",           NULL},
+{" UR: O2G", " PG ",           NULL},
+{" UR: O3G", " PG ",           NULL},
+{" UR: S1G", " PG ",           NULL},
+{" UR: N1 ", " C2 : C6 : C1*: C1'", NULL},
+{" UR: C2 ", " N1 : N3 : O2 ", NULL},
+{" UR: N3 ", " C2 : C4 ",      NULL},
+{" UR: C4 ", " N3 : C5 : O4 ", NULL},
+{" UR: C5 ", " C4 : C6 ",      NULL},
+{" UR: C6 ", " C5 : N1 ",      NULL},
+{" UR: O2 ", " C2 ",           NULL},
+{" UR: O4 ", " C4 ",           NULL},
+
+{" TR: C1*", " N1 : C2*: O4*", NULL},
+{" TR: C1'", " N1 : C2': O4'", NULL},
+{" TR: C2*", " C3*: O2*: C1*", NULL},
+{" TR: O2*", " C2*",           NULL},
+{" TR: C3*", " C4*: O3*: C2*", NULL},
+{" TR: O3*", " C3*",           NULL},
+{" TR: C4*", " C5*: O4*: C3*", NULL},
+{" TR: O4*", " C4*: C1*",      NULL},
+{" TR: C5*", " C4*: O5*",      NULL},
+{" TR: O5*", " C5*: P  : PA ", NULL},
+{" TR: C2'", " C3': O2': C1'", NULL},
+{" TR: O2'", " C2'",           NULL},
+{" TR: C3'", " C4': O3': C2'", NULL},
+{" TR: O3'", " C3'",           NULL},
+{" TR: C4'", " C5': O4': C3'", NULL},
+{" TR: O4'", " C4': C1'",      NULL},
+{" TR: C5'", " C4': O5'",      NULL},
+{" TR: O5'", " C5': P  : PA ", NULL},
+{" TR: P  ", " O5*: O5': O1P: O2P: O3P: OP1: OP2: OP3", NULL}, /* remediated RMI 070718 */
+{" TR: O1P", " P  ",           NULL}, /*  */
+{" TR: O2P", " P  ",           NULL}, /*  */
+{" TR: O3P", " P  ",           NULL}, /*  */
+{" TR: PA ", " O5*: O5': O1A: O2A: O3A", NULL},
+{" TR: O1A", " PA ",           NULL},
+{" TR: O2A", " PA ",           NULL},
+{" TR: O3A", " PA : PB ",      NULL},
+{" TR: PB ", " O5*: O5': O1B: O2B: O3B", NULL},
+{" TR: O1B", " PB ",           NULL},
+{" TR: O2B", " PB ",           NULL},
+{" TR: O3B", " PB : PG ",      NULL},
+{" TR: PG ", " O5*: O5': O1G: O2G: O3G : S1G", NULL},
+{" TR: O1G", " PG ",           NULL},
+{" TR: O2G", " PG ",           NULL},
+{" TR: O3G", " PG ",           NULL},
+{" TR: S1G", " PG ",           NULL},
+{" TR: N1 ", " C2 : C6 : C1*: C1'", NULL},
+{" TR: C2 ", " N1 : N3 : O2 ", NULL},
+{" TR: N3 ", " C2 : C4 ",      NULL},
+{" TR: C4 ", " N3 : C5 : O4 ", NULL},
+{" TR: C5 ", " C4 : C6 : C5M: C5A: CM5: CA5: C7 ", NULL}, /* remediated RMI 070718 */
+{" TR: C6 ", " C5 : N1 ",      NULL},
+{" TR: O2 ", " C2 ",           NULL},
+{" TR: O4 ", " C4 ",           NULL},
+{" TR: C5M", " C5 ",           NULL},
+{" TR: C5A", " C5 ",           NULL},
+{" TR: CM5", " C5 ",           NULL},
+{" TR: CA5", " C5 ",           NULL},
+{" TR: C7 ", " C5 ",           NULL}, /*  */
+
+
+{" CR: C1*", " N1 : C2*: O4*", NULL},
+{" CR: C1'", " N1 : C2': O4'", NULL},
+{" CR: C2*", " C3*: O2*: C1*", NULL},
+{" CR: O2*", " C2*",           NULL},
+{" CR: C3*", " C4*: O3*: C2*", NULL},
+{" CR: O3*", " C3*",           NULL},
+{" CR: C4*", " C5*: O4*: C3*", NULL},
+{" CR: O4*", " C4*: C1*",      NULL},
+{" CR: C5*", " C4*: O5*",      NULL},
+{" CR: O5*", " C5*: P  : PA ", NULL},
+{" CR: C2'", " C3': O2': C1'", NULL},
+{" CR: O2'", " C2'",           NULL},
+{" CR: C3'", " C4': O3': C2'", NULL},
+{" CR: O3'", " C3'",           NULL},
+{" CR: C4'", " C5': O4': C3'", NULL},
+{" CR: O4'", " C4': C1'",      NULL},
+{" CR: C5'", " C4': O5'",      NULL},
+{" CR: O5'", " C5': P  : PA ", NULL},
+{" CR: P  ", " O5*: O5': O1P: O2P: O3P: OP1: OP2: OP3", NULL}, /* remediated RMI 070718 */
+{" CR: O1P", " P  ",           NULL}, /*  */
+{" CR: O2P", " P  ",           NULL}, /*  */
+{" CR: O3P", " P  ",           NULL}, /*  */
+{" CR: PA ", " O5*: O5': O1A: O2A: O3A", NULL},
+{" CR: O1A", " PA ",           NULL},
+{" CR: O2A", " PA ",           NULL},
+{" CR: O3A", " PA : PB ",      NULL},
+{" CR: PB ", " O5*: O5': O1B: O2B: O3B", NULL},
+{" CR: O1B", " PB ",           NULL},
+{" CR: O2B", " PB ",           NULL},
+{" CR: O3B", " PB : PG ",      NULL},
+{" CR: PG ", " O5*: O5': O1G: O2G: O3G : S1G", NULL},
+{" CR: O1G", " PG ",           NULL},
+{" CR: O2G", " PG ",           NULL},
+{" CR: O3G", " PG ",           NULL},
+{" CR: S1G", " PG ",           NULL},
+{" CR: N1 ", " C2 : C6 : C1*: C1'", NULL},
+{" CR: C2 ", " N1 : N3 : O2 ", NULL},
+{" CR: N3 ", " C2 : C4 ",      NULL},
+{" CR: C4 ", " N3 : C5 : N4 ", NULL},
+{" CR: C5 ", " C4 : C6 ",      NULL},
+{" CR: C6 ", " C5 : N1 ",      NULL},
+{" CR: O2 ", " C2 ",           NULL},
+{" CR: N4 ", " C4 ",           NULL},
+
+{" AR: C1*", " N9 : C2*: O4*", NULL},
+{" AR: C1'", " N9 : C2': O4'", NULL},
+{" AR: C2*", " C3*: O2*: C1*", NULL},
+{" AR: O2*", " C2*",           NULL},
+{" AR: C3*", " C4*: O3*: C2*", NULL},
+{" AR: O3*", " C3*",           NULL},
+{" AR: C4*", " C5*: O4*: C3*", NULL},
+{" AR: O4*", " C4*: C1*",      NULL},
+{" AR: C5*", " C4*: O5*",      NULL},
+{" AR: O5*", " C5*: P  : PA ", NULL},
+{" AR: C2'", " C3': O2': C1'", NULL},
+{" AR: O2'", " C2'",           NULL},
+{" AR: C3'", " C4': O3': C2'", NULL},
+{" AR: O3'", " C3'",           NULL},
+{" AR: C4'", " C5': O4': C3'", NULL},
+{" AR: O4'", " C4': C1'",      NULL},
+{" AR: C5'", " C4': O5'",      NULL},
+{" AR: O5'", " C5': P  : PA ", NULL},
+{" AR: P  ", " O5*: O5': O1P: O2P: O3P: OP1: OP2: OP3", NULL}, /* remediated RMI 070718 */
+{" AR: O1P", " P  ",           NULL}, /*  */
+{" AR: O2P", " P  ",           NULL}, /*  */
+{" AR: O3P", " P  ",           NULL}, /*  */
+{" AR: PA ", " O5*: O5': O1A: O2A: O3A", NULL},
+{" AR: O1A", " PA ",           NULL},
+{" AR: O2A", " PA ",           NULL},
+{" AR: O3A", " PA : PB ",      NULL},
+{" AR: PB ", " O5*: O5': O1B: O2B: O3B", NULL},
+{" AR: O1B", " PB ",           NULL},
+{" AR: O2B", " PB ",           NULL},
+{" AR: O3B", " PB : PG ",      NULL},
+{" AR: PG ", " O5*: O5': O1G: O2G: O3G : S1G", NULL},
+{" AR: O1G", " PG ",           NULL},
+{" AR: O2G", " PG ",           NULL},
+{" AR: O3G", " PG ",           NULL},
+{" AR: S1G", " PG ",           NULL},
+{" AR: N9 ", " C8 : C4 : C1*: C1'", NULL},
+{" AR: C8 ", " N9 : N7 ",      NULL},
+{" AR: N7 ", " C8 : C5 ",      NULL},
+{" AR: C5 ", " N7 : C6 : C4 ", NULL},
+{" AR: C6 ", " C5 : N6 : N1 ", NULL},
+{" AR: N6 ", " C6 ",           NULL},
+{" AR: N1 ", " C6 : C2 ",      NULL},
+{" AR: C2 ", " N1 : N3 ",      NULL},
+{" AR: N3 ", " C2 : C4 ",      NULL},
+{" AR: C4 ", " N9 : C5 : N3 ", NULL},
+
+{" GR: C1*", " N9 : C2*: O4*", NULL},
+{" GR: C1'", " N9 : C2': O4'", NULL},
+{" GR: C2*", " C3*: O2*: C1*", NULL},
+{" GR: O2*", " C2*",           NULL},
+{" GR: C3*", " C4*: O3*: C2*", NULL},
+{" GR: O3*", " C3*",           NULL},
+{" GR: C4*", " C5*: O4*: C3*", NULL},
+{" GR: O4*", " C4*: C1*",      NULL},
+{" GR: C5*", " C4*: O5*",      NULL},
+{" GR: O5*", " C5*: P  : PA ", NULL},
+{" GR: C2'", " C3': O2': C1'", NULL},
+{" GR: O2'", " C2'",           NULL},
+{" GR: C3'", " C4': O3': C2'", NULL},
+{" GR: O3'", " C3'",           NULL},
+{" GR: C4'", " C5': O4': C3'", NULL},
+{" GR: O4'", " C4': C1'",      NULL},
+{" GR: C5'", " C4': O5'",      NULL},
+{" GR: O5'", " C5': P  : PA ", NULL},
+{" GR: P  ", " O5*: O5': O1P: O2P: O3P: OP1: OP2: OP3", NULL}, /* remediated RMI 070718 */
+{" GR: O1P", " P  ",           NULL}, /*  */
+{" GR: O2P", " P  ",           NULL}, /*  */
+{" GR: O3P", " P  ",           NULL}, /*  */
+{" GR: PA ", " O5*: O5': O1A: O2A: O3A", NULL},
+{" GR: O1A", " PA ",           NULL},
+{" GR: O2A", " PA ",           NULL},
+{" GR: O3A", " PA : PB ",      NULL},
+{" GR: PB ", " O5*: O5': O1B: O2B: O3B", NULL},
+{" GR: O1B", " PB ",           NULL},
+{" GR: O2B", " PB ",           NULL},
+{" GR: O3B", " PB : PG ",      NULL},
+{" GR: PG ", " O5*: O5': O1G: O2G: O3G : S1G", NULL},
+{" GR: O1G", " PG ",           NULL},
+{" GR: O2G", " PG ",           NULL},
+{" GR: O3G", " PG ",           NULL},
+{" GR: S1G", " PG ",           NULL},
+{" GR: N9 ", " C8 : C4 : C1*: C1'", NULL},
+{" GR: C8 ", " N9 : N7 ",      NULL},
+{" GR: N7 ", " C8 : C5 ",      NULL},
+{" GR: C5 ", " N7 : C6 : C4 ", NULL},
+{" GR: C6 ", " C5 : O6 : N1 ", NULL},
+{" GR: O6 ", " C6 ",           NULL},
+{" GR: N1 ", " C6 : C2 ",      NULL},
+{" GR: C2 ", " N1 : N2 : N3 ", NULL},
+{" GR: N2 ", " C2 ",           NULL},
+{" GR: N3 ", " C2 : C4 ",      NULL},
+{" GR: C4 ", " N9 : C5 : N3 ", NULL},
+
 
 {NULL, NULL, NULL}
 };
@@ -2087,24 +2648,24 @@ char * searchForStdBondingPartner(char *resname, char *atomname, int isAhydrogen
 	 /* if failed because of a non-std nucleic acid residue name */
 	 /* convert to "..X" and retry                               */
 
-	 char *naALTlist = ":GUA:GTP:GDP:GMP:GSP:ADE:ATP:ADP:AMP:CYT:CTP:CDP:CMP:URA:UTP:UDP:UMP:THY:TTP:TDP:TMP: DA: DT: DC: DG:";
+	 char *naALTlist = ":GUA:GTP:GDP:GMP:GSP:ADE:ATP:ADP:AMP:CYT:CTP:CDP:CMP:URA:UTP:UDP:UMP:THY:TTP:TDP:TMP: DA: DT: DC: DG: AR: UR: TR: CR: GR:";
 
 	 querystring[3] = '\0'; /* temporarily look at just the first three chars */
 	 if (strstr(naALTlist, querystring)) {
 	    /* fixup common alternate nucleic acid residue names */
-	         if(strstr(":GUA:GTP:GDP:GMP:GSP: DG:", querystring)) {
+	         if(strstr(":GUA:GTP:GDP:GMP:GSP: DG: GR:", querystring)) {
 	       querystring[2] = 'G';
 	    }
-	    else if(strstr(":ADE:ATP:ADP:AMP: DA:",     querystring)) {
+	    else if(strstr(":ADE:ATP:ADP:AMP: DA: AR:",     querystring)) {
 	       querystring[2] = 'A';
 	    }
-	    else if(strstr(":CYT:CTP:CDP:CMP: DC:",     querystring)) {
+	    else if(strstr(":CYT:CTP:CDP:CMP: DC: CR:",     querystring)) {
 	       querystring[2] = 'C';
 	    }
-	    else if(strstr(":URA:UTP:UDP:UMP:",     querystring)) {
+	    else if(strstr(":URA:UTP:UDP:UMP: UR:",     querystring)) {
 	       querystring[2] = 'U';
 	    }
-	    else if(strstr(":THY:TTP:TDP:TMP: DT:",     querystring)) {
+	    else if(strstr(":THY:TTP:TDP:TMP: DT: TR:",     querystring)) {
 	       querystring[2] = 'T';
 	    }
 	    else { querystring[2] = ' '; }

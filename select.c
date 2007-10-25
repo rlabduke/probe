@@ -51,11 +51,11 @@ static ResidueAndAtomPair AromaticAtomsTbl[] = {
 ":HIS:", ": HD1: HD2: HE1: HE2: DD1: DD2: DE1: DE2:",           0,
 ":TYR:", ": HD1: HD2: HE1: HE2: DD1: DD2: DE1: DE2:",           0,
 ":TRP:", ": HD1: HE1: HE3: HZ2: HZ3: HH2: DD1: DE1: DE3: DZ2: DZ3: DH2:", 0,
-":  U:URA:UTP:UDP:UMP:",    ": H3 : HN3: H5 : H6 : D3 : DN3: D5 : D6 :", 0,
-":  T:THY:TTP:TDP:TMP:5MU: DT:",          ": H3 : HN3: H6 : D3 : DN3: D6 :", 0,
-":  A:ADE:ATP:ADP:AMP:1MA:RIA:T6A: DA:",            ": H8 : H2 : D8 : D2 :", 0,
-":  C:CYT:CTP:CDP:CMP:5MC:OMC: DC:",                ": H5 : H6 : D5 : D6 :", 0,
-":  G:GUA:GTP:GDP:GMP:GSP:2MG:M2G:7MG:OMG: DG:",
+":  U:URA:UTP:UDP:UMP: UR:",    ": H3 : HN3: H5 : H6 : D3 : DN3: D5 : D6 :", 0,
+":  T:THY:TTP:TDP:TMP:5MU: DT: TR:",          ": H3 : HN3: H6 : D3 : DN3: D6 :", 0,
+":  A:ADE:ATP:ADP:AMP:1MA:RIA:T6A: DA: AR:",            ": H8 : H2 : D8 : D2 :", 0,
+":  C:CYT:CTP:CDP:CMP:5MC:OMC: DC: CR:",                ": H5 : H6 : D5 : D6 :", 0,
+":  G:GUA:GTP:GDP:GMP:GSP:2MG:M2G:7MG:OMG: DG: GR:",
                                       ": H8 : H1 : HN1: D8 : D1 : DN1:", 0,
 ": YG:1MG:",                                    ": H8 : D8 :",           0,
 ":PSU:",   ": H6 : D6 : H1 : HN1: D1 : DN1: H3 : HN3: D3 : DN3:",        0,
@@ -64,15 +64,15 @@ static ResidueAndAtomPair AromaticAtomsTbl[] = {
 ":HIS:", ": ND1: CD2: CE1: NE2: CG :", 0,
 ":TYR:", ": CG : CD1: CD2: CE1: CE2: CZ :",                TEST_ACCEPT_ANGLE_PROP,
 ":TRP:", ": CG : CD1: CD2: NE1: CE2: CE3: CZ2: CZ3: CH2:", TEST_ACCEPT_ANGLE_PROP,
-":  U:URA:UTP:UDP:UMP:PSU:",
+":  U:URA:UTP:UDP:UMP:PSU: UR:",
                ": N1 : C2 : N3 : C4 : C5 : C6 :",               TEST_ACCEPT_ANGLE_PROP,
-":  T:THY:TTP:TDP:TMP:5MU: DT:",
+":  T:THY:TTP:TDP:TMP:5MU: DT: TR:",
                ": N1 : C2 : N3 : C4 : C5 : C6 :",               TEST_ACCEPT_ANGLE_PROP,
-":  A:ADE:ATP:ADP:AMP:1MA:RIA:T6A:  I: DA: DI:",
+":  A:ADE:ATP:ADP:AMP:1MA:RIA:T6A:  I: DA: DI: AR:",
                ": N1 : C2 : N3 : C4 : C5 : C6 : N7 : C8 : N9 :",TEST_ACCEPT_ANGLE_PROP,
-":  C:CYT:CTP:CDP:CMP:5MC:OMC: DC:",
+":  C:CYT:CTP:CDP:CMP:5MC:OMC: DC: CR:",
                ": N1 : C2 : N3 : C4 : C5 : C6 :",               TEST_ACCEPT_ANGLE_PROP,
-":  G:GUA:GTP:GDP:GMP:GSP:1MG:2MG:M2G:7MG:OMG: DG:",
+":  G:GUA:GTP:GDP:GMP:GSP:1MG:2MG:M2G:7MG:OMG: DG: GR:",
                ": N1 : C2 : N3 : C4 : C5 : C6 : N7 : C8 : N9 :",TEST_ACCEPT_ANGLE_PROP,
 ": YG:",       ": N1 : C2 : N3 : C4 : C5 : C6 : N7 : C8 : N9 :\
                                               : N2 : C11: C12:",TEST_ACCEPT_ANGLE_PROP,
@@ -101,7 +101,7 @@ static char *AromaticAAList = ":PHE:HIS:TYR:TRP:HEM:";
 static char *NAList = ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:\
 CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:\
 GSP:H2U:PSU:1MG:2MG:M2G:7MG:5MC:5MU:T6A:1MA:RIA:\
-OMC:OMG: YG:  I: DA: DT: DC: DG: DI:";
+OMC:OMG: YG:  I: DA: DT: DC: DG: DI: AR: UR: TR: GR: CR:";
 /*}}}NAList */
 /*{{{NAbackboneList          ***/
 static char *NAbackboneList = ": P  : O1P: O2P: OP1: OP2: PA : PB : PG :\
@@ -116,10 +116,10 @@ static char *NAbackboneList = ": P  : O1P: O2P: OP1: OP2: PA : PB : PG :\
 /*{{{NAbaseGrouping[]         **/
 /* used to treat similar nucleic acid bases similarly */
 static ResidueAndAtomPair NAbaseGrouping[] = {
-":  U:URA:UTP:UDP:UMP:  T:THY:TTP:TDP:TMP:5MU: DT:",     "", baseTU,
-":  A:ADE:ATP:ADP:AMP:1MA:RIA:T6A: DA:",                 "", baseA,
-":  C:CYT:CTP:CDP:CMP:5MC:OMC: DC:",                     "", baseC,
-":  G:GUA:GTP:GDP:GMP:GSP:1MG:2MG:M2G:7MG:OMG: DG:",     "", baseG,
+":  U:URA:UTP:UDP:UMP: UR:  T:THY:TTP:TDP:TMP:5MU: DT: TR:",     "", baseTU,
+":  A:ADE:ATP:ADP:AMP:1MA:RIA:T6A: DA: AR:",                 "", baseA,
+":  C:CYT:CTP:CDP:CMP:5MC:OMC: DC: CR:",                     "", baseC,
+":  G:GUA:GTP:GDP:GMP:GSP:1MG:2MG:M2G:7MG:OMG: DG: GR:",     "", baseG,
 ":  I: YG:H2U:PSU: DI:",                                 "", baseOther,
 0, 0, 0};
 /*}}}NAbaseGrouping[] */
@@ -259,11 +259,11 @@ static ResidueAndAtomPair DonorAcceptorAtomTbl[] = {
 
 ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:\
  :CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:GSP:\
- :H2U:PSU:1MG:2MG:M2G:5MC:5MU:T6A:1MA: YG:  I: DA: DT: DC: DG: DI:",
+ :H2U:PSU:1MG:2MG:M2G:5MC:5MU:T6A:1MA: YG:  I: DA: DT: DC: DG: DI: AR: UR: TR: CR: GR:",
           ": O2*: O2':",                         DONOR_PROP|ACCEPTOR_PROP,
 ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:\
  :CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:GSP:\
- :H2U:PSU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I: DA: DT: DC: DG: DI:",
+ :H2U:PSU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I: DA: DT: DC: DG: DI: AR: UR: TR: CR: GR:",
   ":2HO*:3HO*:5HO*: H3T: H5T:HO3':HO5':\
    :2DO*:3DO*:5DO*: D3T: D5T:DO3':DO5':",
 /*  ":2HO*:3HO*:5HO*: H2': H3': H5': H3T: H5T:HO3':HO5':\  RMI removed H2', H3' and H5' 070723 */
@@ -271,36 +271,36 @@ static ResidueAndAtomPair DonorAcceptorAtomTbl[] = {
                                                          DONOR_PROP,
 ":  C:  G:  A:  T:  U:CYT:GUA:ADE:THY:URA:\
  :CTP:CDP:CMP:GTP:GDP:GMP:ATP:ADP:AMP:TTP:TDP:TMP:UTP:UDP:UMP:GSP:\
- :H2U:PSU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I: DA: DT: DC: DG: DI:",
+ :H2U:PSU:1MG:2MG:M2G:5MC:5MU:T6A:1MA:RIA:OMC:OMG: YG:  I: DA: DT: DC: DG: DI: AR: UR: TR: CR: GR:",
   ": O1P: O2P: OP1: OP2: O1A: O2A: O3A: O1B: O2B: O3B: O1G: O2G: O3G: S1G:\
    : O3*: O5*: O3': O5':",                               ACCEPTOR_PROP,
 
-":  U:URA:UTP:UDP:UMP:H2U: DU:",": N3 : H3 : HN3: D3 : DN3:",DONOR_PROP,
+":  U:URA:UTP:UDP:UMP:H2U: DU: UR:",": N3 : H3 : HN3: D3 : DN3:",DONOR_PROP,
 ":PSU:",       ": N1 : H1 : D1 : HN1: DN1:\
                 : N3 : H3 : D3 : HN3: DN3:",             DONOR_PROP,
-":  U:URA:UTP:UDP:UMP:H2U:PSU: DU:",   ": O2 : O4 :",        ACCEPTOR_PROP,
-":  T:THY:TTP:TDP:TMP:5MU: DT:",": N3 : H3 : HN3: D3 : DN3:",DONOR_PROP,
-":  T:THY:TTP:TDP:TMP:5MU: DT:",  ": O2 : O4 :",             ACCEPTOR_PROP,
-":  A:ADE:ATP:ADP:AMP:1MA:RIA: DA:",
+":  U:URA:UTP:UDP:UMP:H2U:PSU: DU: UR:",   ": O2 : O4 :",        ACCEPTOR_PROP,
+":  T:THY:TTP:TDP:TMP:5MU: DT: TR:",": N3 : H3 : HN3: D3 : DN3:",DONOR_PROP,
+":  T:THY:TTP:TDP:TMP:5MU: DT: TR:",  ": O2 : O4 :",             ACCEPTOR_PROP,
+":  A:ADE:ATP:ADP:AMP:1MA:RIA: DA: AR:",
          ": N6 :1H6 :2H6 : H61: H62:1HN6:2HN6:\
                :1D6 :2D6 : D61: D62:1DN6:2DN6:",         DONOR_PROP,
-":  A:ADE:ATP:ADP:AMP:RIA: DA:",     ": N1 : N3 : N7 :",     ACCEPTOR_PROP,
+":  A:ADE:ATP:ADP:AMP:RIA: DA: AR:",     ": N1 : N3 : N7 :",     ACCEPTOR_PROP,
                 ":1MA:  I: DI:",          ": N3 : N7 :",     ACCEPTOR_PROP,
 
 ":T6A:", ": N6 : HN6: DN6: N11: HN1: DN1: H14: D14:\
                               : H11: D11: HO4: DO4:",    DONOR_PROP,
 ":T6A:", ": N1 : N3 : N7 : O10:AO13:BO13: O14:",         ACCEPTOR_PROP,
 
-":  C:CYT:CTP:CDP:CMP:OMC:5MC: DC:",
+":  C:CYT:CTP:CDP:CMP:OMC:5MC: DC: CR:",
          ": N4 :1H4 :2H4 : H41: H42:1HN4:2HN4:\
                :1D4 :2D4 : D41: D42:1DN4:2DN4:",         DONOR_PROP,
-":  C:CYT:CTP:CDP:CMP:OMC:5MC: DC:",  ": O2 : N3 :",         ACCEPTOR_PROP,
-":  G:GUA:GTP:GDP:GMP:GSP:OMG:7MG: DG:",
+":  C:CYT:CTP:CDP:CMP:OMC:5MC: DC: CR:",  ": O2 : N3 :",         ACCEPTOR_PROP,
+":  G:GUA:GTP:GDP:GMP:GSP:OMG:7MG: DG: GR:",
          ": N1 : N2 : H1 :1H2 :2H2 : H21: H22: HN1:1HN2:2HN2:\
                     : D1 :1D2 :2D2 : D21: D22: DN1:1DN2:2DN2:",DONOR_PROP,
 ":2MG:", ": N1 : N2 : H1 : H2 : HN1: HN2:\
                     : D1 : D2 : DN1: DN2:",              DONOR_PROP,
-":  G:GUA:GTP:GDP:GMP:GSP:OMG:1MG:2MG:M2G: DG:",
+":  G:GUA:GTP:GDP:GMP:GSP:OMG:1MG:2MG:M2G: DG: GR:",
                                  ": O6 : N3 : N7 :",     ACCEPTOR_PROP,
 ": YG:",     ": O6 : N2 : N7 : O17: O17: O22: O23:",     ACCEPTOR_PROP,
 
@@ -309,8 +309,8 @@ static ResidueAndAtomPair DonorAcceptorAtomTbl[] = {
 ":M2G:", ": N1 : H1 : HN1: D1 : DN1:",                   DONOR_PROP,
 ":7MG:", ": O6 : N3 :",                                  ACCEPTOR_PROP,
 
-":  A:ADE:ATP:ADP:AMP:1MA:RIA:T6A:  I: DA: DI:",        ": H2 : H8 :", DONOR_PROP|CH_DONOR_PROP,
-":  G:GUA:GTP:GDP:GMP:GSP:OMG:1MG:2MG:M2G:7MG: YG: DG: DC:", ": H8 :", DONOR_PROP|CH_DONOR_PROP,
+":  A:ADE:ATP:ADP:AMP:1MA:RIA:T6A:  I: DA: DI: AR:",        ": H2 : H8 :", DONOR_PROP|CH_DONOR_PROP,
+":  G:GUA:GTP:GDP:GMP:GSP:OMG:1MG:2MG:M2G:7MG: YG: DG: GR:", ": H8 :", DONOR_PROP|CH_DONOR_PROP,
 
 #ifdef EXPLICIT_WATER_ATOM_NAMES
 ":HOH:DOD:H2O:D2O:WAT:TIP:SOL:MTO:", ": O  : OH2: OD2: OW :", DONOR_PROP|ACCEPTOR_PROP,
