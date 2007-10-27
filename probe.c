@@ -4391,7 +4391,7 @@ int enumDotSkin(atom *allMainAtoms, atomBins *abins,
 	 dotTotal += countSkin(src, atomList2, dots);
 
 	 if(Verbose && ShowTicks) {
-	    fprintf(stderr, "%s%d   \r",
+	    fprintf(stderr, "%s%s   \r",
 	               src->r->resname, src->r->Hy36resno);
 	 }
       }
@@ -4410,7 +4410,7 @@ int enumDotSkin(atom *allMainAtoms, atomBins *abins,
 	    dotTotal += countSkin(src, atomList2, dots);
 
 	    if(Verbose && ShowTicks) {
-	       fprintf(stderr, "%s%d   \r",
+	       fprintf(stderr, "%s%s   \r",
 	               src->r->resname, src->r->Hy36resno);
 	    }
 	 }
