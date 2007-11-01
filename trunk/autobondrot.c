@@ -405,7 +405,7 @@ void describeXformDB(FILE *outf, xformDatabase* xdb, char *cch)
 	 }
 
 	 for(xa = p->recs; xa; xa = xa->next) {
-	    fprintf(outf, "%s    %4.4s%c%3.3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f      %s\n", cch,
+	    fprintf(outf, "%s    %4.4s%c%3.3s%2s%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f      %s\n", cch,
 	       xa->a->atomname, xa->a->altConf,
 	       xa->a->r->resname, xa->a->r->chain,
 	       xa->a->r->resid, xa->a->r->resInsCode,
@@ -444,7 +444,7 @@ void describeXformDB(FILE *outf, xformDatabase* xdb, char *cch)
 void XFdescribeAtomList(FILE *outf, atom* a) {
    int i = 0;
    for(; a; a = a->next) {
-      fprintf(outf, "ATOM   %4d %4.4s%c%3.3s %c%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f      auto\n",
+      fprintf(outf, "ATOM   %4d %4.4s%c%3.3s%2s%4d%c   %8.3f%8.3f%8.3f%6.2f%6.2f      auto\n",
 	       ++i, a->atomname, a->altConf,
 	       a->r->resname, a->r->chain,
 	       a->r->resid, a->r->resInsCode,
@@ -804,8 +804,8 @@ int compareXDBAtomRecs(const void *avptr, const void* bvptr) {
    
    /* Divide into separate residues. Atom sorting within a residue is less important. */
 
-   if      (a->r->chain > b->r->chain) { cmpval =  1; }
-   else if (a->r->chain < b->r->chain) { cmpval = -1; }
+   if      (strcmp(a->r->chain, b->r->chain) > 0) { cmpval =  1; }
+   else if (strcmp(a->r->chain, b->r->chain) < 0) { cmpval = -1; }
    else {
       if      (a->r->resid > b->r->resid) { cmpval =  1; }
       else if (a->r->resid < b->r->resid) { cmpval = -1; }

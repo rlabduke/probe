@@ -589,7 +589,9 @@ int matchPat(atom *a, pattern *pat)
    case    NOT_NODE: rc = !matchPat(a, pat->lhs); break;
    case   FILE_NODE: rc = (a->r->file  == pat->val); break;
    case  MODEL_NODE: rc = (a->r->model == pat->val); break;
-   case  CHAIN_NODE: rc = (a->r->chain == pat->val); break;
+   case  CHAIN_NODE: lp = strlen(lexString(pat->val));
+                     rc = (strncmp(lexString(pat->val), a->r->chain, lp) 
+                                                            == 0); break;
    case    ALT_NODE: rc = (a->altConf == ' ' || a->altConf == pat->val); break;
    case    RES_NODE: rc = (a->r->resid == pat->val); break;
    case  RANGE_NODE: rc = (pat->lhs->val <= a->r->resid
