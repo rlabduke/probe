@@ -798,7 +798,8 @@ void recPrint(FILE *outf, pattern *pat) {
       fprintf(outf,"model=%d", pat->val);
       break;
    case CHAIN_NODE:
-      fprintf(outf,"chain='%c'", pat->val);
+      fprintf(outf,"chain=\"%s%s\"", lexString(pat->val), 
+                              ((strlen(lexString(pat->val))<3)?"*":""));
       break;
    case ALT_NODE:
       fprintf(outf,"alt='%c'", pat->val);

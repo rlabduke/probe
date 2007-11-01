@@ -24,7 +24,7 @@ typedef struct {  /* 3D bounding region */
 } region;
 
 #define FPRINT_ATOMNAME(outf, aptr) \
-              fprintf((outf), "%4.4s%c%3.3s %c%4d%c",            \
+              fprintf((outf), "%4.4s%c%3.3s%2s%4d%c",            \
                            (aptr)->atomname, (aptr)->altConf,    \
                            (aptr)->r->resname, (aptr)->r->chain,       \
                            (aptr)->r->resid, (aptr)->r->resInsCode)
@@ -88,7 +88,7 @@ typedef struct residue_t {
 	char resname[5]; /* residue name */
 	char resInsCode; /* insertion code */
 
-	char chain;      /* peptide chain code */
+	char chain[3];      /* peptide chain code */
 } residue, *residuePtr;
 
 typedef struct {

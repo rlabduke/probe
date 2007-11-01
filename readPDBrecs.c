@@ -163,10 +163,18 @@ void parseResidueHy36Num(char *line, char Hy36resno[]) {
    Hy36resno[4] = '\0';
 }
 
+void parseChain(char *line, char chain[]) {
+   chain[0] = line[20];
+   chain[1] = line[21];
+   chain[2] = '\0';
+}
+
+/*  Now using two character chain ids
 char parseChain(char *line) {
 	
    return line[21];
 }
+*/
 
 float parseOccupancy(char *line) {
 

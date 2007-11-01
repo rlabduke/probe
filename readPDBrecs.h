@@ -37,7 +37,8 @@ int parseResidueNumber(char *line);*/
 int parseAtomNumber(char *line);
 int parseResidueNumber(char *line); 
 void parseResidueHy36Num(char *line, char Hy36resno[]); 
-char parseChain(char *line);
+void parseChain(char *line, char chain[]); 
+/*char parseChain(char *line);*/
 float parseOccupancy(char *line);
 float parseTempFactor(char *line);
 char parseResidueInsertionCode(char *line);

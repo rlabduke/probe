@@ -52,7 +52,7 @@
 #define INLINE_FOR_SPEED 1
 
 static char *versionString =
-  "probe: version 2.12.071025, Copyright 1996-2007, J. Michael Word";
+  "probe: version 2.12.071101, Copyright 1996-2007, J. Michael Word";
 /*"probe: version 2.12.070821, Copyright 1996-2007, J. Michael Word";*/
 /*"probe: version 2.11.061018, Copyright 1996-2006, J. Michael Word";*/
 /*"probe: version 2.11.060831, Copyright 1996-2006, J. Michael Word";*/
@@ -63,7 +63,7 @@ static char *versionString =
 /*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
    /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char *shortVersionStr = "probe.2.12.071025";
+static char *shortVersionStr = "probe.2.12.071101";
 /*static char *shortVersionStr = "probe.2.11.061018";*/
 /*static char *shortVersionStr = "probe.2.11.060831";*/
 /*static char *shortVersionStr = "Probe V2.11.060129";*/
@@ -167,7 +167,7 @@ static int  modelToProcess = 0; /*global model specified for processing 041114*/
  (  ((ra) == (rb))                \
   ||(   (ra)->resid      == (rb)->resid      \
      && (ra)->resInsCode == (rb)->resInsCode \
-     && (ra)->chain      == (rb)->chain      \
+     && strcmp((ra)->chain,  (rb)->chain) == 0     \
      && (ra)->model      == (rb)->model )    \
   && ((SplitBySegID == FALSE) || ( strcmp((ra)->segid, (rb)->segid) == 0) ) )
 
@@ -2096,7 +2096,10 @@ void ProcessResInfo(chainEndData_t *ed, atom *a)
 void movingAtomListProcessing(atom *initAtomLst, void *userdata) 
 {
    int previd = 0, rescnt = 0;
-   char prevInsCode = ' ', prevChain = '?';
+   char prevInsCode = ' '; 
+   char prevChain[3];  
+   prevChain[0] = prevChain[1] = '?'; 
+   prevChain[2] = '\0';
    atom *a = NULL, *prevAtomLst = NULL, *nexta = NULL;
    chainEndData_t endData;
 
@@ -2110,19 +2113,20 @@ void movingAtomListProcessing(atom *initAtomLst, void *userdata)
                              /* only atoms previously seen      */
 
       if (a->r->resid != previd || a->r->resInsCode != prevInsCode
-                             || a->r->chain      != prevChain) {
+                             || strcmp(a->r->chain, prevChain) != 0) {
 
 	 if (rescnt){
 	    resCheck(&endData, prevAtomLst, rescnt);
 	 }
-	 CtermCheck(&endData, rescnt, (a->r->chain != prevChain));
+	 CtermCheck(&endData, rescnt, (strcmp(a->r->chain, prevChain) != 0));
 
 	 ++rescnt;
 
-	 NtermCheck(&endData, rescnt, (a->r->chain != prevChain));
+	 NtermCheck(&endData, rescnt, (strcmp(a->r->chain, prevChain) != 0));
 	 previd = a->r->resid;
 	 prevInsCode = a->r->resInsCode;
-	 prevChain = a->r->chain;
+	 strcpy(prevChain, a->r->chain);
+         prevChain[2] = '\0';
       }
       a->r->rescnt = rescnt;
 
@@ -2139,7 +2143,10 @@ atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
 		  residue **reslstptr) 
 {
    int previd = 0, rescnt = 0, model = 0;
-   char *rec, prevInsCode = ' ', prevChain = '?';
+   char *rec, prevInsCode = ' ';
+   char prevChain[3];
+   prevChain[0] = prevChain[1] = '?';
+   prevChain[2] = '\0';
    atom *a = NULL;
    residue *scratchRes;
    chainEndData_t endData;
@@ -2149,25 +2156,29 @@ atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
    initEndData(&endData);
 
    while(rec = getPDBrecord(fp)) { /*loop over all records in pdb file*/
-      if (isTer(rec)) { prevChain = '?'; }
+      if (isTer(rec)) { 
+         prevChain[0] = prevChain[1] = '?';
+         prevChain[2] = '\0';
+      }
       if ((isAtom(rec) || isHet(rec)) && ! isPseudoAtom(rec)) {/*atom or htatm*/
 	 a = newAtom(rec, file, model, scratchRes);
 	 if (!a) { break;}
 
 	 if (a->r->resid != previd || a->r->resInsCode != prevInsCode
-	                        || a->r->chain      != prevChain) {
+	                        || strcmp(a->r->chain, prevChain) != 0) {
 
 	    if (rescnt){
 	       resCheck(&endData, atomlist, rescnt);
 	    }
-	    CtermCheck(&endData, rescnt, (a->r->chain != prevChain));
+	    CtermCheck(&endData, rescnt, (strcmp(a->r->chain, prevChain) != 0));
 
 	    ++rescnt;
 
-	    NtermCheck(&endData, rescnt, (a->r->chain != prevChain));
+	    NtermCheck(&endData, rescnt, (strcmp(a->r->chain, prevChain) != 0));
 	    previd = a->r->resid;
 	    prevInsCode = a->r->resInsCode;
-	    prevChain = a->r->chain;
+	    strcpy(prevChain, a->r->chain);
+            prevChain[2] = '\0';
 	 }
 	 a->r->rescnt = rescnt;
 
@@ -2307,7 +2318,7 @@ residue * newResidueData()
       r->a = NULL;
       r->file = 0;
       r->model = 0;
-      r->chain = ' ';
+/*      r->chain = ' ';   RMI I don't know what to do here*/ 
       r->resid = ' ';
       r->resInsCode = ' ';
       r->rescnt = 0;
@@ -2410,7 +2421,8 @@ atom * newAtom(char *rec, int file, int model, residue * resDataBuf)
       a->r->a = a; /* residue points back to this atom (can change for res) */
       a->r->file = file;
       a->r->model = model;
-      a->r->chain = parseChain(rec);
+      parseChain(rec, a->r->chain); 
+     /* a->r->chain = parseChain(rec);*/
       a->r->resid = parseResidueNumber(rec); 
       parseResidueHy36Num(rec, a->r->Hy36resno);  
       a->r->resInsCode = parseResidueInsertionCode(rec); 
@@ -2811,7 +2823,7 @@ void examineDots(atom *src, int type, atom *scratch,
             if (! (   ( src->props & HET_PROP)
                    || (targ->props & HET_PROP) ) ) 
             {/* neither can be a HET */
-               if (src->r->chain == targ->r->chain) 
+               if (strcmp(src->r->chain, targ->r->chain) == 0) 
                {/* must be the same chain*/ /*problem for NMR models ????*/
         	  skipthisMCMC = 1;
                }
@@ -2969,7 +2981,7 @@ void examineDots(atom *src, int type, atom *scratch,
 
 #ifdef JACKnANDREA
             if (writeHbonds)
-              printf("{%s %s %c %d}P %f %f %f {%s %s %c %d} %f %f %f\n", 
+              printf("{%s %s %2s %d}P %f %f %f {%s %s %2s %d} %f %f %f\n", 
                      src->atomname, src->r->resname, src->r->chain, src->r->resid, src->loc.x, src->loc.y, src->loc.z, 
                      cause->atomname, cause->r->resname, cause->r->chain, cause->r->resid, cause->loc.x, cause->loc.y, cause->loc.z);
 /*this makes a monster list of all possible H-bond dots as heavy-atom--H vecs*/
@@ -3256,12 +3268,12 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
 #ifdef DUMP_DEBUG_EXTRA
 	       if (DebugLevel > 7) 
                {
-		  fprintf(stdout, "{%4.4s%c%3.3s %c%4.4s%c}P %8.3f%8.3f%8.3f\n",
+		  fprintf(stdout, "{%4.4s%c%3.3s%2s%4.4s%c}P %8.3f%8.3f%8.3f\n",
 			   src->atomname, src->altConf,
 			   src->r->resname, src->r->chain,
 			   src->r->Hy36resno, src->r->resInsCode,
 			   src->loc.x, src->loc.y, src->loc.z);
-		  fprintf(stdout, "{%4.4s%c%3.3s %c%4.4s%c}L %8.3f%8.3f%8.3f\n",
+		  fprintf(stdout, "{%4.4s%c%3.3s%2s%4.4s%c}L %8.3f%8.3f%8.3f\n",
 			   targ->atomname, targ->altConf,
 			   targ->r->resname, targ->r->chain,
 			   targ->r->Hy36resno, targ->r->resInsCode,
@@ -3333,13 +3345,13 @@ void debugBondingLists(atom *src, atom *neighbors)
    atom *targ = NULL;
    int i = 0;
 
-   fprintf(stdout, "%4.4s%c%3.3s %c%4.4s%c(%c%d)",
+   fprintf(stdout, "%4.4s%c%3.3s%2s%4.4s%c(%c%d)",
 			   src->atomname, src->altConf,
 			   src->r->resname, src->r->chain,
 			   src->r->Hy36resno, src->r->resInsCode,
 			   src->binSerialNum, src->mark);
    for(targ = neighbors; targ; targ = targ->scratch) {
-      fprintf(stdout, ", %d: %4.4s%c%3.3s %c%4.4s%c(%c%d)", ++i,
+      fprintf(stdout, ", %d: %4.4s%c%3.3s%2s%4.4s%c(%c%d)", ++i,
 			   targ->atomname, targ->altConf,
 			   targ->r->resname, targ->r->chain,
 			   targ->r->Hy36resno, targ->r->resInsCode,
@@ -3839,7 +3851,7 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
 /* 	  a->r->resname, a->r->resid, */
 /* 	  a->r->resInsCode); */
 
-            sprintf(pointid, "%s%c%s%s%c%c",
+            sprintf(pointid, "%s%c%s%s%c%2s",
                   a->atomname, a->altConf,
                   a->r->resname, a->r->Hy36resno,
                   a->r->resInsCode, a->r->chain);
@@ -4040,12 +4052,12 @@ void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
 	    fprintf(outf, "%s:%s:%s:", label, groupname, mast[j]);
 
 	    a = node->a;
-	    fprintf(outf, "%c%4.4s%c%s %s%c:",
+	    fprintf(outf, "%2s%4.4s%c%s %s%c:",
 		  a->r->chain, a->r->Hy36resno, a->r->resInsCode, a->r->resname,
 		  a->atomname, a->altConf);
 	    t = node->t;
 	    if (t) {
-	       fprintf(outf, "%c%4.4s%c%s %s%c:",
+	       fprintf(outf, "%2s%4.4s%c%s %s%c:",
 			t->r->chain, t->r->Hy36resno, t->r->resInsCode, t->r->resname,
 			t->atomname, t->altConf);
 	       gap = gapSize(&(a->loc), &(t->loc),
@@ -4687,19 +4699,19 @@ atom* updateHydrogenInfo(FILE *outf, atom *allMainAtoms,   atomBins *abins,
 		     if (DumpNewHO) {
 if (DebugLevel>3) {
 fprintf(stderr,
-"HETATM%5d  H%-2d%c%3.3s %c%4.4s%c   %8.3f%8.3f%8.3f%6.2f%6.2f      new  H\n",
+"HETATM%5d  H%-2d%c%3.3s%2s%4.4s%c   %8.3f%8.3f%8.3f%6.2f%6.2f      new  H\n",
 			   0, ++newHcount, newH->altConf,
 			   newH->r->resname, newH->r->chain,
 			   newH->r->Hy36resno, newH->r->resInsCode,
 			   newH->loc.x, newH->loc.y, newH->loc.z,
 			   newH->occ, newH->bval);
 }
-			fprintf(outf, "{%4.4s%c%3.3s %c%4.4s%c}P %8.3f%8.3f%8.3f\n",
+			fprintf(outf, "{%4.4s%c%3.3s%2s%4.4s%c}P %8.3f%8.3f%8.3f\n",
 			   orig->atomname, orig->altConf,
 			   orig->r->resname, orig->r->chain,
 			   orig->r->Hy36resno, orig->r->resInsCode,
 			   orig->loc.x, orig->loc.y, orig->loc.z);
-			fprintf(outf, "{%4.4s%c%3.3s %c%4s%c}L %8.3f%8.3f%8.3f\n",
+			fprintf(outf, "{%4.4s%c%3.3s%2s%4s%c}L %8.3f%8.3f%8.3f\n",
 			   newH->atomname, newH->altConf,
 			   newH->r->resname, newH->r->chain,
 			   newH->r->Hy36resno, newH->r->resInsCode,
@@ -4885,6 +4897,7 @@ fprintf(outf,"070913 add detail on probe unformatted to help \n");
 fprintf(outf,"070913 fixed handling of mixed RNA files \n");
 fprintf(outf,"071010 added support for Hybrid36 atom and residue numbers \n"); 
 fprintf(outf,"071025 added support of Coot style RNA names \n"); 
+fprintf(outf,"071101 added support for two character chain names \n");
 exit(0);
 
 }/*dump_changes()*/
