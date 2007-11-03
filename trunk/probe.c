@@ -2098,12 +2098,13 @@ void movingAtomListProcessing(atom *initAtomLst, void *userdata)
    int previd = 0, rescnt = 0;
    char prevInsCode = ' '; 
    char prevChain[3];  
-   prevChain[0] = prevChain[1] = '?'; 
-   prevChain[2] = '\0';
    atom *a = NULL, *prevAtomLst = NULL, *nexta = NULL;
    chainEndData_t endData;
 
    initEndData(&endData);
+
+   prevChain[0] = prevChain[1] = '?'; 
+   prevChain[2] = '\0';
    
    for(a=initAtomLst; a; a = nexta) {
       nexta = a->next;
@@ -2145,11 +2146,12 @@ atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
    int previd = 0, rescnt = 0, model = 0;
    char *rec, prevInsCode = ' ';
    char prevChain[3];
-   prevChain[0] = prevChain[1] = '?';
-   prevChain[2] = '\0';
    atom *a = NULL;
    residue *scratchRes;
    chainEndData_t endData;
+
+   prevChain[0] = prevChain[1] = '?';
+   prevChain[2] = '\0';
    
    scratchRes = newResidueData();
 
