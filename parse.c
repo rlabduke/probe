@@ -209,8 +209,18 @@ pattern* idItem() {
       type = FILE_NODE; val = parseInteger(s,4,10);
    }
    else if ((strncmp(s, "CHAIN", 5) == 0) && (isalnum(s[5])||(s[5]=='_'))) {
-      if (s[5] == '_') {s[5] = ' ';}
-      type = CHAIN_NODE; val = (unsigned char)s[5];
+      type = CHAIN_NODE;
+      for(tmpstr = s+5;  *tmpstr; tmpstr++) { /* substitute blank for _ */
+         if (*tmpstr == '_') {*tmpstr = ' ';}
+      }
+      if (s[6] == '\0') { 
+         s[4] = ' ';
+         val = lookup(s+4); if(val == 0) val = insert(s+4, ID_TOK);
+      }
+      else {
+         val = lookup(s+5); if(val == 0) val = insert(s+5, ID_TOK);
+      }
+     /* type = CHAIN_NODE; val = (unsigned char)s[5]; */
    }
    else if ((strncmp(s, "ALT", 3) == 0) && (isalnum(s[3])||(s[3]=='_'))) {
       if (s[3] == '_') {s[3] = ' ';}
