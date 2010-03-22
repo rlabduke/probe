@@ -113,10 +113,10 @@ atomProp AtomTbl[NUMATOMTYPES] = { /* noAtom must be first */
    {noAtom,      0, "?",    1.00, 0.00, 0.00, "magenta", 0},
    {ignoreAtom,  0, ".",    0.00, 0.00, 0.00, "grey",   0},
 
-   {atomH,       1, "H",    1.17, 0.00, 0.30, "grey",   0},
-   {atomHarom,   1, "Har",  1.00, 0.00, 0.30, "grey",   0},
-   {atomHpolar,  1, "Hpol", 1.00, 0.00, 0.30, "grey",   0},
-   {atomHOd,     1, "HOd",  1.00, 0.00, 0.30, "grey",   0},/*hb-only-dummy*/
+   {atomH,       1, "H",    1.22, 0.00, 0.30, "grey",   0},
+   {atomHarom,   1, "Har",  1.05, 0.00, 0.30, "grey",   0},
+   {atomHpolar,  1, "Hpol", 1.05, 0.00, 0.30, "grey",   0},
+   {atomHOd,     1, "HOd",  1.05, 0.00, 0.30, "grey",   0},/*hb-only-dummy*/
    {atomC,       6, "C",    1.75, 1.90, 0.77, "white",  0},
    {atomN,       7, "N",    1.55, 1.70, 0.70, "sky",    0},
    {atomO,       8, "O",    1.40, 1.50, 0.66, "red",    0},
