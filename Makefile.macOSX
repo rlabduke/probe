@@ -4,8 +4,8 @@
 
 
 MACHINEFLAGS = 
-CFLAGS = -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc $(MACHINEFLAGS)
-LFLAGS = -lm -Wl,-syslibroot,/Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc $(MACHINEFLAGS)
+CFLAGS = -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386 $(MACHINEFLAGS)
+LFLAGS = -lm -Wl,-syslibroot,/Developer/SDKs/MacOSX10.5.sdk -arch i386 $(MACHINEFLAGS)
 OBJLIST = dots.o  abin.o      readPDBrecs.o  geom3d.o      utility.o select.o \
           parse.o atomprops.o stdconntable.o autobondrot.o hybrid_36_c.o
 
