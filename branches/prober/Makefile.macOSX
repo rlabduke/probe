@@ -1,6 +1,10 @@
-# This Makefile for Probe was adopted from the generic gcc makefile.
-# Standard C libraries and header files are in /Developer/SDKs/MacOSX10.4u.sdk
-# the arch flags are obvious, also available is -ppc64 for 64bit executable (G5)
+#  This Makefile for Probe was adopted from the gcc makefile, it will 
+#  generate a MACH-O executable for MacOSX i386 (intel 32 bit chipset).
+#  It requires installation of the Apple Developer package, XCode in its
+#  default location: something like /Developer/SDKs/MacOSX10.5.sdk
+#  Modify the SDK location and/or the -arch flag (use x86_64 for
+#  intel 64 bit executable) to suit your computer.
+#  The command 'make -f Makefile.macOSX' will use this file in the make process.
 
 
 MACHINEFLAGS = 
