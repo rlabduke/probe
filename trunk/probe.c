@@ -3024,7 +3024,7 @@ void examineDots(atom *src, int type, atom *scratch,
             /* ovrlaptype : -1 bump, 0 touch, +1 H bond */
             if(  (!OnlyBadOut && OutputHBs && ovrlaptype > 0) 
                ||(!OnlyBadOut && OutputClashes && ovrlaptype  < 0)
-               ||( OnlyBadOut && OutputClashes && idx==1)/*Bad Clash dcr041020*/
+               ||( OnlyBadOut && OutputClashes && idx==3)/*Bad Clash dcr041020*/
                ||(!OnlyBadOut && OutputVDWs && ovrlaptype == 0)) 
              { /*logicals allow the overlaptype of this dot*/
 
