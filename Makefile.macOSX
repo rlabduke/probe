@@ -1,13 +1,20 @@
-# This Makefile for Probe was adopted from the generic gcc makefile.
-# Standard C libraries and header files are in /Developer/SDKs/MacOSX10.4u.sdk
-# the arch flags are obvious, also available is -ppc64 for 64bit executable (G5)
+#  This Makefile for Probe was adopted from the gcc makefile, it will 
+#  generate a MACH-O file containing both the MacOSX 32 bit ( -arch i386 ) 
+#  and 64 bit ( -arch x86_64 ) executables.  Depending upon the Software
+#  Development Kit used, the compiled probe may run better on the Mac OS X
+#  version of interest.  If possible, we should try to offer compiled code
+#  for the OS versions currently supported by Apple and for the extant chip 
+#  types.  Although the Power PC chipsets are not supported from Leopard 
+#  ( Mac OS X 10.5 ) onward.  Source code should always be available. 
 
 
 MACHINEFLAGS = 
-CFLAGS = -isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc $(MACHINEFLAGS)
-LFLAGS = -lm -Wl,-syslibroot,/Developer/SDKs/MacOSX10.4u.sdk -arch i386 -arch ppc $(MACHINEFLAGS)
-OBJLIST = dots.o  abin.o      readPDBrecs.o  geom3d.o      utility.o select.o \
-          parse.o atomprops.o stdconntable.o autobondrot.o hybrid_36_c.o
+CFLAGS       = -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch i386 \
+               -arch x86_64 $(MACHINEFLAGS)
+LFLAGS       = -lm -Wl,-syslibroot,/Developer/SDKs/MacOSX10.6.sdk \
+               -arch i386 -arch x86_64 $(MACHINEFLAGS)
+OBJLIST      = dots.o abin.o readPDBrecs.o geom3d.o utility.o select.o \
+               parse.o atomprops.o stdconntable.o autobondrot.o hybrid_36_c.o
 
 .c.o:
 	cc -c $*.c $(CFLAGS)
@@ -25,20 +32,20 @@ installtest: probe
 	mv probe /local/bin/probeTest
 
 # DO NOT DELETE THIS LINE -- make depend uses it
-abin.o:          ./abin.h  ./geom3d.h  ./utility.h  abin.c
-atomprops.o:     ./atomprops.h  atomprops.c
-autobondrot.o:   ./abin.h  ./autobondrot.h  ./geom3d.h  ./readPDBrecs.h \
-                 ./utility.h  autobondrot.c
-dots.o:          ./dots.h  ./geom3d.h  dots.c
-geom3d.o:        ./geom3d.h  geom3d.c
-parse.o:         ./parse.h  ./utility.h  parse.c
-probe.o:         ./abin.h  ./atomprops.h  ./autobondrot.h  ./dots.h  ./geom3d.h \
-                 ./parse.h  ./probe.h  ./readPDBrecs.h  ./select.h \
-                 ./stdconntable.h  ./utility.h  probe.c
-readPDBrecs.o:   ./geom3d.h  ./readPDBrecs.h  ./utility.h  readPDBrecs.c
-select.o:        ./abin.h  ./atomprops.h  ./geom3d.h  ./parse.h  ./select.h \
-                 ./stdconntable.h  ./utility.h  select.c
-stdconntable.o:  ./stdconntable.h  stdconntable.c
+abin.o:          abin.h  geom3d.h  utility.h  abin.c
+atomprops.o:     atomprops.h  atomprops.c
+autobondrot.o:   abin.h  autobondrot.h  geom3d.h  readPDBrecs.h \
+                 utility.h  autobondrot.c
+dots.o:          dots.h  geom3d.h  dots.c
+geom3d.o:        geom3d.h  geom3d.c
+parse.o:         parse.h  utility.h  parse.c
+probe.o:         abin.h  atomprops.h  autobondrot.h  dots.h  geom3d.h \
+                 parse.h  probe.h  readPDBrecs.h  select.h \
+                 stdconntable.h  utility.h  probe.c
+readPDBrecs.o:   geom3d.h  readPDBrecs.h  utility.h  readPDBrecs.c
+select.o:        abin.h  atomprops.h  geom3d.h  parse.h  select.h \
+                 stdconntable.h  utility.h  select.c
+stdconntable.o:  stdconntable.h  stdconntable.c
 utility.o:       utility.c
-hybrid_36_c.o:  ./hybrid_36_c.h hybrid_36_c.c
+hybrid_36_c.o:   hybrid_36_c.h hybrid_36_c.c
 # DO NOT DELETE THIS 2nd LINE -- make depend uses it
