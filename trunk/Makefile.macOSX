@@ -1,20 +1,29 @@
 #  This Makefile for Probe was adopted from the gcc makefile, it will 
-#  generate a MACH-O file containing both the MacOSX 32 bit ( -arch i386 ) 
-#  and 64 bit ( -arch x86_64 ) executables.  Depending upon the Software
-#  Development Kit used, the compiled probe may run better on the Mac OS X
-#  version of interest.  If possible, we should try to offer compiled code
-#  for the OS versions currently supported by Apple and for the extant chip 
-#  types.  Although the Power PC chipsets are not supported from Leopard 
-#  ( Mac OS X 10.5 ) onward.  Source code should always be available. 
+#  generate a MACH-O file containing any mixture of MacOSX 32 bit 
+#  ( -arch i386 or -arch ppc) or MacOSX 64 bit ( -arch x86_64 or -arch ppc64 )
+#  executables.  It is up to the user of the makefile to choose which flags
+#  are appropriate; but as a reminder, 10.7 is only intel 64 bit, 10.6 is only
+#  intel.
+#  When using a compiler from a later OS to compile against an earlier SDK, 
+#  minimum OS flag will need to be added after the arch flag(s).  So for 
+#  compilation of a Snow Leopard ( 10.6 ) executable on a Lion ( 10.7 ) OS
+#  computer, one should use the MacOSX10.6.sdk, the arch flag(s) i386 and/or
+#  x86_64, AND a "MINOS = -mmacosx-version-min=10.6" 
 
 
-MACHINEFLAGS = 
-CFLAGS       = -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch i386 \
-               -arch x86_64 $(MACHINEFLAGS)
-LFLAGS       = -lm -Wl,-syslibroot,/Developer/SDKs/MacOSX10.6.sdk \
-               -arch i386 -arch x86_64 $(MACHINEFLAGS)
-OBJLIST      = dots.o abin.o readPDBrecs.o geom3d.o utility.o select.o \
-               parse.o atomprops.o stdconntable.o autobondrot.o hybrid_36_c.o
+ARCHFLAGi32  = -arch i386
+ARCHFLAGi64  = -arch x86_64
+ARCHFLAGp31  = -arch ppc
+ARCHFLAGp64  = -arch ppc64
+MINOS        =
+# MINOS        = -mmacosx-version-min=10.5
+# MINOS        = -mmacosx-version-min=10.6
+
+CFLAGS = -isysroot /Developer/SDKs/MacOSX10.7.sdk $(ARCHFLAGi64) $(MINOS)
+LFLAGS = -lm -Wl,-syslibroot,/Developer/SDKs/MacOSX10.7.sdk $(ARCHFLAGi64) $(MINOS)
+
+OBJLIST = dots.o abin.o readPDBrecs.o geom3d.o utility.o select.o \
+          parse.o atomprops.o stdconntable.o autobondrot.o hybrid_36_c.o
 
 .c.o:
 	cc -c $*.c $(CFLAGS)
