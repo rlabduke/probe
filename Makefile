@@ -1,6 +1,6 @@
 MACHINEFLAGS = 
 CFLAGS = $(MACHINEFLAGS)
-LFLAGS = -static -lm $(MACHINEFLAGS)
+LFLAGS = -lm $(MACHINEFLAGS)
 OBJLIST = dots.o abin.o readPDBrecs.o geom3d.o utility.o select.o \
 	 parse.o atomprops.o stdconntable.o autobondrot.o hybrid_36_c.o
 

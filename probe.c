@@ -208,7 +208,7 @@ int mainProbeProc(int argc, char **argv, FILE *outf)
    char *groupLabel=NULL;
    pattern *srcPat = NULL, *targPat = NULL, *ignorePat = NULL;
    float density, probeRad, spikelen;
-   int drawSpike, countDots, rawOutput, sayGroup, addKinToFile;
+   int drawSpike, countDots, rawOutput, sayGroup, addKinToFile,conFlag; //conFlag by SJ - 10/07/2011
    char message[200];
    movingAtomBuildInfo mabis;
    residue *resLst = NULL;
@@ -219,8 +219,8 @@ int mainProbeProc(int argc, char **argv, FILE *outf)
    allMainAtoms = processCommandline(argc, argv, &method,
         &boundingBoxA, &density, &probeRad,
         &drawSpike, &spikelen, &countDots, &keepUnselected,
-        &srcArg, &targArg, &ignoreArg, &groupLabel, &rawOutput,
-        &sayGroup, &addKinToFile, &mabis, &resLst);
+        &srcArg, &targArg, &ignoreArg, &groupLabel, &rawOutput,&conFlag,
+        &sayGroup, &addKinToFile, &mabis, &resLst);//conFlag by SJ -10/07/2011
 
         /*called with address of mabis, i.e. mabip moving atom build info ptr */
         /*autobondrot mode: not read in any mobile atoms yet*/
@@ -396,7 +396,7 @@ if(Verbose && modelSrc > 0)
 	 doCommand(outf, method,
 	    allMainAtoms, abins, NULL, NULL,
 	    dots, probeRad, density, spikelen,
-	    countDots, rawOutput, "", 0.0, drawSpike,
+	    countDots, rawOutput, conFlag, "", 0.0, drawSpike,
 	    sayGroup, groupLabel, argc, argv, message);
       }
       else 
@@ -615,9 +615,9 @@ void movingDoCommand(char* orientationName, double scoreBias,
 	 m->allMainAtoms, m->abins,
 	 allMovingAtoms, bbins,
 	 m->dots, m->probeRad, m->density, m->spikelen,
-	 m->countDots, m->rawOutput, orientationName, scoreBias,
+	 m->countDots, m->rawOutput, FALSE, orientationName, scoreBias,
 	 m->drawSpike, m->sayGroup, m->groupLabel,
-	 m->argc, m->argv, m->message);
+	 m->argc, m->argv, m->message); // SJ -10/07/2011 by default no condensed output for this
 
          /*allMovingAtoms is closest thing to a flag for autobondrot mode*/
 
@@ -631,7 +631,7 @@ void doCommand(FILE *outf, int method,
    atom *allMainAtoms, atomBins *abins,
    atom *allMovingAtoms, atomBins *bbins,
    pointSet dots[], float probeRad, float density, float spikelen,
-   int countDots, int rawOutput, char* rawname, double scoreBias,
+   int countDots, int rawOutput, int conFlag, char* rawname, double scoreBias,
    int drawSpike, int sayGroup, char* groupLabel,
    int argc, char **argv, char message[]) 
 {
@@ -664,202 +664,223 @@ void doCommand(FILE *outf, int method,
    /*in effect probe is modal but too object oriented to admit such globalness*/
 
    usesMovingAtoms = ((allMovingAtoms != NULL) && (bbins != NULL));
-   if (! usesMovingAtoms) { allMovingAtoms = NULL; bbins = NULL; }
+   if (! usesMovingAtoms)
+   {	   
+	allMovingAtoms = NULL; 
+	bbins = NULL;
+   }
 
    initResults(rslts);
-   if (!countDots && rawOutput && Verbose) { /*write rawOutput col headers*/
-      if (OldStyleU) {
-	 note(">>name:pat:type:srcAtom:targAtom:min-gap:gap:"
-	      "kissEdge2BullsEye:dot2BE:dot2SC:spike:score:"
-	      "stype:ttype:x:y:z:sBval:tBval");
-      }
-      else {
-	 note(">>name:pat:type:srcAtom:targAtom:min-gap:gap:"
-	      "spX:spY:spZ:spikeLen:score:"
-	      "stype:ttype:x:y:z:sBval:tBval");
-      }
+   if (!countDots && rawOutput && Verbose)
+   { /*write rawOutput col headers*/
+        if (OldStyleU)
+        {
+        	if(conFlag)
+        		note(">>name:pat:type:srcAtom:targAtom:dot-count:min-gap:gap:"
+        		"kissEdge2BullsEye:dot2BE:dot2SC:spike:score:"
+        		"stype:ttype:x:y:z:sBval:tBval");
+        	else
+        		note(">>name:pat:type:srcAtom:targAtom:min-gap:gap:"
+        		"kissEdge2BullsEye:dot2BE:dot2SC:spike:score:"
+        		"stype:ttype:x:y:z:sBval:tBval");
+       }
+       else
+       {
+       	       if(conFlag)
+       	      		 note(">>name:pat:type:srcAtom:targAtom:dot-count:min-gap:gap:"
+       	       	       "spX:spY:spZ:spikeLen:score:"
+              	       "stype:ttype:x:y:z:sBval:tBval");
+              else
+              	   note(">>name:pat:type:srcAtom:targAtom:min-gap:gap:"
+       	       	       "spX:spY:spZ:spikeLen:score:"
+              	       "stype:ttype:x:y:z:sBval:tBval");    
+       }
    }
    if (method == SELFINTERSECT) 
    {/*{{{(method == SELFINTERSECT)___expected default method___****/
-    if (Verbose && !(countDots && rawOutput)) { note("SelfIntersect"); }
+   	   if (Verbose && !(countDots && rawOutput)) 
+   		note("SelfIntersect"); 
     
     /*SELFINTERSECT case, using one input file (and where srcPat == targPat)*/
     /*is where unwashed NMR files with multiple models can be processed */
     /*when there is not a single model specified in the pattern.*/
     /*This uses a loop through all the model numbers actually in the file.*/
 
-    if(modelSrc == 0 && modelTarg == 0 && modelCount > 1) /*041114*/
-    {/*multiple models in file but no model specified in pattern*/
-       modelLimit = modelCount;
-    }
-    else {modelLimit = 1;}
+    	  if(modelSrc == 0 && modelTarg == 0 && modelCount > 1) /*041114*/ /*multiple models in file but no model specified in pattern*/
+    	        modelLimit = modelCount;
+          else 
+   		modelLimit = 1;
 
-    for(j = 1; j <= modelLimit; j++) /*041114*/
-    {/*loop over models*/
-      if(modelLimit > 1)
-      {/*defines the multiple model case*/
-         modelToProcess = modelNumber[j]; /*models can be in any order 041114*/
-if(Verbose)
-{
-   fprintf(stderr,"processing modelNumber== %d\n",modelNumber[j]);
-}
-      }
-      if(j > 1)
-      {
-         freeResults(rslts);
-         initResults(rslts);
-      }
-      genDotIntersect(allMainAtoms, abins, allMovingAtoms, bbins,
-		     dots, probeRad, spikelen,SET1, SET1, rslts);
-         /*does this for all atoms... calls examineDots()*/
+   	  for(j = 1; j <= modelLimit; j++) /*041114*/
+   	  {/*loop over models*/
+                          
+   	  	  if(modelLimit > 1)
+   	  	  {/*defines the multiple model case*/
+   	  	  	  modelToProcess = modelNumber[j]; /*models can be in any order 041114*/
+   	  	  	  if(Verbose)
+   	  	  	    	  fprintf(stderr,"processing modelNumber== %d\n",modelNumber[j]);
+   	  	  }
+   	  	  if(j > 1)
+   	  	  {
+   	  	  	  freeResults(rslts);
+   	  	  	  initResults(rslts);
+   	  	  }
+   	  	  genDotIntersect(allMainAtoms, abins, allMovingAtoms, bbins,dots, probeRad, spikelen,SET1, SET1, rslts);
+   	  	  /*does this for all atoms... calls examineDots()*/
 
-      if (countDots) {/*autobondrot sets this, commandline can set this*/
-	 if (!rawOutput) {
-	    descrCommand(outf, "program:", "command:", argc, argv);
-	 }
-	 numSkinDots = enumDotSkin(allMainAtoms, abins,
-			      allMovingAtoms, bbins, dots, SET1);
-         /*numSkinDots used to normalize output score*/
-	 if (!rawOutput) {
-	    fprintf(outf, "selection: self\nname: %s\n", groupLabel?groupLabel:"dots");
-	    fprintf(outf, "density: %.1f dots per A^2\nprobeRad: %.3f A\nVDWrad: (r * %.3f) + %.3f A\n",
-			density, probeRad, RadScaleFactor, RadScaleOffset);
-	    fprintf(outf, "score weights: gapWt=%g, bumpWt=%g, HBWt=%g\n",
-			GAPweight, BUMPweight, HBweight);
-	 }
-	 if (usesMovingAtoms) {
-	    nsel = countSelected(allMainAtoms,   SET1) +
-		   countSelected(allMovingAtoms, SET1);
-	 }
-	 else {
-	    nsel = countSelected(allMainAtoms, SET1);
-	 }
-	 if (rawOutput) {/*autobondrot sets this*/
-	    rawEnumerate(outf, "", rslts, method,
-			nsel, drawSpike, FALSE, numSkinDots, density,
-			groupLabel?groupLabel:"", rawname, scoreBias);
-	 }
-	 else {
-	    enumerate(outf, "self dots", rslts, probeRad, method, nsel,
-			drawSpike, FALSE, numSkinDots, density);
-	 }
-      }/*countDots*/
-      else {
-	 if (rawOutput) {
-	    writeRaw(outf, "1->1", rslts, probeRad,
-		  groupLabel?groupLabel:"", density);
-	 }
-	 else if (OutputFmtType == 1) {
-	    writeAltFmtO(outf, TRUE, TRUE, "self_dots", rslts, drawSpike);
-	 }
-	 else if (OutputFmtType == 2) {
-	    descrCommand(outf, "# software:", "# command:", argc, argv);
-	    writeAltFmtXV(outf, TRUE, TRUE, "self_dots", rslts, drawSpike);
-	 }
-	 else if (OutputFmtType == 3) { /*dcr041101 ONELINE :count:summaries:*/
-	    countsummary(outf,"SelfIntersect", 1, 1); /*dcr041101 Lines,Pass*/
-	 }
-	 else 
-         {/*kinemage output*/
-            if(ContactSUMMARY) /*dcr041101 Lines,Pass*/
-               {countsummary(outf,"SelfIntersect", 9, 1);}
-
-	    descrCommand(outf, "@caption", " command:", argc, argv);
+   	  	  if (countDots)
+   	  	  {/*autobondrot sets this, commandline can set this*/
+   	  	  	  if (!rawOutput)
+   	  	  	    	  descrCommand(outf, "program:", "command:", argc, argv);
+   	  	  	  numSkinDots = enumDotSkin(allMainAtoms, abins, allMovingAtoms, bbins, dots, SET1);
+   	  	  	  /*numSkinDots used to normalize output score*/
+   	  	  	  if (!rawOutput)
+   	  	  	  {
+   	  	  	  	  fprintf(outf, "selection: self\nname: %s\n", groupLabel?groupLabel:"dots");
+   	  	  	  	  fprintf(outf, "density: %.1f dots per A^2\nprobeRad: %.3f A\nVDWrad: (r * %.3f) + %.3f A\n",
+   	  	  	  	  	  density, probeRad, RadScaleFactor, RadScaleOffset);
+   	  	  	  	  fprintf(outf, "score weights: gapWt=%g, bumpWt=%g, HBWt=%g\n",
+   	  	  	  	  	  GAPweight, BUMPweight, HBweight);
+   	  	  	  }
+   	  	  	  if (usesMovingAtoms)
+   	  	  	    	  nsel = countSelected(allMainAtoms,   SET1) + countSelected(allMovingAtoms, SET1);
+   	  	  	  else
+   	  	  	    	  nsel = countSelected(allMainAtoms, SET1);
+   	  	  	  
+   	  	  	  if (rawOutput)
+   	  	  	  {/*autobondrot sets this*/
+   	  	  	  	  rawEnumerate(outf, "", rslts, method,
+   	  	  	  	  	  nsel, drawSpike, FALSE, numSkinDots, density,
+   	  	  	  	  	  groupLabel?groupLabel:"", rawname, scoreBias);
+   	  	  	  }
+   	  	  	  else
+   	  	  	  {
+   	  	  	  	  enumerate(outf, "self dots", rslts, probeRad, method, nsel,
+   	  	  	  	  	  drawSpike, FALSE, numSkinDots, density);
+   	  	  	  }
+   	  	  }/*countDots*/
+   	  	  else
+   	  	  {
+   	  	  	  if (rawOutput)
+				{
+   	  	  	    	  writeRaw(outf, "1->1", rslts, probeRad,groupLabel?groupLabel:"", density,conFlag);
+					
+				}
+   	  	  	  else if (OutputFmtType == 1) 
+   	  	  	   	  writeAltFmtO(outf, TRUE, TRUE, "self_dots", rslts, drawSpike);
+   	  	  	  else if (OutputFmtType == 2)
+   	  	  	  {
+   	  	  	  	  descrCommand(outf, "# software:", "# command:", argc, argv);
+   	  	  	  	  writeAltFmtXV(outf, TRUE, TRUE, "self_dots", rslts, drawSpike);
+   	  	  	  }
+   	  	  	  else if (OutputFmtType == 3)
+   	  	  	  { /*dcr041101 ONELINE :count:summaries:*/
+   	  	  	  	  countsummary(outf,"SelfIntersect", 1, 1); /*dcr041101 Lines,Pass*/
+   	  	  	  }
+   	  	  	  else 
+   	  	  	  {/*kinemage output*/
+   	  	  	  	  if(ContactSUMMARY) /*dcr041101 Lines,Pass*/
+   	  	  	  	    	countsummary(outf,"SelfIntersect", 9, 1);
+   	  	  	  	  
+   	  	  	  	  descrCommand(outf, "@caption", " command:", argc, argv);
      
-	    if (sayGroup) 
-            {
-               if(modelLimit > 1)
-               {/*doing jth of multiple models of an ensemble*/
-	          fprintf(outf, "@group dominant {%s M%d} animate\n",
-                            groupLabel?groupLabel:"dots",j);
-               }
-               else
-               {
-                  fprintf(outf, "@group dominant {%s}\n",
-                            groupLabel?groupLabel:"dots");
-               }
-	    }
-            sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
-	    writeOutput(outf, "self dots", rslts, drawSpike, method, extrastr);
-            
-	 }/*kinemage output*/
-      }
-    }/*loop over models*/
+   	  	  	  	  if (sayGroup) 
+   	  	  	  	  {
+   	  	  	  	  	  if(modelLimit > 1)
+   	  	  	  	  	  {/*doing jth of multiple models of an ensemble*/
+   	  	  	  	  	  	  fprintf(outf, "@group dominant {%s M%d} animate\n",groupLabel?groupLabel:"dots",j);
+   	  	  	  	  	  }
+   	  	  	  	  	  else
+   	  	  	  	  	    	  fprintf(outf, "@group dominant {%s}\n",groupLabel?groupLabel:"dots");
+   	  	  	  	  }
+   	  	  	  	  sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
+   	  	  	  	  writeOutput(outf, "self dots", rslts, drawSpike, method, extrastr);
+   	  	  	  }/*kinemage output*/
+   	  	  }
+   	  }/*loop over models*/
    }/*}}}(method == SELFINTERSECT)________________________________*/ 
+  
    else if (method == INTERSECTONCE) 
    {/*{{{(method == INTERSECTONCE)*********************************/
-      if (Verbose && !(countDots && rawOutput)) { note("IntersectOnce"); }
+      if (Verbose && !(countDots && rawOutput)) 
+      	      note("IntersectOnce"); 
 
-      genDotIntersect(allMainAtoms, abins, allMovingAtoms, bbins,
-	       dots, probeRad, spikelen, SET1, SET2, rslts);
+      genDotIntersect(allMainAtoms, abins, allMovingAtoms, bbins,dots, probeRad, spikelen, SET1, SET2, rslts);
 
-      if (countDots) {/*autobondrot sets this*/
-	 if (!rawOutput) {
-	    descrCommand(outf, "program:", "command:", argc, argv);
-	 }
-	 numSkinDots = enumDotSkin(allMainAtoms, abins,
-			      allMovingAtoms, bbins, dots, SET1);
+      if (countDots)
+      {/*autobondrot sets this*/
+      	      if (!rawOutput) 
+      	      	      descrCommand(outf, "program:", "command:", argc, argv);
+	 
+      	      numSkinDots = enumDotSkin(allMainAtoms, abins, allMovingAtoms, bbins, dots, SET1);
          /*numSkinDots used to normalize output score*/
-	 if (!rawOutput) {
-	    fprintf(outf, "selection: once\nname: %s\n", groupLabel?groupLabel:"dots");
-	    fprintf(outf, "density: %.1f dots per A^2\nprobeRad: %.3f A\nVDWrad: (r * %.3f) + %.3f A\n",
-		     density, probeRad, RadScaleFactor, RadScaleOffset);
-	    fprintf(outf, "score weights: gapWt=%g, bumpWt=%g, HBWt=%g\n",
-		     GAPweight, BUMPweight, HBweight);
-	 }
-	 if (usesMovingAtoms) {
-	    nsel = countSelected(allMainAtoms,   SET1) +
-	           countSelected(allMovingAtoms, SET1);
-	 }
-	 else {
-	    nsel = countSelected(allMainAtoms, SET1);
-	 }
-	 if (rawOutput) {/*autobondrot sets this*/
-	    rawEnumerate(outf,"", rslts, method, nsel,
-		     drawSpike, FALSE, numSkinDots, density,
-		     groupLabel?groupLabel:"", rawname, scoreBias);
-	 }
-	 else {
-	    enumerate(outf,"once dots", rslts, probeRad, method, nsel,
-		     drawSpike, FALSE, numSkinDots, density);
-	 }
+              if (!rawOutput)
+	      {
+	 	     fprintf(outf, "selection: once\nname: %s\n", groupLabel?groupLabel:"dots");
+	 	     fprintf(outf, "density: %.1f dots per A^2\nprobeRad: %.3f A\nVDWrad: (r * %.3f) + %.3f A\n",
+	 	     	     density, probeRad, RadScaleFactor, RadScaleOffset);
+		     fprintf(outf, "score weights: gapWt=%g, bumpWt=%g, HBWt=%g\n",
+		     	     GAPweight, BUMPweight, HBweight);
+	      }
+	      if (usesMovingAtoms)
+	      	      nsel = countSelected(allMainAtoms,   SET1) + countSelected(allMovingAtoms, SET1);
+              else 
+              	      nsel = countSelected(allMainAtoms, SET1);
+	 	
+              if (rawOutput)
+              {/*autobondrot sets this*/
+              	      rawEnumerate(outf,"", rslts, method, nsel,
+              	      	      drawSpike, FALSE, numSkinDots, density,
+              	      	      groupLabel?groupLabel:"", rawname, scoreBias);
+              }
+              else 
+              {
+              	      enumerate(outf,"once dots", rslts, probeRad, method, nsel,
+              	      	      drawSpike, FALSE, numSkinDots, density);
+              }
       }
-      else {
-	 if (rawOutput) {
-	    writeRaw(outf, "1->2", rslts, probeRad,
-		     groupLabel?groupLabel:"", density);
-	 }
-	 else if (OutputFmtType == 1) {
-	    writeAltFmtO(outf, TRUE, TRUE, "once_dots", rslts, drawSpike);
-	 }
-	 else if (OutputFmtType == 2) {
-	    descrCommand(outf, "# software:", "# command:", argc, argv);
-	    writeAltFmtXV(outf, TRUE, TRUE, "once_dots", rslts, drawSpike);
-	 }
-	 else if (OutputFmtType == 3) { /*dcr041101 ONELINE :count:summaries:*/
-            countsummary(outf,"IntersectOnce", 1, 1); /*dcr041101 Lines,Pass*/
-	 }
-	 else 
-         {/*write kinemage*/
+      else
+      {
+      	      if (rawOutput)
+		{ 
+      	      	    writeRaw(outf, "1->2", rslts, probeRad,groupLabel?groupLabel:"", density,conFlag);
+			     	      	    
+		}
+		else if (OutputFmtType == 1) 
+	      	      writeAltFmtO(outf, TRUE, TRUE, "once_dots", rslts, drawSpike);
+	      else if (OutputFmtType == 2) 
+	      {
+	      	      descrCommand(outf, "# software:", "# command:", argc, argv);
+	      	      writeAltFmtXV(outf, TRUE, TRUE, "once_dots", rslts, drawSpike);
+	      }
+	      else if (OutputFmtType == 3)
+	      { /*dcr041101 ONELINE :count:summaries:*/
+	      	      countsummary(outf,"IntersectOnce", 1, 1); /*dcr041101 Lines,Pass*/
+	      }
+	      else 
+	      {/*write kinemage*/
+	      	      if(ContactSUMMARY) /*dcr041101 Lines,Pass*/
+               			countsummary(outf,"IntersectOnce", 9, 1);
 
-            if(ContactSUMMARY) /*dcr041101 Lines,Pass*/
-               {countsummary(outf,"IntersectOnce", 9, 1);}
-
-	    descrCommand(outf, "@caption", " command:", argc, argv);
-	    if (sayGroup) {
-	       fprintf(outf, "@group dominant {%s}\n",
-		     groupLabel?groupLabel:"dots");
-	    }
-            sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
-	    writeOutput(outf, "once dots", rslts, drawSpike, method, extrastr);
-	 }
+               	      descrCommand(outf, "@caption", " command:", argc, argv);
+               	      if (sayGroup) 
+               	      	      fprintf(outf, "@group dominant {%s}\n", groupLabel?groupLabel:"dots");
+	    
+               	      sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
+               	      writeOutput(outf, "once dots", rslts, drawSpike, method, extrastr);
+              }
       }
    }/*}}}(method == INTERSECTONCE)________________________________*/
+   
    else if (method == INTERSECTBOTHWAYS) 
    {/*{{{(method == INTERSECTBOTHWAYS)*****************************/
-      if (Verbose && !(countDots && rawOutput)) { note("IntersectBothWays"); }
-      if (countDots) {
-	 if (!rawOutput) {
+      if (Verbose && !(countDots && rawOutput))
+      		note("IntersectBothWays"); 
+      	
+      if (countDots)
+      {
+	 if (!rawOutput)
+	 {
 	    descrCommand(outf, "program:", "command:", argc, argv);
 	    fprintf(outf, "selection: both\nname: %s\n", groupLabel?groupLabel:"dots");
 	    fprintf(outf, "density: %.1f dots per A^2\nprobeRad: %.3f A\nVDWrad: (r * %.3f) + %.3f A\n",
@@ -868,69 +889,68 @@ if(Verbose)
 				 GAPweight, BUMPweight, HBweight);
 	 }
       }
-      else {
-	 if (rawOutput) {
+      else
+      {
+      	      if (rawOutput) {}
 		   /* do nothing on purpose */
-	 }
-	 else if (OutputFmtType == 1) {
-	 }
-	 else if (OutputFmtType == 2) {
-	    descrCommand(outf, "# software:", "# command:", argc, argv);
-	 }
-	 else {/*kinemage: keywords before double pass*/
-	    descrCommand(outf, "@caption", " command:", argc, argv);
-	    if (sayGroup) {
-	       fprintf(outf, "@group {%s}\n",
-		     groupLabel?groupLabel:"dots");
+	      else if (OutputFmtType == 1) {}
+	      else if (OutputFmtType == 2) 
+	      	      descrCommand(outf, "# software:", "# command:", argc, argv);
+	      else
+	      {/*kinemage: keywords before double pass*/
+	      	      descrCommand(outf, "@caption", " command:", argc, argv);
+	      	      if (sayGroup) 
+	      	      		fprintf(outf, "@group {%s}\n",groupLabel?groupLabel:"dots");
 	    }
-	 }
       }
 
       genDotIntersect(allMainAtoms, abins, allMovingAtoms, bbins,
 		  dots, probeRad, spikelen, SET1, SET2, rslts);
 
-      if (countDots) {
-	 numSkinDots = enumDotSkin(allMainAtoms, abins,
-			      allMovingAtoms, bbins, dots, SET1);
+      if (countDots)
+      {
+	 numSkinDots = enumDotSkin(allMainAtoms, abins, allMovingAtoms, bbins, dots, SET1);
          /*numSkinDots used to normalize output score*/
-	 if (usesMovingAtoms) {
-	    nsel = countSelected(allMainAtoms,   SET1) +
-	           countSelected(allMovingAtoms, SET1);
-	 }
-	 else {
-	    nsel = countSelected(allMainAtoms, SET1);
-	 }
-	 if (rawOutput) {
+	 if (usesMovingAtoms)
+	     nsel = countSelected(allMainAtoms,   SET1) + countSelected(allMovingAtoms, SET1);
+	 else 
+             nsel = countSelected(allMainAtoms, SET1);
+	 
+	 if (rawOutput)
+	 {
 	    rawEnumerate(outf, "1->2", rslts, method, nsel,
 			drawSpike, FALSE, numSkinDots, density,
 			groupLabel?groupLabel:"", rawname, scoreBias);
 	 }
-	 else {
+	 else
+	 {
 	    enumerate(outf, "1->2", rslts, probeRad, method, nsel,
 			drawSpike, FALSE, numSkinDots, density);
 	 }
       }
-      else {
-	 if (rawOutput) {
-	    writeRaw(outf, "1->2", rslts, probeRad,
-			groupLabel?groupLabel:"", density);
-	 }
-	 else if (OutputFmtType == 1) {
+      else 
+      {
+	 if (rawOutput)
+	{ 
+	    writeRaw(outf, "1->2", rslts, probeRad, groupLabel?groupLabel:"", density,conFlag);
+					
+	} 
+	else if (OutputFmtType == 1) 
 	    writeAltFmtO(outf, TRUE, !sayGroup, "1->2", rslts, drawSpike);
-	 }
-	 else if (OutputFmtType == 2) {
+	 else if (OutputFmtType == 2) 
 	    writeAltFmtXV(outf, TRUE, !sayGroup, "1->2", rslts, drawSpike);
-	 }
-	 else if (OutputFmtType == 3) { /*dcr041101 ONELINE :count:summaries:*/
+	 else if (OutputFmtType == 3)
+	 { /*dcr041101 ONELINE :count:summaries:*/
             countsummary(outf,"IntersectBothWays 1->2", 1, 0); 
             /*dcr041101 Lines,Pass==0 no output for this pass*/
 	 }
-	 else {
+	 else
+	 {
             sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
 	    writeOutput(outf, "1->2", rslts, drawSpike, method, extrastr);
 
             if(ContactSUMMARY) /*dcr041101 Lines,Pass*/
-               {countsummary(outf,"IntersectBothWays 1->2", 9, 0);} 
+             	countsummary(outf,"IntersectBothWays 1->2", 9, 0); 
                /*dcr041101 Lines,Pass==0 no output for this pass*/
 	 }
       }
@@ -940,114 +960,130 @@ if(Verbose)
       genDotIntersect(allMainAtoms, abins, allMovingAtoms, bbins,
 			dots, probeRad, spikelen, SET2, SET1, rslts);
 
-      if (countDots) {
-	 numSkinDots = enumDotSkin(allMainAtoms, abins,
-			      allMovingAtoms, bbins, dots, SET2);
+      if (countDots)
+      {
+	 numSkinDots = enumDotSkin(allMainAtoms, abins, allMovingAtoms, bbins, dots, SET2);
          /*numSkinDots used to normalize output score*/
-	 if (usesMovingAtoms) {
-	    nsel = countSelected(allMainAtoms,   SET2) +
-	           countSelected(allMovingAtoms, SET2);
-	 }
-	 else {
-	    nsel = countSelected(allMainAtoms, SET2);
-	 }
-	 if (rawOutput) {
+	 if (usesMovingAtoms) 
+	 	 nsel = countSelected(allMainAtoms,   SET2) + countSelected(allMovingAtoms, SET2);
+	 else 
+	 	 nsel = countSelected(allMainAtoms, SET2);
+	 
+	 if (rawOutput)
+	 {
 	    rawEnumerate(outf, "2->1", rslts, method, nsel,
 			drawSpike, FALSE, numSkinDots, density,
 			groupLabel?groupLabel:"", rawname, scoreBias);
 	 }
-	 else {
+	 else
+	 {
 	    enumerate(outf, "2->1", rslts, probeRad, method, nsel,
 			drawSpike, FALSE, numSkinDots, density);
 	 }
       }
-      else {
-	 if (rawOutput) {
+      else
+      {
+	 if (rawOutput)
+	 {
 	    writeRaw(outf, "2->1", rslts, probeRad,
-			groupLabel?groupLabel:"", density);
+			groupLabel?groupLabel:"", density,conFlag);
+					
 	 }
-	 else if (OutputFmtType == 1) {
+	 else if (OutputFmtType == 1)
+	 {
 	    writeAltFmtO(outf, !sayGroup, TRUE, "2->1", rslts, drawSpike);
 	 }
-	 else if (OutputFmtType == 2) {
+	 else if (OutputFmtType == 2) 
+	 {
 	    writeAltFmtXV(outf, !sayGroup, TRUE, "2->1", rslts, drawSpike);
 	 }
-	 else if (OutputFmtType == 3) { /*dcr041101 ONELINE :count:summaries:*/
+	 else if (OutputFmtType == 3)
+	 { /*dcr041101 ONELINE :count:summaries:*/
             countsummary(outf,"IntersectBothWays 2->1", 1, 2); 
             /*dcr041101 Lines,Pass==2 output sum of 2 passes*/
 	 }
-	 else {
+	 else
+	 {
             sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
 	    writeOutput(outf, "2->1", rslts, drawSpike, method, extrastr);
 
             if(ContactSUMMARY) /*dcr041101 Lines,Pass*/
-               {countsummary(outf,"IntersectBothWays 2->1", 9, 2);} 
+               countsummary(outf,"IntersectBothWays 2->1", 9, 2); 
                /*dcr041101 Lines,Pass==2 output sum of 2 passes*/
 	 }
       }
    }/*}}}(method == INTERSECTBOTHWAYS)____________________________*/
+   
    else if (method == EXTERNALSURFACE) 
    {/*{{{(method == EXTERNALSURFACE)*******************************/
-      if (Verbose && !(countDots && rawOutput)) { note("ExternalSurface"); }
+      if (Verbose && !(countDots && rawOutput)) 
+      	      note("ExternalSurface"); 
 
-      genDotSurface(allMainAtoms, abins, allMovingAtoms, bbins,
-		  dots, probeRad, spikelen, SET1, rslts);
+      genDotSurface(allMainAtoms, abins, allMovingAtoms, bbins, dots, probeRad, spikelen, SET1, rslts);
 
-      if (countDots) {
-	 if (!rawOutput) {
+      if (countDots)
+      {
+	 if (!rawOutput) 
 	    descrCommand(outf, "program:", "command:", argc, argv);
-	 }
-	 numSkinDots = enumDotSkin(allMainAtoms, abins,
-			      allMovingAtoms, bbins, dots, SET1);
+	 
+	 numSkinDots = enumDotSkin(allMainAtoms, abins, allMovingAtoms, bbins, dots, SET1);
          /*numSkinDots used to normalize output score*/
-	 if (!rawOutput) {
+	 if (!rawOutput)
+	 {
 	    fprintf(outf, "selection: external\nname: %s\n",groupLabel?groupLabel:"dots");
 	    fprintf(outf, "density: %.1f dots per A^2\nprobeRad: %.3f A\nVDWrad: (r * %.3f) + %.3f A\n",
 		     density, probeRad, RadScaleFactor, RadScaleOffset);
 	 }
-	 if (usesMovingAtoms) {
-	    nsel = countSelected(allMainAtoms,   SET1) +
-	           countSelected(allMovingAtoms, SET1);
-	 }
-	 else {
-	    nsel = countSelected(allMainAtoms, SET1);
-	 }
-	 if (rawOutput) {
+	 if (usesMovingAtoms) 
+	 	 nsel = countSelected(allMainAtoms,   SET1) + countSelected(allMovingAtoms, SET1);
+	 else 
+	 	 nsel = countSelected(allMainAtoms, SET1);
+	 
+	 if (rawOutput)
+	 {
 	    rawEnumerate(outf, "", rslts, method, nsel,
 		     FALSE, TRUE, numSkinDots, density,
 		     groupLabel?groupLabel:"", rawname, scoreBias);
 	 }
-	 else {
+	 else
+	 {
 	    enumerate(outf, "extern dots", rslts, probeRad, method, nsel,
 		     FALSE, TRUE, numSkinDots, density);
 	 }
       }
-      else {
-	 if (rawOutput) {
+      else
+      {
+	 if (rawOutput) 
+	 {
 	    writeRaw(outf, "1->none", rslts, probeRad,
-		  groupLabel?groupLabel:"", density);
+		  groupLabel?groupLabel:"", density,conFlag);
+		
 	 }
-	 else if (OutputFmtType == 1) {
+	 else if (OutputFmtType == 1)
+	 {
 	    writeAltFmtO(outf, TRUE, TRUE, "extern_dots", rslts, FALSE);
 	 }
-	 else if (OutputFmtType == 2) {
+	 else if (OutputFmtType == 2) 
+	 {
 	    descrCommand(outf, "# software:", "# command:", argc, argv);
 	    writeAltFmtXV(outf, TRUE, TRUE, "extern_dots", rslts, FALSE);
 	 }
-	 else {
+	 else 
+	 {
 	    descrCommand(outf, "@caption", " command:", argc, argv);
-	    if (sayGroup) {
-	       fprintf(outf, "@group dominant {%s}\n",
-		  groupLabel?groupLabel:"dots");
-	    }
+	    if (sayGroup) 
+	       	fprintf(outf, "@group dominant {%s}\n", groupLabel?groupLabel:"dots");
+	    
             sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
 	    writeOutput(outf, "extern dots", rslts, FALSE, method, extrastr);
 	 }
       }
    }/*}}}(method == EXTERNALSURFACE)______________________________*/
+ 
    else if (method == DUMPATOMCOUNT) 
    {/*{{{(method == DUMPATOMCOUNT)*********************************/
-      if (Verbose && !rawOutput) {
+      if (Verbose && !rawOutput)
+      {
 	 note("dumpAtomInfo");
 	 descrCommand(outf, "program:", "command:", argc, argv);
 	 fprintf(outf, "selection: self\nname: %s\n", groupLabel?groupLabel:"dots");
@@ -1056,28 +1092,31 @@ if(Verbose)
 	 fprintf(outf, "score weights: gapWt=%g, bumpWt=%g, HBWt=%g\n",
 				 GAPweight, BUMPweight, HBweight);
       }
-      if (usesMovingAtoms) {
-	 nsel = countSelected(allMainAtoms,   SET1) +
-	        countSelected(allMovingAtoms, SET1);
-      }
-      else {
+      if (usesMovingAtoms) 
+	 nsel = countSelected(allMainAtoms,   SET1) + countSelected(allMovingAtoms, SET1);
+      else 
 	 nsel = countSelected(allMainAtoms, SET1);
-      }
-      if (rawOutput) {
-	 if (groupLabel) {
+      
+      if (rawOutput)
+      {
+	 if (groupLabel)
+	 {
 	    fprintf(outf, "%d %s %s%s\n", nsel, rawname,
 	       RAW_HEADER_COMMENT, groupLabel);
 	 }
-	 else {
+	 else
+	 {
 	    fprintf(outf, "%d %s\n", nsel, rawname);
 	 }
       }
-      else {
+      else
+      {
 	 fprintf(outf, "atoms selected: %d\n", nsel);
       }
    }/*}}}(method == DUMPATOMCOUNT)_______________________________*/
-
+	
    freeResults(rslts);
+
 }/*doCommand()*/
 /*}}}doCommand()_____________________________________________________________*/
 
@@ -1201,6 +1240,8 @@ else { /*longlist option*/
    fprintf(stderr, "  -Countdots   produce a count of dots-not a dotlist\n");
    fprintf(stderr, "  -Unformated  output raw dot info\n");
    fprintf(stderr, "     name:pat:type:srcAtom:targAtom:mingap:gap:spX:spY:spZ:spikeLen:score:stype:ttype:x:y:z:sBval:tBval:\n");
+   fprintf(stderr, "  -CONdense    raw output in condensed format, i.e. one line per source->target atom. Also gives the dot count for that interaction. Works only with -Unformated flag\n");
+   fprintf(stderr, "     name:pat:type:srcAtom:targAtom:dot-count:mingap:gap:spX:spY:spZ:spikeLen:score:stype:ttype:x:y:z:sBval:tBval:\n");
    fprintf(stderr, "  -OFORMAT     output dot info formatted for display in O\n");
    fprintf(stderr, "  -XVFORMAT    output dot info formatted for display in XtalView\n");
    fprintf(stderr, "  -ONELINE     output one line :contacts:by:severity:type:\n"); /*dcr041101*/
@@ -1325,15 +1366,15 @@ void probeversion(void) /*VERSION  dcr041009*/
 }
 /*}}}probeversion()__________________________________________________________*/
 
-/*{{{processCommandline()**** called from mainProbeProc() ********************/
+/*{{{()**** called from mainProbeProc() ********************/
 atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 			float *density, float *probeRad,
 			int *drawSpike, float *spikelen, int *countDots,
 			int *keepUnselected,
 			char **srcArg, char **targArg, char **ignoreArg,
-                        char **groupLabel, int *rawOutput, int *sayGroup,
+                        char **groupLabel, int *rawOutput, int *conFlag, int *sayGroup,
 			int *addKinToFile, movingAtomBuildInfo *mabip,
-			residue **reslstptr) 
+			residue **reslstptr) //conFlag added by SJ - 10/07/2011
 {/*processCommandline()*/
    /*gets running conditions from the commandline as well as */
    /*loads atomlist from in file, returns atomlist which becomes allMainAtoms*/
@@ -1356,6 +1397,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
    *countDots = FALSE;
    *keepUnselected = TRUE;
    *rawOutput = FALSE;
+   *conFlag = FALSE; // added by SJ - 10/07/2011
    *sayGroup = TRUE;
    *addKinToFile = FALSE;
 
@@ -1454,6 +1496,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	    *addKinToFile = TRUE;
 	    *countDots = FALSE; /* also forces kin format */
 	    *rawOutput = FALSE;
+	    *conFlag = FALSE; // by SJ 10/07/2011
 	    OutputFmtType = 0;
 	 }
 	 else if(compArgStr(p+1, "NOGROUP", 3)){
@@ -1468,6 +1511,10 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	 else if(compArgStr(p+1, "UNFORMATED", 1)){
 	    *rawOutput = TRUE;
 	 }
+	 else if(compArgStr(p+1, "CONDENSE", 3))
+	 {
+	 	*conFlag = TRUE;
+	 } // added by SJ 10/07/2011 - to parse the flag for condened raw output
 	 else if(compArgStr(p+1, "OUTSIDE", 2)){
 	    *method = EXTERNALSURFACE;
 	    nargs = 1;
@@ -3623,6 +3670,7 @@ void freeResults(dotNode *results[][NODEWIDTH])
 {
    int i, j;
    dotNode *node, *next;
+   atom * a;
 
    for (i = 0; i < NUMATOMTYPES; i++) {
       for (j = 0; j < NODEWIDTH; j++) {
@@ -4042,7 +4090,7 @@ float kissEdge2bullsEye(float ra, float rb, float rp)
 
 /*{{{writeRaw()***************************************************************/
 void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
-	       float probeRad, char* label, float density) 
+	       float probeRad, char* label, float density, int conFlag) //conFlag added by SJ 10/07/2011 
 {
    int i, j;
    dotNode *node;
@@ -4050,70 +4098,213 @@ void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
    char *mast[NODEWIDTH] = {"wc", "cc", "so", "bo", "hb"};
    float gap, sl, dtgp, ke2be, d2be, d2sc, score;
    double scaledGap;
-
-   for (i = 0; i < NUMATOMTYPES; i++) {
-      for (j = 0; j < NODEWIDTH; j++) {
+   for (i = 0; i < NUMATOMTYPES; i++) 
+   {
+	
+      for (j = 0; j < NODEWIDTH; j++)
+      {
+	 
 	 node = results[i][j];
-	 while(node) {
+	 if(node) // added 10/05/11 - SJ for condensing rawOutput
+	 {
+	 	 node = Condense(node,conFlag);
+	 	 results[i][j]=node;
+	 }
+	 while(node)
+         {
 	    fprintf(outf, "%s:%s:%s:", label, groupname, mast[j]);
-
 	    a = node->a;
-	    fprintf(outf, "%2s%4.4s%c%s %s%c:",
-		  a->r->chain, a->r->Hy36resno, a->r->resInsCode, a->r->resname,
-		  a->atomname, a->altConf);
+	    fprintf(outf, "%2s%4.4s%c%s %s%c:",a->r->chain, a->r->Hy36resno, a->r->resInsCode, a->r->resname,a->atomname, a->altConf);
 	    t = node->t;
-	    if (t) {
-	       fprintf(outf, "%2s%4.4s%c%s %s%c:",
-			t->r->chain, t->r->Hy36resno, t->r->resInsCode, t->r->resname,
-			t->atomname, t->altConf);
-	       gap = gapSize(&(a->loc), &(t->loc),
-			      (a->radius + t->radius));
+	    if(t)
+	    {
+	       fprintf(outf, "%2s%4.4s%c%s %s%c:",t->r->chain, t->r->Hy36resno, t->r->resInsCode, t->r->resname,t->atomname, t->altConf);
+	       gap = gapSize(&(a->loc), &(t->loc),(a->radius + t->radius));
 	       dtgp = node->gap;
-	       if (OldStyleU) {
+	       if (OldStyleU)
+               {
 		  ke2be = kissEdge2bullsEye(a->radius, t->radius, probeRad);
 		  d2be = dot2bullsEye(&(node->loc), a, t);
 		  d2sc = dot2srcCenter(&(node->loc), a, t);
 	       }   
 	       sl = gapSize(&(node->loc), &(node->spike), 0.0);
 	       score = 0.0;
-	       switch(j) {
-	       case 0:
-	       case 1:
-		  scaledGap = dtgp/GAPweight;
-		  score = exp(-scaledGap*scaledGap);
-		  break;
-	       case 2:
-	       case 3: score = -BUMPweight * sl; break;
-	       case 4: score =    HBweight * sl; break;
+	       switch(j)
+               {
+	      	 	case 0:
+	       		case 1:
+                                scaledGap = dtgp/GAPweight;
+		  		score = exp(-scaledGap*scaledGap);
+		  		break;
+	       		case 2:
+	       		case 3: score = -BUMPweight * sl; break;
+	       		case 4: score =    HBweight * sl; break;
 	       }
-	       if (OldStyleU) {
-		  fprintf(outf, "%.3f:%.3f:%.3f:%.3f:%.3f:%.3f:%.4f",
-		     gap, dtgp, ke2be, d2be, d2sc, sl, score/density);
-	       }
-	       else { /* spike end now part of -u output */
-		  fprintf(outf, "%.3f:%.3f:%.3f:%.3f:%.3f:%.3f:%.4f",
-		     gap, dtgp,
-		     node->spike.x, node->spike.y, node->spike.z, sl,
-		     score/density);
-	       }
-	    }
-	    else { fprintf(outf, ":::::::"); }
+	       if(conFlag)
+	       	       fprintf(outf,"%i:",node->dotCount);
+	       if (OldStyleU)
+		  fprintf(outf, "%.3f:%.3f:%.3f:%.3f:%.3f:%.3f:%.4f", gap, dtgp, ke2be, d2be, d2sc, sl, score/density);
+	       else
+		  fprintf(outf, "%.3f:%.3f:%.3f:%.3f:%.3f:%.3f:%.4f",  gap, dtgp, node->spike.x, node->spike.y, node->spike.z, sl, score/density);
+	   }
+	   else
+		 fprintf(outf, ":::::::"); 
 
-	    fprintf(outf, ":%s:%s:%.3f:%.3f:%.3f",
-		  getAtomName(i),
-		  (t?getAtomName(t->atomclass):""),
-		  node->loc.x,node->loc.y,node->loc.z);
+	   fprintf(outf, ":%s:%s:%.3f:%.3f:%.3f",getAtomName(i),(t?getAtomName(t->atomclass):""),node->loc.x,node->loc.y,node->loc.z);
+      
+           if(t)
+ 	  	  fprintf(outf, ":%.2f:%.2f\n", a->bval, t->bval);
+	   else 
+		  fprintf(outf, ":%.2f:\n", a->bval);
 
-	    if (t) { fprintf(outf, ":%.2f:%.2f\n", a->bval, t->bval);}
-	    else   { fprintf(outf, ":%.2f:\n", a->bval);}
-
-	    node = node->next;
+	   node = node->next;
 	 }
       }
    }
+   
 }
 /*}}}writeRaw()______________________________________________________________*/
 
+/*{{{Condense()************************************************************ - SJ 10/05/11 for condensing rawOutput*/
+dotNode * Condense(dotNode * head, int conFlag)
+{
+	
+	// variables of the main for loop
+	char sourceCurStart[18],sourceCurEnd[18];
+	dotNode *curStart = NULL, *curEnd = NULL, *prevEnd = NULL, *nextStart = NULL, *prev = NULL;
+	atom *source = NULL;
+	
+	//variables for the sorting and removing duplciates loop
+	dotNode *i = NULL, *j = NULL, *next = NULL, *iPrev = NULL, *jPrev = NULL, *minPrev = NULL, *minNode = NULL;
+	char minTarget[18],jTarget[18],prevTarget[18],nextTarget[18];
+	atom *target = NULL;
+	
+	for(curStart=head;curStart!=NULL;curStart=nextStart)
+	{ /* main for loop which loops through the source atoms*/
+		source=curStart->a;
+		sprintf(sourceCurStart,"%2s%4.4s%c%s %s%c",source->r->chain,source->r->Hy36resno,
+			source->r->resInsCode,source->r->resname,source->atomname,source->altConf);
+		sourceCurStart[17]='\0';
+		nextStart = NULL;
+		prev = curStart;
+		curEnd = NULL;
+		for(curEnd=curStart->next;curEnd!=NULL;curEnd=curEnd->next)
+		{ /* for loop to determine the nodes for the same source atom*/
+			source=curEnd->a;
+			sprintf(sourceCurEnd,"%2s%4.4s%c%s %s%c",source->r->chain,source->r->Hy36resno,
+				source->r->resInsCode,source->r->resname,source->atomname,source->altConf);
+			sourceCurEnd[17]='\0';
+			
+			if(strcmp(sourceCurStart,sourceCurEnd)!=0) // if the source atom differes, then break out of the loop
+				break;
+			prev=curEnd;
+		}
+		
+		nextStart=curEnd; // the start of the next source atoms 
+		curEnd=prev; // the last dot for the current source atom
+		// isolating all the dots of the current source atom from the prev and next source atom 
+		if(prevEnd)
+			prevEnd->next = NULL; 
+		curEnd->next = NULL; 
+		
+		/* sorting code - will have a curState and a curEnd pointed to indicate the start and end of the sorted list*/
+		iPrev = NULL;
+		jPrev = NULL;
+		minPrev = NULL;
+		i = NULL;
+		j = NULL;
+		next = NULL;
+		minNode = NULL;
+		for(i=curStart;i!=NULL;i=i->next)
+		{ /*sorting loop - sorting based on the target atom*/
+			target=i->t;
+			sprintf(minTarget,"%2s%4.4s%c%s %s%c",target->r->chain,target->r->Hy36resno,
+				target->r->resInsCode,target->r->resname,target->atomname,target->altConf);
+			minTarget[17]='\0';
+			minNode = i;
+			minPrev = iPrev;
+			//using selection sort
+			 jPrev = i;
+			 for(j=i->next;j!=NULL; j=j->next)
+			 {
+			 	 target=j->t;
+			 	 sprintf(jTarget,"%2s%4.4s%c%s %s%c",target->r->chain,target->r->Hy36resno,
+			 	 	target->r->resInsCode,target->r->resname,target->atomname,target->altConf);
+			 	 jTarget[17]='\0';
+			 	 if(strcmp(jTarget,minTarget) < 0) // if the target atom of j is less than that of the min then swap it
+			 	 {
+			 	 	 strcpy(minTarget,jTarget);
+			 	 	 minNode = j;
+			 	 	 minPrev = jPrev;
+			 	 }
+			 	 jPrev = j;
+			 }
+			 
+			 if(minNode != i) // if the nodes have to be swapped
+			 {
+			 	 next = minNode->next;
+			 	 if(iPrev)
+			 	 	 iPrev->next = minPrev -> next;
+			 	 else
+			 	 	 curStart=minNode;
+			 	 minPrev->next = i;
+			 	 minNode->next = i->next;
+			 	 i->next = next;
+			 	 i = minNode;
+			 }
+			 iPrev = i;
+		}/* sorting loop ends */
+		curEnd = iPrev; //updating the end of the dots for the source atom
+		
+		if(conFlag)
+		{/* code for removing duplicates - will update curEnd */
+			i=curStart;
+			next = NULL;
+			i->dotCount=1; //initialising the dot count
+			
+			while(i->next!=NULL)
+			{//removing duplicates
+				target=i->t;
+				sprintf(prevTarget,"%2s%4.4s%c%s %s%c",target->r->chain,target->r->Hy36resno,
+					target->r->resInsCode,target->r->resname,target->atomname,target->altConf);
+				prevTarget[17]='\0';
+			
+				target=i->next->t;
+				sprintf(nextTarget,"%2s%4.4s%c%s %s%c",target->r->chain,target->r->Hy36resno,
+					target->r->resInsCode,target->r->resname,target->atomname,target->altConf);
+				nextTarget[17]='\0';
+			
+				if(strcmp(prevTarget,nextTarget) == 0) //free the memory for the duplicate dot
+				{
+					next = i->next; 
+					i->next = next->next;
+					free(next);
+					next=NULL;
+					i->dotCount++;
+				}
+				else
+				{
+					i=i->next;
+					i->dotCount=1;
+				}
+			}//removing duplicate loop ends
+			curEnd = i; //updating the end of the dots of the source atom
+		}/*code for removing dots ends*/
+		
+		//integrating the condensed list of dots of the current source atom to prev and next source atoms
+		curEnd->next = nextStart;
+		if(prevEnd)
+			prevEnd->next = curStart;
+		else
+			head=curStart;
+		
+		prevEnd=curEnd; //making the current source atom as the prev source atom
+		
+	}/* main for loop*/
+	
+	return head;
+}
+/*}}}SortdotNodes()____________________________________________________________*/
 /*{{{enumerate()**************************************************************/
 void enumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
                float probeRad, int method,
@@ -4288,7 +4479,7 @@ void rawEnumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
       fprintf(outf, "\n");
       return;
    }
-
+   
    tgs = ths = thslen = tbs = tbslen = 0.0;
    tGscore = tHscore = tBscore = tscore = 0.0;
    for (i = 0; i < NUMATOMTYPES; i++) {
