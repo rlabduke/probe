@@ -57,6 +57,7 @@ typedef struct dotNode_t {
 	int type;      /* -1 bump, 0 touch, +1 H bond */
 	float gap;     /* vdw-vdw distance */
         char ptmaster; /* point master, kinemage output, (M for mc) dcr041009*/
+	int dotCount; /*added by SJ -10/07/2011 for keeping count of number of dots in the interaction, used only in writeRaw and Condense functions*/
 } dotNode;
 
 /* data structure used to determine if N and O are at chain ends */
@@ -107,9 +108,9 @@ void doCommand(FILE *outf, int method,
    atom *allMainAtoms, atomBins *abins,
    atom *allMovingAtoms, atomBins *bbins,
    pointSet dots[], float probeRad, float density, float spikelen,
-   int countDots, int rawOutput, char* rawname, double scoreBias,
+   int countDots, int rawOutput, int conFlag, char* rawname, double scoreBias,
    int drawSpike, int sayGroup, char* groupLabel,
-   int argc, char **argv, char message[]);
+   int argc, char **argv, char message[]);//conFlag added by SJ 10/07/2011
 void descrCommand(FILE *fp, char* hdr1, char* hdr2, int argc, char **argv);
 void loadDotSpheres(pointSet dots[], float density);
 void unloadDotSpheres(pointSet dots[]);
@@ -118,9 +119,9 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 			int *drawSpike, float *spikelen, int *countDots,
 			int *keepUnselected,
 			char **srcArg, char **targArg, char **ignoreArg,
-                        char **groupLabel, int *rawOutput, int *sayGroup,
+                        char **groupLabel, int *rawOutput, int * conFlag, int *sayGroup,
 			int *addKinToFile, movingAtomBuildInfo *mabip,
-			residue **reslstptr);
+			residue **reslstptr);//conFlag added by SJ - 01/07/2011
 atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
 		  residue **resDataLst);
 atomBins* binAtoms(atom* allAtoms, region *boundingBox, char serialNum,
@@ -159,7 +160,7 @@ void surfDots(atom *src, int type, atom *scratch,
 void initResults(dotNode *results[][NODEWIDTH]);
 void freeResults(dotNode *results[][NODEWIDTH]);
 void writeOutput(FILE *outf, char *groupname, dotNode *results[][NODEWIDTH],
-                 int drawSpike, int method, char *extramastername); 
+                 int drawSpike, int method, char *extramastername);  
                 /*041020 method for better kinemage keywords*/
                 /*060129 extra master name controls original vs fitted dots*/ 
 void writeAltFmtO(FILE *outf, int showBegin, int showEnd,
@@ -168,7 +169,8 @@ void writeAltFmtXV(FILE *outf, int showBegin, int showEnd,
       char* groupname, dotNode *results[][NODEWIDTH], int drawSpike);
 
 void writeRaw(FILE *outf, char *groupname, dotNode *results[][NODEWIDTH],
-               float rp, char*s, float);
+               float rp, char*s, float,int conFlag); 
+dotNode * Condense(dotNode * head,int conFlag); //added 10/04/11 - SJ for condensing the rawOutput
 void enumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
                float probeRad, int method,
 	       int nsel, int spike, int outdots, int numSkinDots,

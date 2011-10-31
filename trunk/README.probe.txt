@@ -43,6 +43,11 @@ v2.5 (7/25/01) - Selections can now refer to negative residue numbers.
 		 space to prevent the selection from being treated as
 		 a command line option.)
 
+v2.6 (10/28/2011) - Introduced the -condense flag, which when used with the -u option
+                    will give one line per source atom - target atom pair. Also it will give 
+                    the number of dots in that interaction, as an additional column.
+		    (Changes made by Swati Jain)
+
 USAGE:
 Probe was designed for UNIX and the commands described below follow the
 UNIX conventions. For a brief description of probe features, run "probe"
@@ -115,6 +120,10 @@ overwrite (!) rather than append to the output file.
 Even more dot information for each dot can be tabulated with -unformated
 
   probe -unformated -self "all" mypdbH > rawinfo.table
+
+If you need just one line/sot per source atom - target atom pair, use -condense
+ 
+ probe -unformated -condense -self -mc MC mypdbH > reducedinfo.table
 
 You can create surface dots
 

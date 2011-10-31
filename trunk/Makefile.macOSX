@@ -11,25 +11,14 @@
 #  x86_64, AND a "MINOS = -mmacosx-version-min=10.6" 
 
 
-ARCHFLAGi32  = -arch i386
-ARCHFLAGi64  = -arch x86_64
-ARCHFLAGp31  = -arch ppc
-ARCHFLAGp64  = -arch ppc64
-MINOS        =
-# MINOS        = -mmacosx-version-min=10.5
-# MINOS        = -mmacosx-version-min=10.6
-
-CFLAGS = -isysroot /Developer/SDKs/MacOSX10.7.sdk $(ARCHFLAGi64) $(MINOS)
-LFLAGS = -lm -Wl,-syslibroot,/Developer/SDKs/MacOSX10.7.sdk $(ARCHFLAGi64) $(MINOS)
+CFLAGS = -isysroot /Developer/SDKs/MacOSX10.6.sdk -arch i386
+LFLAGS = -lm -Wl,-syslibroot,/Developer/SDKs/MacOSX10.6.sdk -arch i386
 
 OBJLIST = dots.o abin.o readPDBrecs.o geom3d.o utility.o select.o \
           parse.o atomprops.o stdconntable.o autobondrot.o hybrid_36_c.o
 
-.c.o:
-	cc -c $*.c $(CFLAGS)
-
-probe: probe.o $(OBJLIST)
-	cc -o $@ probe.o $(OBJLIST) $(LFLAGS)
+probe: $(OBJLIST)
+	cc -o probe $(OBJLIST) $(LFLAGS)
 
 clean:
 	@rm -f *.o *.ckp
