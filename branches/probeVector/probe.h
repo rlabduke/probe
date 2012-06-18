@@ -28,7 +28,8 @@
 #include "autobondrot.h"
 
 /* number of dot categories */
-#define NODEWIDTH 5
+/*0 wide contact,1 close contact,2 small overlap,3 bad overlap,4 H-bonds*/
+#define NODEWIDTH 6 /*20111215dcr change 5 to 6 for optional weakHbonds*/
 
 /* selection identifiers */
 #define SET1 1
@@ -58,6 +59,7 @@ typedef struct dotNode_t {
 	float gap;     /* vdw-vdw distance */
         char ptmaster; /* point master, kinemage output, (M for mc) dcr041009*/
 	int dotCount; /*added by SJ -10/07/2011 for keeping count of number of dots in the interaction, used only in writeRaw and Condense functions*/
+	float angle; /*dcr20120120 angle: dot's: parent, self, cause, esp for H */
 } dotNode;
 
 /* data structure used to determine if N and O are at chain ends */
@@ -118,7 +120,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 			float *density, float *probeRad,
 			int *drawSpike, float *spikelen, int *countDots,
 			int *keepUnselected,
-			char **srcArg, char **targArg, char **ignoreArg,
+			char **srcArg, char **targArg, char **extraArg, char **ignoreArg,
                         char **groupLabel, int *rawOutput, int * conFlag, int *sayGroup,
 			int *addKinToFile, movingAtomBuildInfo *mabip,
 			residue **reslstptr);//conFlag added by SJ - 01/07/2011
@@ -136,8 +138,13 @@ void selectSource(atom *allAtoms, pattern *sp, int srcFlag,
 atom* findTouchingAtoms(atom *src, atom *head, atomBins *bins, float probeRad, int flag,int *ok);
 
 void saveDot(atom *src, atom *targ, int type, point3d *loc, point3d *spike,
-  dotNode *results[][NODEWIDTH], int ovrlaptype, float mingap, char ptmaster);/*dcr041009*/
-dotNode * newDot(atom *src,atom *targ, point3d *loc, point3d *spike, int ovrlaptype, float gap, char ptmaster);/*dcr041009*/
+  dotNode *results[][NODEWIDTH], int ovrlaptype, float mingap, char ptmaster, float XHTangle);/*dcr041009,XHTangle dcr20120120 */
+dotNode * newDot(atom *src,atom *targ, point3d *loc, point3d *spike, int ovrlaptype, float gap, char ptmaster, float angle);/*dcr041009*/  /*XHTangle dcr20120120*/
+
+void examineOneDotEach(atom *src, int type, atom *scratch,
+		pointSet dots[], float probeRad, float spikelen,
+		int objFlag, dotNode *results[][NODEWIDTH], atom *allMainAtoms);
+                /*allMainAtoms20120120*/
 
 void examineDots(atom *src, int type, atom *scratch,
 		pointSet dots[], float probeRad, float spikelen,
@@ -160,9 +167,10 @@ void surfDots(atom *src, int type, atom *scratch,
 void initResults(dotNode *results[][NODEWIDTH]);
 void freeResults(dotNode *results[][NODEWIDTH]);
 void writeOutput(FILE *outf, char *groupname, dotNode *results[][NODEWIDTH],
-                 int drawSpike, int method, char *extramastername);  
+                 int drawSpike, int method, char *extramastername, float probeRad);  
                 /*041020 method for better kinemage keywords*/
                 /*060129 extra master name controls original vs fitted dots*/ 
+                /*probeRad added 20111220dcr*/
 void writeAltFmtO(FILE *outf, int showBegin, int showEnd,
       char* groupname, dotNode *results[][NODEWIDTH], int drawSpike);
 void writeAltFmtXV(FILE *outf, int showBegin, int showEnd,

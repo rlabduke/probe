@@ -296,7 +296,10 @@ pattern* idItem() {
    else if (strcmp(s, "METAL") == 0) {
       type = PROP_NODE; val = METAL_PROP;
    }
-   else if (strcmp(s, "METHYL") == 0) {
+   else if (strcmp(s, "METHYLENE") == 0) {
+      type = PROP_NODE; val = METHYLENE_PROP;
+   }/*longer name first*/
+      else if (strcmp(s, "METHYL") == 0) {
       type = PROP_NODE; val = METHYL_PROP;
    }
    else if (strcmp(s, "DONOR") == 0) {
@@ -851,6 +854,7 @@ void recPrint(FILE *outf, pattern *pat) {
       case   DNA_PROP: fprintf(outf,"dna/rna");         break;
       case METAL_PROP: fprintf(outf,"metal");	        break;
       case METHYL_PROP: fprintf(outf,"methyl");	        break;
+      case METHYLENE_PROP: fprintf(outf,"methylene");   break; /*20111210dcr*/
       case DONOR_PROP: fprintf(outf,"donor");	        break;
       case ACCEPTOR_PROP: fprintf(outf,"acceptor");     break;
       case RHPHOBIC_PROP:
