@@ -26,6 +26,7 @@ void setProperties(atom *a, int hetflag, int hb2aromaticFace, int chohb);
 int matchPat(atom *a, pattern *pat);
 void setAromaticProp(atom *a);
 void setMethylProp(atom *a);
+void setMethyleneProp(atom *a); /*20111211dcr*/
 int isCarbonylAtom(atom *a);
 int atomWithinDistance(atom *a, float *fvec);
 char * setHydrogenParentName(char *rname, char *aname);

@@ -43,7 +43,7 @@ pattern* getPat(char *line, char *which, int verbose)
 }
 /*}}}getPat() _______________________________________________________________*/
 
-/*{{{declarations ...           globals                                      */
+/*{{{declarations ...           global AA and Atom properties                */
 
 /*{{{AromaticAtomsTbl[]      ***/
 static ResidueAndAtomPair AromaticAtomsTbl[] = {
@@ -129,7 +129,7 @@ static char *MethylResList =
 ":THR:ALA:MET:LEU:VAL:ILE:  T:THY: DT:AIB:ABU:ACE:MSE:NME:HEM:\
  :OMG:OMC:1MA:1MG:2MG:M2G:5MU:5MC:7MG: YG:T6A:";
  /*}}}MethylResList */
- /*{{{MethylAtomsTbl[]       ***/
+/*{{{MethylAtomsTbl[]        ***/
 static ResidueAndAtomPair MethylAtomsTbl[] = { /* including xplor names */
 ":THR:", ": CG2:1HG2:2HG2:3HG2:HG21:HG22:HG23:",      0,
 ":ALA:", ": CB :1HB :2HB :3HB : HB1: HB2: HB3:",      0,
@@ -170,6 +170,34 @@ static ResidueAndAtomPair MethylAtomsTbl[] = { /* including xplor names */
 ":T6A:", ": C15:1H15:2H15:3H15:H152:H152:H153:", 0,
 0, 0, 0};
 /*}}}MethylAtomsTbl[] */
+
+/*{{{MethyleneResList, protein only ***/
+/* for identifying methylene groups on which to find methylene H 20111211dcr*/
+static char *MethyleneResList =
+":LYS:ILE:ARG:PRO:GLN:GLU:MET:CIS:SER:ASN:ASP:PHE:TYR:TRP:LEU:";
+ /*}}}MethyleneResList */
+
+/*{{{MethyleneAtomsTbl[]        ***/
+static ResidueAndAtomPair MethyleneAtomsTbl[] = {
+":LYS:", ": HE2: HE3: HD2: HD3: HG2: HG3: HB2: HB3:",      0,
+":ILE:", ":HG12:HG13:",      0,
+":PRO:", ": HD2: HD3: HG2: HG3: HB2: HB3:",      0,
+":ARG:", ": HD2: HD3: HG2: HG3: HB2: HB3:",      0,
+":GLN:", ": HG2: HG3: HB2: HB3:",      0,
+":GLU:", ": HG2: HG3: HB2: HB3:",      0,
+":MET:", ": HG2: HG3: HB2: HB3:",      0,
+":CIS:", ": HB2: HB3:",      0,
+":SER:", ": HB2: HB3:",      0,
+":ASN:", ": HB2: HB3:",      0,
+":ASP:", ": HB2: HB3:",      0,
+":PHE:", ": HB2: HB3:",      0,
+":TYR:", ": HB2: HB3:",      0,
+":HIS:", ": HB2: HB3:",      0,
+":TRP:", ": HB2: HB3:",      0,
+":LEU:", ": HB2: HB3:",      0,
+0, 0, 0};
+/*}}}MethyleneAtomsTbl[] */
+
 /*{{{ChargedAAList           ***/
 /* for computing charge state (currently treating HIS as charged) */
 static char *ChargedAAList = ":ASP:GLU:LYS:ARG:HIS:HEM:";
@@ -386,6 +414,24 @@ void setMethylProp(atom *a) {
 }
 /*}}}setMethylProp()_________________________________________________________*/
 
+/*{{{setMethyleneProp() ******************************************************/
+/* hunt for Methyene atoms and set METHYLENE property */
+
+void setMethyleneProp(atom *a) {
+   ResidueAndAtomPair *pair;
+
+   if(strstr(MethyleneResList, a->r->resname)) {
+      for (pair = MethyleneAtomsTbl; pair->rlist && pair->alist; pair++){
+	 if((strstr(pair->rlist, a->r->resname))
+	 && (strstr(pair->alist, a->atomname))) {
+	    a->props |= METHYLENE_PROP;
+	    break;
+	 }
+      }
+   }
+}
+/*}}}setMethyleneProp()______________________________________________________*/
+
 /*{{{isCarbonylAtom() ********************************************************/
 int isCarbonylAtom(atom *a) { /* limitation: this will not handle het groups properly */
    return (strstr(AAList, a->r->resname) && (!strcmp(a->atomname,  " C  ")))
@@ -417,6 +463,7 @@ void setProperties(atom *a, int hetflag, int hb2aromaticFace, int chohb) {
 
    setAromaticProp(a);
    setMethylProp(a);
+   setMethyleneProp(a); /*20111211dcr*/
 
    if (strstr(WaterList, a->r->resname)) {
       a->props |= WATER_PROP;
