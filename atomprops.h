@@ -60,7 +60,7 @@ int   atomHasProp(int a, int f);
 enum atomIdentifiers {
    noAtom=0, ignoreAtom,
    atomH, atomHarom, atomHpolar, atomHOd,
-   atomC, atomN, atomO, atomF, atomS, atomP,
+   atomC, atomCarom, atomN, atomO, atomF, atomS, atomP,
 
    atomAc, atomAg, atomAl, atomAm, atomAr, atomAs, atomAt, atomAu,
    atomB, atomBa, atomBe, atomBi, atomBk, atomBr, atomCa, atomCd,
@@ -84,6 +84,7 @@ enum atomIdentifiers {
 };
 
 #define isHatom(atype) (getAtno(atype) == 1)
+#define isCatom(atype) (getAtno(atype) == 6)
 #define NUMATOMTYPES endAtomTypes
 
 #define COVRADFUDGE 0.2
@@ -118,6 +119,7 @@ atomProp AtomTbl[NUMATOMTYPES] = { /* noAtom must be first */
    {atomHpolar,  1, "Hpol", 1.05, 0.00, 0.30, "grey",   0},
    {atomHOd,     1, "HOd",  1.05, 0.00, 0.30, "grey",   0},/*hb-only-dummy*/
    {atomC,       6, "C",    1.70, 1.90, 0.77, "white",  0},
+   {atomCarom,   6, "Car",  1.75, 1.90, 0.77, "white",  0},
    {atomN,       7, "N",    1.55, 1.70, 0.70, "sky",    0},
    {atomO,       8, "O",    1.40, 1.50, 0.66, "red",    0},
    {atomP,      15, "P",    1.80, 1.80, 1.10, "pink",   0},
@@ -237,7 +239,7 @@ atomProp AtomTbl[NUMATOMTYPES] = { /* noAtom must be first */
    {atomFm,     100,"Fm",    1.00, 1.00, 1.55, "grey", METALIC_ATOM_FLAG},
    {atomMd,     101,"Md",    1.00, 1.00, 1.55, "grey", METALIC_ATOM_FLAG},
    {atomNo,     102,"No",    1.00, 1.00, 1.55, "grey", METALIC_ATOM_FLAG},
-   
+
    /* base identifiers are used in color hack (see note in enum above) */
    {baseA,      0, "a",      0.00, 0.00, 0.00, "pink",         0},
    {baseC,      0, "c",      0.00, 0.00, 0.00, "yellow",       0},

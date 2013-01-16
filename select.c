@@ -26,19 +26,19 @@
 
 /*{{{getPat() ****************************************************************/
 /*select.h includes parse.h, so why is getPat here instead of in parse.c ? */
-pattern* getPat(char *line, char *which, int verbose) 
+pattern* getPat(char *line, char *which, int verbose)
 {
    pattern *pat;
 
    if (!line) return NULL;
-	
+
    pat = parseArg(line);  /* parse.c/parseArg() */
 
    if (verbose && pat) {
       fprintf(stderr, "%s: ", which);
       printPattern(stderr, pat); /* parse.c/printPattern() */
    }
-	
+
    return pat;
 }
 /*}}}getPat() _______________________________________________________________*/
@@ -80,7 +80,7 @@ static ResidueAndAtomPair AromaticAtomsTbl[] = {
 ":HEM:", ": N C: C1C: C2C: C3C: C4C: N D: C1D: C2D: C3D: C4D:", TEST_ACCEPT_ANGLE_PROP,
 0, 0, 0};
 
-/*061018 not allow HIS to accept H-bonds as as aromatic ring system 
+/*061018 not allow HIS to accept H-bonds as as aromatic ring system
 ":HIS:", ": ND1: CD2: CE1: NE2: CG :", TEST_ACCEPT_ANGLE_PROP,      */
 
 /*}}}AromaticAtomsTbl[] ___________________________________________*/
@@ -142,7 +142,7 @@ static ResidueAndAtomPair MethylAtomsTbl[] = { /* including xplor names */
           : CD1:1HD1:2HD1:3HD1:HD11:HD12:HD13:",      0,
 ":  T:", ": C5M:1H5M:2H5M:3H5M:H5M1:H5M2:H5M3:",      0,
 ":THY:", ": C5A:1H5 :2H5 :3H5 : H51: H52: H53:",      0,
-": DT:", ": C7 : H71: H72: H73:", 		      0, 
+": DT:", ": C7 : H71: H72: H73:", 		      0,
 ":AIB:", ": CB1:1HB1:2HB1:3HB1:HB11:HB12:HB13:\
           : CB2:1HB2:2HB2:3HB2:HB21:HB22:HB23:",      0,
 ":ABU:", ": CG :1HG :2HG :3HG : HG1: HG2: HG3:",      0,
@@ -349,6 +349,7 @@ int naBaseCategory(atom *a) {
 
 /*{{{setAromaticProp() *******************************************************/
 /* hunt for aromatic atoms and set AROMATIC property & atomHarom */
+/* also find aromatic carbon atoms and set atomCarom */
 
 void setAromaticProp(atom *a) {
    ResidueAndAtomPair *pair;
@@ -361,6 +362,7 @@ void setAromaticProp(atom *a) {
 	    a->props |= AROMATIC_PROP;
 	    a->props |= pair->bits; /* selectively set TEST_ACCEPT_ANGLE prop */
 	    if(isHatom(a->elem)) { a->elem = atomHarom; }
+	    if(isCatom(a->elem)) { a->elem = atomCarom; }
 	    break;
 	 }
       }
@@ -434,7 +436,7 @@ void setProperties(atom *a, int hetflag, int hb2aromaticFace, int chohb) {
            if(strstr(HphobicAAList, a->r->resname)){a->props |= RHPHOBIC_PROP;}
       else if(strstr(HphilicAAList, a->r->resname)){a->props |= RHPHILIC_PROP;}
       else if(strstr(ChargedAAList, a->r->resname)){a->props |= RCHARGED_PROP;}
-      s = a->atomname; 
+      s = a->atomname;
       if (a->elem == atomC || isHatom(a->elem)) {
              if (s[2] == 'A') {
 	       if (!strcmp(s, "2HA ")){ a->props |= ALPHA_PROP; }
@@ -574,13 +576,13 @@ void setProperties(atom *a, int hetflag, int hb2aromaticFace, int chohb) {
 
 /*{{{matchPat() ************* only called from probe.c/selectSource() ********/
 /* recursive at OR,AND,NOT nodes; TRUE,FALSE nodes allow those logic choices*/
-int matchPat(atom *a, pattern *pat) 
+int matchPat(atom *a, pattern *pat)
 {
   int lp, rc = FALSE;
 
-  if (pat) 
+  if (pat)
   {
-   switch(pat->type) 
+   switch(pat->type)
    {
    case     OR_NODE: rc = matchPat(a, pat->lhs) ?
 			   TRUE : matchPat(a, pat->rhs); break;
@@ -590,7 +592,7 @@ int matchPat(atom *a, pattern *pat)
    case   FILE_NODE: rc = (a->r->file  == pat->val); break;
    case  MODEL_NODE: rc = (a->r->model == pat->val); break;
    case  CHAIN_NODE: lp = strlen(lexString(pat->val));
-                     rc = (strncmp(lexString(pat->val), a->r->chain, lp) 
+                     rc = (strncmp(lexString(pat->val), a->r->chain, lp)
                                                             == 0); break;
    case    ALT_NODE: rc = (a->altConf == ' ' || a->altConf == pat->val); break;
    case    RES_NODE: rc = (a->r->resid == pat->val); break;
@@ -614,7 +616,7 @@ int matchPat(atom *a, pattern *pat)
    case   B_LT_NODE: rc = (a->bval < pat->val); break;
    case   B_GT_NODE: rc = (a->bval > pat->val); break;
    case    INS_NODE: rc = (a->r->resInsCode == pat->val); break;
- 
+
  /* ignores the insertion code */
    case INS_RANGE_NODE: rc = (((pat->lhs->val == AND_NODE)
                                 ? pat->lhs->lhs->val
