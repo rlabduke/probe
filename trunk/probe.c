@@ -13,7 +13,7 @@
 /* in any way and (2) any modified versions of the program are   */
 /* also available for free.                                      */
 /*               ** Absolutely no Warranty **                    */
-/* Copyright (C) 1996-2004 J. Michael Word                       */
+/* Copyright (C) 1996-2013 J. Michael Word                       */
 /*****************************************************************/
 
 /*Updated to work with the remediated PDB names rmi 070727 */
@@ -51,7 +51,8 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char *versionString = "probe: version 2.13.120907, Copyright 1996-2012, J. Michael Word";
+static char *versionString = "probe: version 2.14.130116, Copyright 1996-2013, J. Michael Word";
+/*"probe: version 2.13.120907, Copyright 1996-2012, J. Michael Word";*/
 /*"probe: version 2.13.110909, Copyright 1996-2011, J. Michael Word";*/
 /*"probe: version 2.13.110830, Copyright 1996-2011, J. Michael Word";*/
 /*"probe: version 2.12.110413, Copyright 1996-2007, J. Michael Word";*/
@@ -65,7 +66,8 @@ static char *versionString = "probe: version 2.13.120907, Copyright 1996-2012, J
 /*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
    /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char *shortVersionStr = "probe.2.13.120907"; /*gjk changed %s for OUTCOLor to make -OUT work again*/
+static char *shortVersionStr = "probe.2.14.130116"; /*gjk changed %s for OUTCOLor to make -OUT work again*/
+/*static char *shortVersionStr = "probe.2.13.120907"; gjk changed %s for OUTCOLor to make -OUT work again*/
 /*static char *shortVersionStr = "probe.2.13.110909";*/
 /*static char *shortVersionStr = "probe.2.13.110830";*/
 /*static char *shortVersionStr = "probe.2.12.110413";*/
@@ -104,7 +106,8 @@ static int HB2aromFace=TRUE;  /* global controling aromatic face Hbonding */
 static int AtomMasters=FALSE; /* global controling use of masters */
 static int PermitCHXHB=FALSE; /* global controling use CHX (CHO) hbonds */
 static int DebugLevel= 0;     /* global controling debugging information */
-#ifdef JACKnANDREA 
+int NuclearRadii = FALSE; /* global controling Hydrogen vdW radii, cannot be static */
+#ifdef JACKnANDREA
 static int writeHbonds = FALSE; /* global flag: if true, write out Hbonds every time they are detected */
 #endif
 
@@ -340,7 +343,7 @@ int mainProbeProc(int argc, char **argv, FILE *outf)
 	 if (!OutputVDWs) {
 	    note("Attention: ***Output not generated for van der Waals contacts***");
 	 }
-	 if (OnlyBadOut) { 
+	 if (OnlyBadOut) {
 	    note("Attention: ***Output only generated for Bad Clashes***");/*dcr041010*/
          }
 	 if (!keepUnselected) {
@@ -380,7 +383,7 @@ if(Verbose && modelSrc > 0)
 	 abins = binAtoms(allMainAtoms, &boundingBoxA,
 		'a', probeRad, keepUnselected, SET1|SET2);
       }
-      else /*but autobondrot mode may not yet have read in any atoms*/ 
+      else /*but autobondrot mode may not yet have read in any atoms*/
       {/*minimal boundingBoxes setup*/
 	 boundingBoxA.min.x = boundingBoxA.min.y = boundingBoxA.min.z = 0.0;
 	 boundingBoxA.max.x = boundingBoxA.max.y = boundingBoxA.max.z = 0.1;
@@ -389,11 +392,11 @@ if(Verbose && modelSrc > 0)
 
       if (mabis.inf == NULL) /*pseudo modal flag for autobondrot*/
       {/*there is NOT an autobondrot atom info input file */
-	 if (! ImplicitH) 
+	 if (! ImplicitH)
          { /*preliminary step acts on all atoms*/
 	    updateHydrogenInfo(outf, allMainAtoms, abins,
 			NULL, NULL, SET1|SET2, FALSE);
-	 } 
+	 }
          /*now do the real work: */
 	 doCommand(outf, method,
 	    allMainAtoms, abins, NULL, NULL,
@@ -401,11 +404,11 @@ if(Verbose && modelSrc > 0)
 	    countDots, rawOutput, conFlag, "", 0.0, drawSpike,
 	    sayGroup, groupLabel, argc, argv, message);
       }
-      else 
+      else
       {/*setup to call autobondrot*/
 	 xformDatabase* xdb = NULL;
 	 movingCommandInfo mcis;
-  
+
 	 mcis.firstPass  = TRUE;
 	 mcis.keepUnselected = keepUnselected;
 	 mcis.outf       = outf;
@@ -473,7 +476,7 @@ if(Verbose && modelSrc > 0)
       freePattern(targPat);     targPat = NULL;
       freePattern(srcPat);       srcPat = NULL;
 
-      if (Verbose) 
+      if (Verbose)
       {
 	 note("If you publish work which uses probe, please cite:");
 	 note(referenceString);
@@ -490,7 +493,7 @@ if(Verbose && modelSrc > 0)
 /*}}}mainProbeProc()_________________________________________________________*/
 
 /*{{{newMovingAtom()**********************************************************/
-atom * newMovingAtom(char *rec, void *userdata) 
+atom * newMovingAtom(char *rec, void *userdata)
 {
    atom* a = NULL;
    movingAtomBuildInfo *m = (movingAtomBuildInfo *)userdata;
@@ -522,7 +525,7 @@ atom * newMovingAtom(char *rec, void *userdata)
 	    m->scratchRes->nextRes = *(m->reslstptr);
 	    *(m->reslstptr) = m->scratchRes;
 	    m->scratchRes = NULL;
-	    
+
 	 }
 	 else {
 	    a->r = *(m->reslstptr); /* same, so point to prior block */
@@ -535,7 +538,7 @@ atom * newMovingAtom(char *rec, void *userdata)
 /*}}}newMovingAtom()_________________________________________________________*/
 
 /*{{{deleteMovingAtom()*******************************************************/
-void deleteMovingAtom(atom *a, void *userdata) 
+void deleteMovingAtom(atom *a, void *userdata)
 {
    movingAtomBuildInfo *m = (movingAtomBuildInfo *)userdata;
    if (m && m->scratchRes) {
@@ -548,7 +551,7 @@ void deleteMovingAtom(atom *a, void *userdata)
 
 /*{{{movingDoCommand()********************************************************/
 void movingDoCommand(char* orientationName, double scoreBias,
-		  atom *allMovingAtoms, void *userdata) 
+		  atom *allMovingAtoms, void *userdata)
 {/*movingDoCommand() for autobondrot*/
    /*orientationName holds the angle values as a character string*/
 
@@ -569,7 +572,7 @@ void movingDoCommand(char* orientationName, double scoreBias,
       for(a = allMovingAtoms; a; a = a->next) {
 	 updateBoundingBox(&(a->loc), &boundingBoxB);
       }
-      
+
       /* Expand bounding box because of extra water hydrogens */
       /*                        added in updateHydrogenInfo() */
       nonMovingBB.min = m->abins->min;
@@ -635,7 +638,7 @@ void doCommand(FILE *outf, int method,
    pointSet dots[], float probeRad, float density, float spikelen,
    int countDots, int rawOutput, int conFlag, char* rawname, double scoreBias,
    int drawSpike, int sayGroup, char* groupLabel,
-   int argc, char **argv, char message[]) 
+   int argc, char **argv, char message[])
 {
 
 /* NOTE: allMainAtoms/abins & allMovingAtoms/bbins must be disjoint */
@@ -655,7 +658,7 @@ void doCommand(FILE *outf, int method,
    dotNode *rslts[NUMATOMTYPES][NODEWIDTH];
    int nsel = 0, numSkinDots = 0;
    int usesMovingAtoms = FALSE;
-   
+
    int  j=0;
 
    char extrastr[32]; /*060129 for extra master to control orig vs fitted dots*/
@@ -667,8 +670,8 @@ void doCommand(FILE *outf, int method,
 
    usesMovingAtoms = ((allMovingAtoms != NULL) && (bbins != NULL));
    if (! usesMovingAtoms)
-   {	   
-	allMovingAtoms = NULL; 
+   {
+	allMovingAtoms = NULL;
 	bbins = NULL;
    }
 
@@ -695,14 +698,14 @@ void doCommand(FILE *outf, int method,
               else
               	   note(">>name:pat:type:srcAtom:targAtom:min-gap:gap:"
        	       	       "spX:spY:spZ:spikeLen:score:"
-              	       "stype:ttype:x:y:z:sBval:tBval");    
+              	       "stype:ttype:x:y:z:sBval:tBval");
        }
    }
-   if (method == SELFINTERSECT) 
+   if (method == SELFINTERSECT)
    {/*{{{(method == SELFINTERSECT)___expected default method___****/
-   	   if (Verbose && !(countDots && rawOutput)) 
-   		note("SelfIntersect"); 
-    
+   	   if (Verbose && !(countDots && rawOutput))
+   		note("SelfIntersect");
+
     /*SELFINTERSECT case, using one input file (and where srcPat == targPat)*/
     /*is where unwashed NMR files with multiple models can be processed */
     /*when there is not a single model specified in the pattern.*/
@@ -710,12 +713,12 @@ void doCommand(FILE *outf, int method,
 
     	  if(modelSrc == 0 && modelTarg == 0 && modelCount > 1) /*041114*/ /*multiple models in file but no model specified in pattern*/
     	        modelLimit = modelCount;
-          else 
+          else
    		modelLimit = 1;
 
    	  for(j = 1; j <= modelLimit; j++) /*041114*/
    	  {/*loop over models*/
-                          
+
    	  	  if(modelLimit > 1)
    	  	  {/*defines the multiple model case*/
    	  	  	  modelToProcess = modelNumber[j]; /*models can be in any order 041114*/
@@ -748,7 +751,7 @@ void doCommand(FILE *outf, int method,
    	  	  	    	  nsel = countSelected(allMainAtoms,   SET1) + countSelected(allMovingAtoms, SET1);
    	  	  	  else
    	  	  	    	  nsel = countSelected(allMainAtoms, SET1);
-   	  	  	  
+
    	  	  	  if (rawOutput)
    	  	  	  {/*autobondrot sets this*/
    	  	  	  	  rawEnumerate(outf, "", rslts, method,
@@ -766,9 +769,9 @@ void doCommand(FILE *outf, int method,
    	  	  	  if (rawOutput)
 				{
    	  	  	    	  writeRaw(outf, "1->1", rslts, probeRad,groupLabel?groupLabel:"", density,conFlag);
-					
+
 				}
-   	  	  	  else if (OutputFmtType == 1) 
+   	  	  	  else if (OutputFmtType == 1)
    	  	  	   	  writeAltFmtO(outf, TRUE, TRUE, "self_dots", rslts, drawSpike);
    	  	  	  else if (OutputFmtType == 2)
    	  	  	  {
@@ -779,14 +782,14 @@ void doCommand(FILE *outf, int method,
    	  	  	  { /*dcr041101 ONELINE :count:summaries:*/
    	  	  	  	  countsummary(outf,"SelfIntersect", 1, 1); /*dcr041101 Lines,Pass*/
    	  	  	  }
-   	  	  	  else 
+   	  	  	  else
    	  	  	  {/*kinemage output*/
    	  	  	  	  if(ContactSUMMARY) /*dcr041101 Lines,Pass*/
    	  	  	  	    	countsummary(outf,"SelfIntersect", 9, 1);
-   	  	  	  	  
+
    	  	  	  	  descrCommand(outf, "@caption", " command:", argc, argv);
-     
-   	  	  	  	  if (sayGroup) 
+
+   	  	  	  	  if (sayGroup)
    	  	  	  	  {
    	  	  	  	  	  if(modelLimit > 1)
    	  	  	  	  	  {/*doing jth of multiple models of an ensemble*/
@@ -800,20 +803,20 @@ void doCommand(FILE *outf, int method,
    	  	  	  }/*kinemage output*/
    	  	  }
    	  }/*loop over models*/
-   }/*}}}(method == SELFINTERSECT)________________________________*/ 
-  
-   else if (method == INTERSECTONCE) 
+   }/*}}}(method == SELFINTERSECT)________________________________*/
+
+   else if (method == INTERSECTONCE)
    {/*{{{(method == INTERSECTONCE)*********************************/
-      if (Verbose && !(countDots && rawOutput)) 
-      	      note("IntersectOnce"); 
+      if (Verbose && !(countDots && rawOutput))
+      	      note("IntersectOnce");
 
       genDotIntersect(allMainAtoms, abins, allMovingAtoms, bbins,dots, probeRad, spikelen, SET1, SET2, rslts);
 
       if (countDots)
       {/*autobondrot sets this*/
-      	      if (!rawOutput) 
+      	      if (!rawOutput)
       	      	      descrCommand(outf, "program:", "command:", argc, argv);
-	 
+
       	      numSkinDots = enumDotSkin(allMainAtoms, abins, allMovingAtoms, bbins, dots, SET1);
          /*numSkinDots used to normalize output score*/
               if (!rawOutput)
@@ -826,16 +829,16 @@ void doCommand(FILE *outf, int method,
 	      }
 	      if (usesMovingAtoms)
 	      	      nsel = countSelected(allMainAtoms,   SET1) + countSelected(allMovingAtoms, SET1);
-              else 
+              else
               	      nsel = countSelected(allMainAtoms, SET1);
-	 	
+
               if (rawOutput)
               {/*autobondrot sets this*/
               	      rawEnumerate(outf,"", rslts, method, nsel,
               	      	      drawSpike, FALSE, numSkinDots, density,
               	      	      groupLabel?groupLabel:"", rawname, scoreBias);
               }
-              else 
+              else
               {
               	      enumerate(outf,"once dots", rslts, probeRad, method, nsel,
               	      	      drawSpike, FALSE, numSkinDots, density);
@@ -844,13 +847,13 @@ void doCommand(FILE *outf, int method,
       else
       {
       	      if (rawOutput)
-		{ 
+		{
       	      	    writeRaw(outf, "1->2", rslts, probeRad,groupLabel?groupLabel:"", density,conFlag);
-			     	      	    
+
 		}
-		else if (OutputFmtType == 1) 
+		else if (OutputFmtType == 1)
 	      	      writeAltFmtO(outf, TRUE, TRUE, "once_dots", rslts, drawSpike);
-	      else if (OutputFmtType == 2) 
+	      else if (OutputFmtType == 2)
 	      {
 	      	      descrCommand(outf, "# software:", "# command:", argc, argv);
 	      	      writeAltFmtXV(outf, TRUE, TRUE, "once_dots", rslts, drawSpike);
@@ -859,26 +862,26 @@ void doCommand(FILE *outf, int method,
 	      { /*dcr041101 ONELINE :count:summaries:*/
 	      	      countsummary(outf,"IntersectOnce", 1, 1); /*dcr041101 Lines,Pass*/
 	      }
-	      else 
+	      else
 	      {/*write kinemage*/
 	      	      if(ContactSUMMARY) /*dcr041101 Lines,Pass*/
                			countsummary(outf,"IntersectOnce", 9, 1);
 
                	      descrCommand(outf, "@caption", " command:", argc, argv);
-               	      if (sayGroup) 
+               	      if (sayGroup)
                	      	      fprintf(outf, "@group dominant {%s}\n", groupLabel?groupLabel:"dots");
-	    
+
                	      sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
                	      writeOutput(outf, "once dots", rslts, drawSpike, method, extrastr);
               }
       }
    }/*}}}(method == INTERSECTONCE)________________________________*/
-   
-   else if (method == INTERSECTBOTHWAYS) 
+
+   else if (method == INTERSECTBOTHWAYS)
    {/*{{{(method == INTERSECTBOTHWAYS)*****************************/
       if (Verbose && !(countDots && rawOutput))
-      		note("IntersectBothWays"); 
-      	
+      		note("IntersectBothWays");
+
       if (countDots)
       {
 	 if (!rawOutput)
@@ -896,12 +899,12 @@ void doCommand(FILE *outf, int method,
       	      if (rawOutput) {}
 		   /* do nothing on purpose */
 	      else if (OutputFmtType == 1) {}
-	      else if (OutputFmtType == 2) 
+	      else if (OutputFmtType == 2)
 	      	      descrCommand(outf, "# software:", "# command:", argc, argv);
 	      else
 	      {/*kinemage: keywords before double pass*/
 	      	      descrCommand(outf, "@caption", " command:", argc, argv);
-	      	      if (sayGroup) 
+	      	      if (sayGroup)
 	      	      		fprintf(outf, "@group {%s}\n",groupLabel?groupLabel:"dots");
 	    }
       }
@@ -915,9 +918,9 @@ void doCommand(FILE *outf, int method,
          /*numSkinDots used to normalize output score*/
 	 if (usesMovingAtoms)
 	     nsel = countSelected(allMainAtoms,   SET1) + countSelected(allMovingAtoms, SET1);
-	 else 
+	 else
              nsel = countSelected(allMainAtoms, SET1);
-	 
+
 	 if (rawOutput)
 	 {
 	    rawEnumerate(outf, "1->2", rslts, method, nsel,
@@ -930,20 +933,20 @@ void doCommand(FILE *outf, int method,
 			drawSpike, FALSE, numSkinDots, density);
 	 }
       }
-      else 
+      else
       {
 	 if (rawOutput)
-	{ 
+	{
 	    writeRaw(outf, "1->2", rslts, probeRad, groupLabel?groupLabel:"", density,conFlag);
-					
-	} 
-	else if (OutputFmtType == 1) 
+
+	}
+	else if (OutputFmtType == 1)
 	    writeAltFmtO(outf, TRUE, !sayGroup, "1->2", rslts, drawSpike);
-	 else if (OutputFmtType == 2) 
+	 else if (OutputFmtType == 2)
 	    writeAltFmtXV(outf, TRUE, !sayGroup, "1->2", rslts, drawSpike);
 	 else if (OutputFmtType == 3)
 	 { /*dcr041101 ONELINE :count:summaries:*/
-            countsummary(outf,"IntersectBothWays 1->2", 1, 0); 
+            countsummary(outf,"IntersectBothWays 1->2", 1, 0);
             /*dcr041101 Lines,Pass==0 no output for this pass*/
 	 }
 	 else
@@ -952,7 +955,7 @@ void doCommand(FILE *outf, int method,
 	    writeOutput(outf, "1->2", rslts, drawSpike, method, extrastr);
 
             if(ContactSUMMARY) /*dcr041101 Lines,Pass*/
-             	countsummary(outf,"IntersectBothWays 1->2", 9, 0); 
+             	countsummary(outf,"IntersectBothWays 1->2", 9, 0);
                /*dcr041101 Lines,Pass==0 no output for this pass*/
 	 }
       }
@@ -966,11 +969,11 @@ void doCommand(FILE *outf, int method,
       {
 	 numSkinDots = enumDotSkin(allMainAtoms, abins, allMovingAtoms, bbins, dots, SET2);
          /*numSkinDots used to normalize output score*/
-	 if (usesMovingAtoms) 
+	 if (usesMovingAtoms)
 	 	 nsel = countSelected(allMainAtoms,   SET2) + countSelected(allMovingAtoms, SET2);
-	 else 
+	 else
 	 	 nsel = countSelected(allMainAtoms, SET2);
-	 
+
 	 if (rawOutput)
 	 {
 	    rawEnumerate(outf, "2->1", rslts, method, nsel,
@@ -989,19 +992,19 @@ void doCommand(FILE *outf, int method,
 	 {
 	    writeRaw(outf, "2->1", rslts, probeRad,
 			groupLabel?groupLabel:"", density,conFlag);
-					
+
 	 }
 	 else if (OutputFmtType == 1)
 	 {
 	    writeAltFmtO(outf, !sayGroup, TRUE, "2->1", rslts, drawSpike);
 	 }
-	 else if (OutputFmtType == 2) 
+	 else if (OutputFmtType == 2)
 	 {
 	    writeAltFmtXV(outf, !sayGroup, TRUE, "2->1", rslts, drawSpike);
 	 }
 	 else if (OutputFmtType == 3)
 	 { /*dcr041101 ONELINE :count:summaries:*/
-            countsummary(outf,"IntersectBothWays 2->1", 1, 2); 
+            countsummary(outf,"IntersectBothWays 2->1", 1, 2);
             /*dcr041101 Lines,Pass==2 output sum of 2 passes*/
 	 }
 	 else
@@ -1010,24 +1013,24 @@ void doCommand(FILE *outf, int method,
 	    writeOutput(outf, "2->1", rslts, drawSpike, method, extrastr);
 
             if(ContactSUMMARY) /*dcr041101 Lines,Pass*/
-               countsummary(outf,"IntersectBothWays 2->1", 9, 2); 
+               countsummary(outf,"IntersectBothWays 2->1", 9, 2);
                /*dcr041101 Lines,Pass==2 output sum of 2 passes*/
 	 }
       }
    }/*}}}(method == INTERSECTBOTHWAYS)____________________________*/
-   
-   else if (method == EXTERNALSURFACE) 
+
+   else if (method == EXTERNALSURFACE)
    {/*{{{(method == EXTERNALSURFACE)*******************************/
-      if (Verbose && !(countDots && rawOutput)) 
-      	      note("ExternalSurface"); 
+      if (Verbose && !(countDots && rawOutput))
+      	      note("ExternalSurface");
 
       genDotSurface(allMainAtoms, abins, allMovingAtoms, bbins, dots, probeRad, spikelen, SET1, rslts);
 
       if (countDots)
       {
-	 if (!rawOutput) 
+	 if (!rawOutput)
 	    descrCommand(outf, "program:", "command:", argc, argv);
-	 
+
 	 numSkinDots = enumDotSkin(allMainAtoms, abins, allMovingAtoms, bbins, dots, SET1);
          /*numSkinDots used to normalize output score*/
 	 if (!rawOutput)
@@ -1036,11 +1039,11 @@ void doCommand(FILE *outf, int method,
 	    fprintf(outf, "density: %.1f dots per A^2\nprobeRad: %.3f A\nVDWrad: (r * %.3f) + %.3f A\n",
 		     density, probeRad, RadScaleFactor, RadScaleOffset);
 	 }
-	 if (usesMovingAtoms) 
+	 if (usesMovingAtoms)
 	 	 nsel = countSelected(allMainAtoms,   SET1) + countSelected(allMovingAtoms, SET1);
-	 else 
+	 else
 	 	 nsel = countSelected(allMainAtoms, SET1);
-	 
+
 	 if (rawOutput)
 	 {
 	    rawEnumerate(outf, "", rslts, method, nsel,
@@ -1055,34 +1058,34 @@ void doCommand(FILE *outf, int method,
       }
       else
       {
-	 if (rawOutput) 
+	 if (rawOutput)
 	 {
 	    writeRaw(outf, "1->none", rslts, probeRad,
 		  groupLabel?groupLabel:"", density,conFlag);
-		
+
 	 }
 	 else if (OutputFmtType == 1)
 	 {
 	    writeAltFmtO(outf, TRUE, TRUE, "extern_dots", rslts, FALSE);
 	 }
-	 else if (OutputFmtType == 2) 
+	 else if (OutputFmtType == 2)
 	 {
 	    descrCommand(outf, "# software:", "# command:", argc, argv);
 	    writeAltFmtXV(outf, TRUE, TRUE, "extern_dots", rslts, FALSE);
 	 }
-	 else 
+	 else
 	 {
 	    descrCommand(outf, "@caption", " command:", argc, argv);
-	    if (sayGroup) 
+	    if (sayGroup)
 	       	fprintf(outf, "@group dominant {%s}\n", groupLabel?groupLabel:"dots");
-	    
+
             sprintf(extrastr,"%s",groupLabel?groupLabel:"dots"); /*060129*/
 	    writeOutput(outf, "extern dots", rslts, FALSE, method, extrastr);
 	 }
       }
    }/*}}}(method == EXTERNALSURFACE)______________________________*/
- 
-   else if (method == DUMPATOMCOUNT) 
+
+   else if (method == DUMPATOMCOUNT)
    {/*{{{(method == DUMPATOMCOUNT)*********************************/
       if (Verbose && !rawOutput)
       {
@@ -1094,11 +1097,11 @@ void doCommand(FILE *outf, int method,
 	 fprintf(outf, "score weights: gapWt=%g, bumpWt=%g, HBWt=%g\n",
 				 GAPweight, BUMPweight, HBweight);
       }
-      if (usesMovingAtoms) 
+      if (usesMovingAtoms)
 	 nsel = countSelected(allMainAtoms,   SET1) + countSelected(allMovingAtoms, SET1);
-      else 
+      else
 	 nsel = countSelected(allMainAtoms, SET1);
-      
+
       if (rawOutput)
       {
 	 if (groupLabel)
@@ -1116,14 +1119,14 @@ void doCommand(FILE *outf, int method,
 	 fprintf(outf, "atoms selected: %d\n", nsel);
       }
    }/*}}}(method == DUMPATOMCOUNT)_______________________________*/
-	
+
    freeResults(rslts);
 
 }/*doCommand()*/
 /*}}}doCommand()_____________________________________________________________*/
 
 /*{{{descrCommand()***********************************************************/
-void descrCommand(FILE *outf, char *hdr1, char *hdr2, int argc, char **argv) 
+void descrCommand(FILE *outf, char *hdr1, char *hdr2, int argc, char **argv)
 {
    int i = 0;
    time_t t;
@@ -1143,7 +1146,7 @@ void descrCommand(FILE *outf, char *hdr1, char *hdr2, int argc, char **argv)
 /*}}}descrCommand()__________________________________________________________*/
 
 /*{{{loadDotSpheres()*********************************************************/
-void loadDotSpheres(pointSet dots[], float density) 
+void loadDotSpheres(pointSet dots[], float density)
 {
    int i = 0;
 
@@ -1155,7 +1158,7 @@ void loadDotSpheres(pointSet dots[], float density)
 /*}}}loadDotSpheres()________________________________________________________*/
 
 /*{{{unloadDotSpheres()*******************************************************/
-void unloadDotSpheres(pointSet dots[]) 
+void unloadDotSpheres(pointSet dots[])
 {
    int i = 0;
 
@@ -1166,7 +1169,7 @@ void unloadDotSpheres(pointSet dots[])
 /*}}}unloadDotSpheres()______________________________________________________*/
 
 /*{{{probehelp()**************************************************************/
-void probehelp(int longlist) 
+void probehelp(int longlist)
 {
    fprintf(stderr, "\nSyntax: probe input.pdb >> out.kin\n");
    fprintf(stderr, "    or: probe [flags] \"src pattern\" [\"target pattern\"] pdbfiles... >> out.kin\n\n");
@@ -1232,6 +1235,8 @@ else { /*longlist option*/
    fprintf(stderr, "  -CHO#.#      scale factor for CH..O Hbond score (default=%.1f)\n", CHOHBfactor);
    fprintf(stderr, "  -PolarH      use short radii of polar hydrogens (default)\n");
    fprintf(stderr, "  -NOPolarH    do not shorten radii of polar hydrogens\n");
+   fprintf(stderr, "  -NUClear     use nuclear position vdW radii\n"); // 130114 JJH
+   fprintf(stderr, "               (default is electron cloud positions)\n"); // 130114 JJH
    fprintf(stderr, "  -NOFACEhbond do not identify HBonds to aromatic faces\n\n");
 
    fprintf(stderr, "  -Name \"name\" specify the group name (default \"dots\")\n");
@@ -1387,7 +1392,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
    int file = 0, nargs = 0, argcnt = 0, i = 0, n = 0;
    char *p, message[200];
    FILE *inf = stdin;
-   atom *atomlist = NULL; 
+   atom *atomlist = NULL;
 
    *method = SELFINTERSECT;
    nargs = 1;
@@ -1452,10 +1457,10 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	 else if(compArgStr(p+1, "KEEP", 2)){
 	    *keepUnselected = TRUE;
 	 }
-	 else if(n = compArgStr(p+1, "DENSITY", 2)){
+	 else if((n = compArgStr(p+1, "DENSITY", 2))){
 	    *density = parseReal(p, n+1, 10);
 	 }
-	 else if(n = compArgStr(p+1, "RADIUS", 1)){
+	 else if((n = compArgStr(p+1, "RADIUS", 1))){
 	    *probeRad   = parseReal(p, n+1, 10);
 
 		  /* parameters correlated with radius */
@@ -1476,7 +1481,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	       halt(message);
 	    }
 	 }
-	 else if(n = compArgStr(p+1, "ADDVDW", 3)){
+	 else if((n = compArgStr(p+1, "ADDVDW", 3))){
 	    RadScaleOffset = parseReal(p, n+1, 10);
 	    if (RadScaleOffset < -10.0
 	    ||  RadScaleOffset > 1000.0) {
@@ -1485,7 +1490,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	       halt(message);
 	    }
 	 }
-	 else if(n = compArgStr(p+1, "SPIKE", 2)){
+	 else if((n = compArgStr(p+1, "SPIKE", 2))){
 	    *drawSpike = TRUE;
 	    if (p[n+1]) {
 	       *spikelen = parseReal(p, n+1, 10);
@@ -1571,7 +1576,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	    *probeRad      = 0.0;
 	    *groupLabel = "AS";
 	 }
-	 else if(n = compArgStr(p+1, "SCAN", 4)){
+	 else if((n = compArgStr(p+1, "SCAN", 4))){
 	    int scanType = parseInteger(p, n+1, 10);
 	    switch(scanType) {
 	    case 0:
@@ -1653,6 +1658,9 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	 else if(compArgStr(p+1, "NOPOLARH", 3)){
 	    UsePolarH = FALSE;
 	 }
+	 else if(compArgStr(p+1, "NUCLEAR", 3)){
+	   NuclearRadii = TRUE;
+	 }
 	 else if(compArgStr(p+1, "NOFACEHBOND", 6)){
 	    HB2aromFace = FALSE;
 	 }
@@ -1675,19 +1683,19 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	       halt("no pattern after -IGNORE flag");
 	    }
 	 }
-	 else if(n = compArgStr(p+1, "COSCALE", 4)){
+	 else if((n = compArgStr(p+1, "COSCALE", 4))){
 	    CORadScale = parseReal(p, n+1, 10);
 	 }
-	 else if(n = compArgStr(p+1, "HBREGULAR", 3)){
+	 else if((n = compArgStr(p+1, "HBREGULAR", 3))){
 	    Min_regular_hb_cutoff = parseReal(p, n+1, 10);
 	 }
-	 else if(n = compArgStr(p+1, "HBCHARGED", 3)){
+	 else if((n = compArgStr(p+1, "HBCHARGED", 3))){
 	    Min_charged_hb_cutoff = parseReal(p, n+1, 10);
 	 }
 	 else if(compArgStr(p+1, "DOCHO", 5)){
 	    PermitCHXHB = TRUE;
 	 }
-	 else if(n = compArgStr(p+1, "CHO", 3)){
+	 else if((n = compArgStr(p+1, "CHO", 3))){
 	    CHOHBfactor = parseReal(p, n+1, 10);
 	 }
 	 else if(compArgStr(p+1, "ATOMCOLOR", 4)){
@@ -1703,25 +1711,25 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	 else if(compArgStr(p+1, "COLORBASE", 6)){
 	    ByNABaseColor = TRUE;
 	 }
-	 else if(n = compArgStr(p+1, "GAPWEIGHT", 4)){
+	 else if((n = compArgStr(p+1, "GAPWEIGHT", 4))){
 	    GAPweight = parseReal(p, n+1, 10);
 	 }
-	 else if(n = compArgStr(p+1, "BUMPWEIGHT", 5)){
+	 else if((n = compArgStr(p+1, "BUMPWEIGHT", 5))){
 	    BUMPweight = parseReal(p, n+1, 10);
 	 }
-	 else if(n = compArgStr(p+1, "HBWEIGHT", 3)){
+	 else if((n = compArgStr(p+1, "HBWEIGHT", 3))){
 	    HBweight = parseReal(p, n+1, 10);
 	 }
-	 else if(n = compArgStr(p+1, "DIVLow", 4)){
+	 else if((n = compArgStr(p+1, "DIVLow", 4))){
 	    LowGoodCut = parseReal(p, n+1, 10);
 	 }
-	 else if(n = compArgStr(p+1, "DIVHigh", 4)){
+	 else if((n = compArgStr(p+1, "DIVHigh", 4))){
 	    HighGoodCut = parseReal(p, n+1, 10);
 	 }
-	 else if(n = compArgStr(p+1, "MINOCCupancy", 6)){
+	 else if((n = compArgStr(p+1, "MINOCCupancy", 6))){
 	    OccupancyCutoff = parseReal(p, n+1, 10);
 	 }
-	 else if(n = compArgStr(p+1, "NOOCCupancy", 5)){
+	 else if((n = compArgStr(p+1, "NOOCCupancy", 5))){
 	    OccupancyCriteria = FALSE; /*060831*/
 	 }
 	 else if(compArgStr(p+1, "OFORMAT", 7)){
@@ -1834,10 +1842,10 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	    note(message);
 	    exit(0);
 	 }
-	 else if(n = compArgStr(p+1, "CHANGEs", 6)){
+	 else if((n = compArgStr(p+1, "CHANGEs", 6))){
 	    dump_changes(stderr);
 	 }
-	 else if(n = compArgStr(p+1, "DEBUG", 5)){
+	 else if((n = compArgStr(p+1, "DEBUG", 5))){
 	    DebugLevel = parseInteger(p, n+1, 10);
 	 }
 	 else { /*either naked -  or unrecognized character string*/
@@ -1908,7 +1916,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 /*}}}processCommandline()____________________________________________________*/
 
 /*{{{initEndData()************************************************************/
-void initEndData(chainEndData_t *ed) 
+void initEndData(chainEndData_t *ed)
 {
    int i = 0;
    for (i = 0; i < 8; i++) { ed->ambigN[i] = NULL; ed->ambigO[i] = NULL; }
@@ -1924,7 +1932,7 @@ void initEndData(chainEndData_t *ed)
 /*{{{hisNHcheck()*************************************************************/
 /* His ring atoms start out with a positive charge.                       */
 /* Here we remove the charge for His residues without two ring NH protons.*/
-void hisNHcheck(chainEndData_t *ed, atom *atomlist, int rescnt) 
+void hisNHcheck(chainEndData_t *ed, atom *atomlist, int rescnt)
 {
    int i = 0;
    atom *rat = NULL;
@@ -1939,7 +1947,7 @@ void hisNHcheck(chainEndData_t *ed, atom *atomlist, int rescnt)
 	    if ((altc==' ')||(altc=='A')||(altc=='1')) { ialt = 1; }
 	    else if ((altc=='B')||(altc=='2'))         { ialt = 2; }
 	    else if ((altc=='C')||(altc=='3'))         { ialt = 3; }
-	    
+
 	    if (ialt > 0) {
 	       if (ed->hisNHcount[ialt] < 2) { /* his not positive */
 		  rat->props &= ~POSITIVE_PROP;
@@ -1958,7 +1966,7 @@ void hisNHcheck(chainEndData_t *ed, atom *atomlist, int rescnt)
 
 /*{{{resCheck()***************************************************************/
 /* called after each residue is read */
-void resCheck(chainEndData_t *ed, atom *atomlist, int rescnt) 
+void resCheck(chainEndData_t *ed, atom *atomlist, int rescnt)
 {
     hisNHcheck(ed, atomlist, rescnt);
 }
@@ -1967,7 +1975,7 @@ void resCheck(chainEndData_t *ed, atom *atomlist, int rescnt)
 /*{{{CtermCheck()*************************************************************/
 /* called when a new residue begins and at the end of all processing */
 /* to process the previous residue                                   */
-void CtermCheck(chainEndData_t *ed, int rescnt, int isChainEnd) 
+void CtermCheck(chainEndData_t *ed, int rescnt, int isChainEnd)
 {
    int i = 0;
    /* avoid processing the first time 'cause there ain't no chain pending */
@@ -2004,7 +2012,7 @@ void CtermCheck(chainEndData_t *ed, int rescnt, int isChainEnd)
 /*{{{noticedNt()**************************************************************/
 /* called when we have an indicator that residue is at N terminus */
 /* to look for ambigN and mark charged */
-void noticedNt(chainEndData_t *ed, int rescnt) 
+void noticedNt(chainEndData_t *ed, int rescnt)
 {
    int i = 0;
 
@@ -2023,7 +2031,7 @@ void noticedNt(chainEndData_t *ed, int rescnt)
 /*{{{noticedCt()**************************************************************/
 /* called when we have an indicator that residue is at C terminus */
 /* to look for ambigO and mark charged */
-void noticedCt(chainEndData_t *ed, int rescnt) 
+void noticedCt(chainEndData_t *ed, int rescnt)
 {
    int i = 0;
 
@@ -2040,17 +2048,17 @@ void noticedCt(chainEndData_t *ed, int rescnt)
 
 /*{{{NtermCheck()*************************************************************/
 /* called whenever a new residue begins */
-void NtermCheck(chainEndData_t *ed, int rescnt, int isChainEnd) 
+void NtermCheck(chainEndData_t *ed, int rescnt, int isChainEnd)
 {
    int i = 0;
-   
+
    ed->res_mc_oxy_cnt = 0; /* reset Oxygen data for each residue */
    for (i = 0; i < 8; i++) { ed->ambigO[i] = NULL; }
 
    /* we have reserved the top 4 nitrogen slots for most recent res */
    /* so we have to clear this here                                 */
    for (i = 4; i < 8; i++) { ed->ambigN[i] = NULL; }
-   
+
    if (isChainEnd) {
       ed->first = rescnt; /* first residue */
    }
@@ -2059,7 +2067,7 @@ void NtermCheck(chainEndData_t *ed, int rescnt, int isChainEnd)
 
 /*{{{ProcessResInfo()*** called from loadAtoms() & movingAtomListProcessing()*/
 /* called for each atom read in */
-void ProcessResInfo(chainEndData_t *ed, atom *a) 
+void ProcessResInfo(chainEndData_t *ed, atom *a)
 {
    int i = 0;
 
@@ -2145,22 +2153,22 @@ void ProcessResInfo(chainEndData_t *ed, atom *a)
 /*}}}ProcessResInfo()________________________________________________________*/
 
 /*{{{movingAtomListProcessing()***********************************************/
-void movingAtomListProcessing(atom *initAtomLst, void *userdata) 
+void movingAtomListProcessing(atom *initAtomLst, void *userdata)
 {
    int previd = 0, rescnt = 0;
-   char prevInsCode = ' '; 
-   char prevChain[3];  
+   char prevInsCode = ' ';
+   char prevChain[3];
    atom *a = NULL, *prevAtomLst = NULL, *nexta = NULL;
    chainEndData_t endData;
 
    initEndData(&endData);
 
-   prevChain[0] = prevChain[1] = '?'; 
+   prevChain[0] = prevChain[1] = '?';
    prevChain[2] = '\0';
-   
+
    for(a=initAtomLst; a; a = nexta) {
       nexta = a->next;
-      
+
       a->next = prevAtomLst; /* remove a from initial atom list */
       prevAtomLst = a;       /* and build up a reversed list of */
                              /* only atoms previously seen      */
@@ -2193,7 +2201,7 @@ void movingAtomListProcessing(atom *initAtomLst, void *userdata)
 
 /*{{{loadAtoms()************* called from processCommandline() ***************/
 atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
-		  residue **reslstptr) 
+		  residue **reslstptr)
 {
    int previd = 0, rescnt = 0, model = 0;
    char *rec, prevInsCode = ' ';
@@ -2204,13 +2212,13 @@ atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
 
    prevChain[0] = prevChain[1] = '?';
    prevChain[2] = '\0';
-   
+
    scratchRes = newResidueData();
 
    initEndData(&endData);
 
-   while(rec = getPDBrecord(fp)) { /*loop over all records in pdb file*/
-      if (isTer(rec)) { 
+   while((rec = getPDBrecord(fp))) { /*loop over all records in pdb file*/
+      if (isTer(rec)) {
          prevChain[0] = prevChain[1] = '?';
          prevChain[2] = '\0';
       }
@@ -2255,7 +2263,7 @@ atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
 	 atomlist = a;
 
 	 updateBoundingBox(&(a->loc), boundingBox);
-	 
+
 	 if (*reslstptr == NULL) {/* first residue goes on residue list */
 	    *reslstptr = scratchRes;
 	    scratchRes = newResidueData();
@@ -2265,7 +2273,7 @@ atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
 	       scratchRes->nextRes = *reslstptr;
 	       *reslstptr = scratchRes;
 	       scratchRes = newResidueData();
-	    
+
 	    }
 	    else {
 	       a->r = *reslstptr; /* same, so point to prior block */
@@ -2294,7 +2302,7 @@ if(Verbose)
 
 /*{{{binAtoms()***************************************************************/
 atomBins* binAtoms(atom *theAtoms, region *boundingBox, char serialNum,
-		  float probeRad, int keepUnselected, int selflags) 
+		  float probeRad, int keepUnselected, int selflags)
 {
    atom *a = NULL;
    atomBins *bins = NULL;
@@ -2317,7 +2325,7 @@ atomBins* binAtoms(atom *theAtoms, region *boundingBox, char serialNum,
 /*}}}binAtoms()______________________________________________________________*/
 
 /*{{{getRadius()**************************************************************/
-float getRadius(int at, int useCOScale) 
+float getRadius(int at, int useCOScale)
 {
    float rad = 0.0, sf = RadScaleFactor;
 
@@ -2331,7 +2339,7 @@ float getRadius(int at, int useCOScale)
 /*}}}getRadius()_____________________________________________________________*/
 
 /*{{{newRingInfo()************************************************************/
-ringInfo * newRingInfo(ringInfo **head, point3d* ctr, point3d* norm) 
+ringInfo * newRingInfo(ringInfo **head, point3d* ctr, point3d* norm)
 {
    ringInfo *ri = NULL;
    ri = (ringInfo *)malloc(sizeof(ringInfo));
@@ -2350,7 +2358,7 @@ ringInfo * newRingInfo(ringInfo **head, point3d* ctr, point3d* norm)
 /*}}}newRingInfo()___________________________________________________________*/
 
 /*{{{deleteRingInfoList()*****************************************************/
-void deleteRingInfoList(ringInfo *ri) 
+void deleteRingInfoList(ringInfo *ri)
 { /* kill entire list */
    ringInfo *p = NULL, *nxt = NULL;
    p = ri;
@@ -2363,7 +2371,7 @@ void deleteRingInfoList(ringInfo *ri)
 /*}}}deleteRingInfoList()____________________________________________________*/
 
 /*{{{newResidueData()*********************************************************/
-residue * newResidueData() 
+residue * newResidueData()
 { /* new blank residue */
    residue *r = NULL;
    r = (residue *)malloc(sizeof(residue));
@@ -2372,7 +2380,7 @@ residue * newResidueData()
       r->a = NULL;
       r->file = 0;
       r->model = 0;
-      r->chain[0] = ' ';   /*RMI I don't know what to do here*/ 
+      r->chain[0] = ' ';   /*RMI I don't know what to do here*/
       r->resid = ' ';
       r->resInsCode = ' ';
       r->rescnt = 0;
@@ -2385,7 +2393,7 @@ residue * newResidueData()
 /*}}}newResidueData()________________________________________________________*/
 
 /*{{{resDiffersFromPrev()*****************************************************/
-int resDiffersFromPrev(residue *r1, residue *r2) 
+int resDiffersFromPrev(residue *r1, residue *r2)
 {
    if (r1 == NULL || r2 == NULL) { return 1; }
    return (! IS_THE_SAME_RES(r1, r2));
@@ -2393,7 +2401,7 @@ int resDiffersFromPrev(residue *r1, residue *r2)
 /*}}}resDiffersFromPrev()____________________________________________________*/
 
 /*{{{deleteResidueData()******************************************************/
-void deleteResidueData(residue *r) 
+void deleteResidueData(residue *r)
 {
    if (r) {
       deleteRingInfoList(r->ring);
@@ -2403,7 +2411,7 @@ void deleteResidueData(residue *r)
 /*}}}deleteResidueData()_____________________________________________________*/
 
 /*{{{disposeListOfResidues()**************************************************/
-void disposeListOfResidues(residue *theRes) 
+void disposeListOfResidues(residue *theRes)
 {
    residue *r = NULL, *nextr = NULL;
 
@@ -2416,7 +2424,7 @@ void disposeListOfResidues(residue *theRes)
 
 /*{{{dumpRes()****************************************************************/
 /* dumpRes() used for debugging */
-void dumpRes(residue *theRes) 
+void dumpRes(residue *theRes)
 {
    residue *r = NULL;
    atom *a = NULL;
@@ -2434,7 +2442,7 @@ void dumpRes(residue *theRes)
 /*}}}dumpRes()_______________________________________________________________*/
 
 /*{{{deleteAtom()*************************************************************/
-void deleteAtom(atom *a) 
+void deleteAtom(atom *a)
 {
    if (a) {
       free(a);
@@ -2443,7 +2451,7 @@ void deleteAtom(atom *a)
 /*}}}deleteAtom()____________________________________________________________*/
 
 /*{{{disposeListOfAtoms()*****************************************************/
-void disposeListOfAtoms(atom *theAtoms) 
+void disposeListOfAtoms(atom *theAtoms)
 {
    atom *a = NULL, *nexta = NULL;
 
@@ -2455,7 +2463,7 @@ void disposeListOfAtoms(atom *theAtoms)
 /*}}}disposeListOfAtoms()____________________________________________________*/
 
 /*{{{newAtom() <--loadAtoms(),newMovingAtom(); -->various property tests *****/
-atom * newAtom(char *rec, int file, int model, residue * resDataBuf) 
+atom * newAtom(char *rec, int file, int model, residue * resDataBuf)
 {/*newAtom()*/
    atom *a = NULL;
    char msg[100];
@@ -2475,11 +2483,11 @@ atom * newAtom(char *rec, int file, int model, residue * resDataBuf)
       a->r->a = a; /* residue points back to this atom (can change for res) */
       a->r->file = file;
       a->r->model = model;
-      parseChain(rec, a->r->chain); 
+      parseChain(rec, a->r->chain);
      /* a->r->chain = parseChain(rec);*/
-      a->r->resid = parseResidueNumber(rec); 
-      parseResidueHy36Num(rec, a->r->Hy36resno);  
-      a->r->resInsCode = parseResidueInsertionCode(rec); 
+      a->r->resid = parseResidueNumber(rec);
+      parseResidueHy36Num(rec, a->r->Hy36resno);
+      a->r->resInsCode = parseResidueInsertionCode(rec);
       a->r->rescnt = 0;
       a->altConf = parseAltLocCode(rec);
       a->binSerialNum = '?'; /* set when we bin */
@@ -2545,14 +2553,14 @@ atom * newAtom(char *rec, int file, int model, residue * resDataBuf)
 
 /*{{{selectSource() <--mainProbeProc(),newMovingAtom(); -->select/matchPat() */
 void selectSource(atom *theAtoms, pattern *srcPat, int srcFlag,
-		  pattern *targPat, int targFlg, pattern *ignorePat) 
+		  pattern *targPat, int targFlg, pattern *ignorePat)
 {
    atom *src = NULL;
 
-   for(src = theAtoms; src; src = src->next) 
+   for(src = theAtoms; src; src = src->next)
    {
       if(   (DoHet || ! (src->props &   HET_PROP) )
-         && (DoH2O || ! (src->props & WATER_PROP) ) ) 
+         && (DoH2O || ! (src->props & WATER_PROP) ) )
       {
          /*060212 hets marked as prot,dna,rna could be excluded by these tests*/
          /* if src||target was specified as not-prot,dna,rna,... */
@@ -2575,7 +2583,7 @@ void selectSource(atom *theAtoms, pattern *srcPat, int srcFlag,
 
 /*{{{atomsClose()*************************************************************/
 /*atomsClose() only called from findTouchingAtoms() */
-int atomsClose(atom *a, atom *b, float probeRad) 
+int atomsClose(atom *a, atom *b, float probeRad)
 {
    int nearpt = FALSE;
    float lim = 0.0, dsq = 0.0;
@@ -2596,14 +2604,14 @@ int atomsClose(atom *a, atom *b, float probeRad)
 /*}}}atomsClose()____________________________________________________________*/
 
 /*{{{inRange()****************************************************************/
-int inRange(point3d *p, point3d *q, float lim) 
+int inRange(point3d *p, point3d *q, float lim)
 {
    return v3distanceSq(p, q) <= (lim*lim);
 }
 /*}}}inRange()_______________________________________________________________*/
 
 /*{{{gapSize()****************************************************************/
-float gapSize(point3d *p, point3d *q, float qrad) 
+float gapSize(point3d *p, point3d *q, float qrad)
 {
    return v3distance(p, q) - qrad;
 }
@@ -2625,7 +2633,7 @@ atom* findTouchingAtoms(atom *src, atom *head, atomBins *abins,
    int imin = 0, jmin = 0, kmin = 0;
    int imax = 0, jmax = 0, kmax = 0;
 
-   if (src->binSerialNum != abins->binSerialNum) 
+   if (src->binSerialNum != abins->binSerialNum)
    {/*in foreign bins */
       /*dcr?: why do they have to be in foreign==different bins??*/
       /*this requirement seems not to affect loss of close clashes*/
@@ -2637,7 +2645,7 @@ atom* findTouchingAtoms(atom *src, atom *head, atomBins *abins,
 	|| (src->loc.z < (abins->min.z - abins->delta))
 	|| (src->loc.x > (abins->max.x + abins->delta))
 	|| (src->loc.y > (abins->max.y + abins->delta))
-	|| (src->loc.z > (abins->max.z + abins->delta)) ) 
+	|| (src->loc.z > (abins->max.z + abins->delta)) )
       {
 	 return NULL; /* nothing anywhere nearby */
       }
@@ -2670,7 +2678,7 @@ fprintf(stderr, "f(%c != %c) %s%d %s [%d, %d, %d] <1..%d, 1..%d, 1..%d>\n",
 	    for(a = abins->list[i][j][k]; a; a = a->nextInBin) {
 
                /*Lmodeltest for interaction of diff. models 041112*/
-               /*050121 Lmodeltest superseded, mage sends model# */ 
+               /*050121 Lmodeltest superseded, mage sends model# */
                /*...within subroutine findTouchingAtoms()... */
 	       if( (src->r->model != a->r->model) ) { continue; }
                if( modelLimit > 1 ) /*041114*/
@@ -2687,7 +2695,7 @@ fprintf(stderr, "f(%c != %c) %s%d %s [%d, %d, %d] <1..%d, 1..%d, 1..%d>\n",
 /*nearpt seems to be essential to get any dots or spikes */
 /*...seems not to be where too-close atoms fail to get any dots or spikes*/
 	       nearpt = atomsClose(src, a, probeRad);/*only call to atomsClose*/
-	       if (nearpt) 
+	       if (nearpt)
                {/*add this atom to the linked-list of those touching src atom*/
 		  a->mark = 0;       /* clear the bonding marker.   */
 		  a->scratch = head; /* link using scratch pointers */
@@ -2712,7 +2720,7 @@ fprintf(stderr, "f(%c != %c) %s%d %s [%d, %d, %d] <1..%d, 1..%d, 1..%d>\n",
 /*                   t == 0  --> 0,1 : contact dot  */
 /*                   t <  0  --> 2,3 : bump         */
 /*                   t >  0  --> 4   : hbond        */
-int dotClassIndex(int t, float mingap) 
+int dotClassIndex(int t, float mingap)
 {
    int idx = 0;
    if      (t == 0) { idx = (mingap > HighGoodCut) ? 0 : 1; } /* contact */
@@ -2724,7 +2732,7 @@ int dotClassIndex(int t, float mingap)
 
 /*{{{saveDot() called from examineDots() and from SurfDots() *****************/
 void saveDot(atom *src, atom *targ, int type, point3d *loc, point3d *spike,
-   dotNode *results[][NODEWIDTH], int ovrlaptype, float mingap, char ptmaster) 
+   dotNode *results[][NODEWIDTH], int ovrlaptype, float mingap, char ptmaster)
 {/*saveDot()*/
    /*ptmaster dcr041009*/
    dotNode* dot = NULL;
@@ -2740,13 +2748,13 @@ void saveDot(atom *src, atom *targ, int type, point3d *loc, point3d *spike,
    ||  (OutputVDWs    && ovrlaptype == 0)) {
 #endif
 
-      idx = dotClassIndex(ovrlaptype, mingap); 
+      idx = dotClassIndex(ovrlaptype, mingap);
       /*0 wide contact,1 close contact,2 small overlap,3 bad overlap,4 H-bonds*/
       /*idx=1 for EXTERNALSURFACE ovrlaptype==0, mingap==0.0 */
 
          dot = newDot(src, targ, loc, spike, ovrlaptype, mingap, ptmaster);
          /*ptmaster dcr041009*/
-         if (dot) 
+         if (dot)
          {/*add new dot to head of lists arrayed by type and severity */
 	    which = type;
 	    dot->next = results[which][idx];
@@ -2759,8 +2767,8 @@ void saveDot(atom *src, atom *targ, int type, point3d *loc, point3d *spike,
 /*}}}saveDot_________________________________________________________________*/
 
 /*{{{newDot()*****************************************************************/
-dotNode* newDot(atom *src, atom* targ, point3d *loc, point3d *spike, 
-          int ovrlaptype, float gap, char masterchr) 
+dotNode* newDot(atom *src, atom* targ, point3d *loc, point3d *spike,
+          int ovrlaptype, float gap, char masterchr)
 { /*ptmaster dcr041009*/
    dotNode* d = NULL;
 
@@ -2787,14 +2795,14 @@ dotNode* newDot(atom *src, atom* targ, point3d *loc, point3d *spike,
   (((a).y-(b).y)*((a).y-(b).y))+\
   (((a).z-(b).z)*((a).z-(b).z))) <= ((lim)*(lim)))
 
-  /*returns true when distance-sq between a and b <= limit-sq */ 
+  /*returns true when distance-sq between a and b <= limit-sq */
 /*}}}INRANGEINLINE()_________________________________________________________*/
 
 /*{{{examineDots()*********** called from genDotIntersect() ******************/
 void examineDots(atom *src, int type, atom *scratch,
 		pointSet dots[], float probeRad,
-		float spikelen, int targFlg, dotNode *results[][NODEWIDTH]) 
-{  
+		float spikelen, int targFlg, dotNode *results[][NODEWIDTH])
+{
    /*called from genDotIntersect() with same names except scratch==atomList2 */
 
    atom *targ = NULL, *cause = NULL;
@@ -2816,7 +2824,7 @@ void examineDots(atom *src, int type, atom *scratch,
    cause = NULL; /* who is responsible for the dot */
 
    srcDots = &(dots[src->elem]);
-   
+
    if (src->elem == atomC && isCarbonylAtom(src)) {
       srcDots = &COdots;
    }
@@ -2832,7 +2840,7 @@ void examineDots(atom *src, int type, atom *scratch,
       maskHB = DONOR_PROP;
    }
 
-   for(i=0; i < srcDots->n; i++) 
+   for(i=0; i < srcDots->n; i++)
    {/*loop over dots on src dot-ball */
       dotvect = srcDots->p[i];
 
@@ -2850,7 +2858,7 @@ void examineDots(atom *src, int type, atom *scratch,
       /* atom* scratch is a member of atom*: which has member scratch...*/
       /* so for-loop moves through all these atoms while an atom has a scratch*/
 
-      for(targ = scratch; targ; targ = targ->scratch) 
+      for(targ = scratch; targ; targ = targ->scratch)
       {/*for: loop over target atoms: set ok=1 for some subset*/
          hbcutoff = Min_regular_hb_cutoff; /* redefined later on */
 
@@ -2862,7 +2870,7 @@ void examineDots(atom *src, int type, atom *scratch,
 #else
          nearpt = inRange(&exploc, &targetloc, probeRad+targVDW);
 #endif
-         /*returns true when distance-sq between a and b <= limit-sq */ 
+         /*returns true when distance-sq between a and b <= limit-sq */
          /*...in subroutine examineDots()...*/
 
          skipthisMCMC = 0;
@@ -2870,14 +2878,14 @@ void examineDots(atom *src, int type, atom *scratch,
          /*just checking if this target atom acceptable for current src dot*/
          /*(premature to assign pointmasters when target not yet determined*/
          if(    DoMcMc == FALSE
-             && ( src->props & MC_PROP)  
-             && (targ->props & MC_PROP) ) 
+             && ( src->props & MC_PROP)
+             && (targ->props & MC_PROP) )
          {
             /*potential MC-MC for us to skip this target atom*/
             if (! (   ( src->props & HET_PROP)
-                   || (targ->props & HET_PROP) ) ) 
+                   || (targ->props & HET_PROP) ) )
             {/* neither can be a HET */
-               if (strcmp(src->r->chain, targ->r->chain) == 0) 
+               if (strcmp(src->r->chain, targ->r->chain) == 0)
                {/* must be the same chain*/ /*problem for NMR models ????*/
         	  skipthisMCMC = 1;
                }
@@ -2888,63 +2896,63 @@ void examineDots(atom *src, int type, atom *scratch,
 
          if (targ->elem == ignoreAtom) {/* will not contribute */}
 
-         else if (OccupancyCriteria && targ->occ < OccupancyCutoff) 
+         else if (OccupancyCriteria && targ->occ < OccupancyCutoff)
             {/*050119 will not contribute */}   /*Occ.Crit. 060831*/
 
          else if (skipthisMCMC) {/* will not contribute */}
 
          else if(    DoWatWat == FALSE
-                  && ( src->props & WATER_PROP) 
-                  && (targ->props & WATER_PROP)) 
-         { 
+                  && ( src->props & WATER_PROP)
+                  && (targ->props & WATER_PROP))
+         {
             ; /* water will not contribute when not being considered*/
          }
 
 /*Lautobondrot 050111 investigation point */
 
-         else if (nearpt && (targ->mark == 0)) 
+         else if (nearpt && (targ->mark == 0))
          {/*else if: close but nonbonded*/
             gap = gapSize(&dotloc, &targetloc, targVDW);
 
             /*identify target with minimum gap*/
 
             if (gap < mingap)
-            {/*if: gap < mingap*/ 
+            {/*if: gap < mingap*/
 
                int bothCharged = FALSE;
                int chargeComplement = FALSE;
 
                if(  ( src->props & (NEGATIVE_PROP|POSITIVE_PROP))
-                  &&(targ->props & (NEGATIVE_PROP|POSITIVE_PROP)) ) 
+                  &&(targ->props & (NEGATIVE_PROP|POSITIVE_PROP)) )
                {
                   bothCharged = TRUE;
                   chargeComplement =
-                     (   (   ( src->props & POSITIVE_PROP) 
+                     (   (   ( src->props & POSITIVE_PROP)
                           && (targ->props & NEGATIVE_PROP))
-                      || (   ( src->props & NEGATIVE_PROP) 
+                      || (   ( src->props & NEGATIVE_PROP)
                           && (targ->props & POSITIVE_PROP)) );
                }
 
-               if(    (targ->props & maskHB) 
-                   && ( (! bothCharged) || chargeComplement) ) 
+               if(    (targ->props & maskHB)
+                   && ( (! bothCharged) || chargeComplement) )
                {
                   hbcutoff = bothCharged ?
                         Min_charged_hb_cutoff :
                         Min_regular_hb_cutoff;
 
-                  if (gap < -hbcutoff) 
+                  if (gap < -hbcutoff)
                   {
                      tooCloseHB = TRUE; /* treat like a bump */
                      hbondbumpgap = gap;
                      isaHB = TRUE;
                   }
-                  else 
+                  else
                   { /* hbond or contact */
                      isaHB = TRUE;
                      tooCloseHB = FALSE;
                   }
                }
-               else 
+               else
                { /* clash or contact */
                   /*NOTE: atomHOd : hb-only-dummy, phantom H atom*/
                   if (src->elem == atomHOd)  { continue; } /*with for: loop*/
@@ -2954,35 +2962,35 @@ void examineDots(atom *src, int type, atom *scratch,
                mingap = gap; /* update minimum gap */
                ok = TRUE;
                cause = targ;
-            }/*if: gap < mingap*/ 
+            }/*if: gap < mingap*/
          }/*else if: close but nonbonded*/
       }/*for: loop over target atoms: set ok=1 for some subset*/
       if (ok && !(cause->flags & targFlg)) { /* drop non-target atom dot */
          ok = FALSE;
       }
-      if (ok) 
+      if (ok)
       {/*ok: apply bonded atom dot filters */
 
       /*targ is an atom*, scratch is an atom*,  atom* defined in abin.h */
       /* atom* scratch is a member of atom*: which has member scratch...*/
       /* so for-loop moves through all these atoms while an atom has a scratch*/
 
-         for(targ = scratch; targ; targ = targ->scratch) 
+         for(targ = scratch; targ; targ = targ->scratch)
          {/*for: scan over target atoms*/
             /* eliminate dot if within bonded atom! */
-            if (targ->mark && (targ->elem != atomHOd)) 
+            if (targ->mark && (targ->elem != atomHOd))
             {  /*NOTE: atomHOd : hb-only-dummy, phantom H atom*/
 #ifdef INLINE_FOR_SPEED
                within = INRANGEINLINE(dotloc, (targ->loc), targ->radius);
 #else
                within = inRange(&dotloc, &(targ->loc), targ->radius);
 #endif
-               /*returns true when distance-sq between a and b <= limit-sq */ 
+               /*returns true when distance-sq between a and b <= limit-sq */
                /*...in subroutine examineDots()...*/
 
                if (within) { ok = FALSE; break; }
             }
-            else if ((src->elem == atomHOd) && !(targ->props & ACCEPTOR_PROP)) 
+            else if ((src->elem == atomHOd) && !(targ->props & ACCEPTOR_PROP))
             {   /*NOTE: atomHOd : hb-only-dummy, phantom H atom*/
                 /* eliminate if H? within non-Acceptor atom! */
 #ifdef INLINE_FOR_SPEED
@@ -2990,23 +2998,23 @@ void examineDots(atom *src, int type, atom *scratch,
 #else
                within = inRange(&dotloc, &(targ->loc), targ->radius);
 #endif
-               /*returns true when distance-sq between a and b <= limit-sq */ 
+               /*returns true when distance-sq between a and b <= limit-sq */
                /*...in subroutine examineDots()...*/
 
                if (within) { ok = FALSE; break; }
             }
          }/*for: scan over target atoms*/
       }/*ok: apply bonded atom dot filters */
-      if (ok) 
+      if (ok)
       {/*dot is ok, atom that this dot hits is called cause */ /* Contact */
          /* ovrlaptype : -1 bump, 0 touch, +1 H bond */
          /*dcr?: mingap seems to do what ???? 050111*/
-         if (mingap > 0.0) 
+         if (mingap > 0.0)
          {
-            sl = 0.0; 
+            sl = 0.0;
             ovrlaptype = 0;
          }
-         else if (isaHB && tooCloseHB) 
+         else if (isaHB && tooCloseHB)
          {
             mingap = hbondbumpgap + hbcutoff;
             sl = spikelen*mingap;
@@ -3018,25 +3026,25 @@ void examineDots(atom *src, int type, atom *scratch,
             ovrlaptype =+1;
 
             /* must test angle for Hbond in some cases */
-            if (        src->props & TEST_ACCEPT_ANGLE_PROP) 
+            if (        src->props & TEST_ACCEPT_ANGLE_PROP)
             {
                /* cause->loc vs src->aromaticRing; ovrlaptype =-1;?? */
             }
-            else if ( cause->props & TEST_ACCEPT_ANGLE_PROP) 
+            else if ( cause->props & TEST_ACCEPT_ANGLE_PROP)
             {
                /* src->loc vs cause->aromaticRing; ovrlaptype =-1;?? */
             }
 
             if(   src->props & CH_DONOR_PROP
-               || cause->props & CH_DONOR_PROP) 
+               || cause->props & CH_DONOR_PROP)
             {/* CH..O type Hbond */
                sl *= CHOHBfactor; /*down scale score for these types of Hbonds*/
             }
 
 #ifdef JACKnANDREA
             if (writeHbonds)
-              printf("{%s %s %2s %d}P %f %f %f {%s %s %2s %d} %f %f %f\n", 
-                     src->atomname, src->r->resname, src->r->chain, src->r->resid, src->loc.x, src->loc.y, src->loc.z, 
+              printf("{%s %s %2s %d}P %f %f %f {%s %s %2s %d} %f %f %f\n",
+                     src->atomname, src->r->resname, src->r->chain, src->r->resid, src->loc.x, src->loc.y, src->loc.z,
                      cause->atomname, cause->r->resname, cause->r->chain, cause->r->resid, cause->loc.x, cause->loc.y, cause->loc.z);
 /*this makes a monster list of all possible H-bond dots as heavy-atom--H vecs*/
 /*which must then be pared down to the unique atom-pair vectors*/
@@ -3053,7 +3061,7 @@ void examineDots(atom *src, int type, atom *scratch,
          /*NOTE: atomHOd : hb-only-dummy, phantom H atom*/
          /* ovrlaptype : -1 bump, 0 touch, +1 H bond */
          if(  (ovrlaptype == 1)
-            ||(src->elem != atomHOd && cause->elem != atomHOd) ) 
+            ||(src->elem != atomHOd && cause->elem != atomHOd) )
          {
            v3scale(&dotvect, src->radius + sl);
            v3add(&(src->loc), &dotvect, &spikeloc);
@@ -3062,26 +3070,26 @@ void examineDots(atom *src, int type, atom *scratch,
            /* ovrlaptype : -1 bump, 0 touch, +1 H bond */
 
       /*kissEdge2bullsEye seems not responsible for loss of very close clashes*/
-           if (   ovrlaptype != 0 
+           if (   ovrlaptype != 0
                || LimitDots == FALSE
                || dot2srcCenter(&dotloc, src, cause) <=
-                  kissEdge2bullsEye(src->radius, cause->radius, probeRad)) 
+                  kissEdge2bullsEye(src->radius, cause->radius, probeRad))
            {/*could use this dot/spike, */
              /*saveDot decisions moved here to examineDots 041020 */
              /*overlaptype:  -1 bump, 0 touch, +1 H bond */
-             idx = dotClassIndex(ovrlaptype, mingap); 
+             idx = dotClassIndex(ovrlaptype, mingap);
 /*idx: 0 wide contact,1 close contact,2 small overlap,3 bad overlap,4 H-bonds*/
              /*OnlyBadOut option dcr041010*/
 
             /* ovrlaptype : -1 bump, 0 touch, +1 H bond */
-            if(  (!OnlyBadOut && OutputHBs && ovrlaptype > 0) 
+            if(  (!OnlyBadOut && OutputHBs && ovrlaptype > 0)
                ||(!OnlyBadOut && OutputClashes && ovrlaptype  < 0)
                ||( OnlyBadOut && OutputClashes && idx==3)/*Bad Clash dcr041020*/
-               ||(!OnlyBadOut && OutputVDWs && ovrlaptype == 0)) 
+               ||(!OnlyBadOut && OutputVDWs && ovrlaptype == 0))
              { /*logicals allow the overlaptype of this dot*/
 
                /*now derive ptmaster*/
-               if( (src->props & MC_PROP)  && (cause->props & MC_PROP) ) 
+               if( (src->props & MC_PROP)  && (cause->props & MC_PROP) )
                {/*potential MC-MC to flag*/
                   if( !(( src->props & HET_PROP) || (cause->props & HET_PROP)) )
                   {/*neither can be a HET, what wierd condition is avoided?*/
@@ -3090,7 +3098,7 @@ void examineDots(atom *src, int type, atom *scratch,
                      mcmccont[0][5]++;
                   }
                }
-               else if( (src->props & SC_PROP)  && (cause->props & SC_PROP) ) 
+               else if( (src->props & SC_PROP)  && (cause->props & SC_PROP) )
                {/*potential SC-SC to flag*/
                   if( !(( src->props & HET_PROP) || (cause->props & HET_PROP)) )
                   {/*neither can be a HET, what wierd condition is avoided?*/
@@ -3099,8 +3107,8 @@ void examineDots(atom *src, int type, atom *scratch,
                      scsccont[0][5]++;
                   }
                }
-               else if(  ((src->props & SC_PROP)  && (cause->props & MC_PROP))  
-                       ||((src->props & MC_PROP)  && (cause->props & SC_PROP))) 
+               else if(  ((src->props & SC_PROP)  && (cause->props & MC_PROP))
+                       ||((src->props & MC_PROP)  && (cause->props & SC_PROP)))
                {/*potential MC-SC or SC-MC to flag*/
                   if( !(( src->props & HET_PROP) || (cause->props & HET_PROP)) )
                   {/*neither can be a HET, what wierd condition is avoided?*/
@@ -3134,7 +3142,7 @@ void examineDots(atom *src, int type, atom *scratch,
 /*allowed to bond and extend this to thier neighbors through Maxbonded bonds*/
 /*including marking the src atom itself if such a Maxbonded-loop returns to it*/
 
-void markBonds(atom *src, atom *neighbors, int distcount, int max)  
+void markBonds(atom *src, atom *neighbors, int distcount, int max)
 {/*markBonds  reformated 041112*/
    atom *targ = NULL, *theHatom = NULL, *theOtherAtom = NULL;
    int nearpt, tooclose, isAanH, isBanH, letItBond = FALSE;
@@ -3142,14 +3150,14 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
    /*when making surface dots, max==1 */
    /*when looking for contacts and clashes, max==Maxbonded */
 
-   for(targ = neighbors; targ; targ = targ->scratch) 
+   for(targ = neighbors; targ; targ = targ->scratch)
    {/*for(loop over neighbors)*/
 
       /*first pass look at neighbors of external calling atom: targ->mark == 0*/
       /*later look at neighbors of neighbors: targ->mark > max */
       /* until Maxbonded neighbor when targ->mark == max */
 
-      if (targ->mark == 0 || targ->mark > distcount) 
+      if (targ->mark == 0 || targ->mark > distcount)
       {/*if(targ->mark == 0 || targ->mark > distcount) */
 
 	 /* note: when we are relying on the StdBond table   */
@@ -3176,7 +3184,7 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
 			   src->covRad + targ->covRad - 0.6
 			   - (UseStdBond ? COVRADFUDGE : 0.0) );
 #endif
-            /*returns true when distance-sq between a and b <= limit-sq */ 
+            /*returns true when distance-sq between a and b <= limit-sq */
 
 /*050111 tooclose=   does NOT seem to be the call where */
 /*atoms that move too close together suddenly stop showing bad clashes ! */
@@ -3204,7 +3212,7 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
 
 	 /* conditions for allowing a bond to be formed... */
 
-	 if (nearpt && (! tooclose) ) 
+	 if (nearpt && (! tooclose) )
          {/*close enough for a bond*/
 	    isAanH = isHatom(src->elem);
 	    isBanH = isHatom(targ->elem);
@@ -3216,7 +3224,7 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
                                                       /* res with parent name*/
 	          &&(  (theHatom->bondedto == NULL) /*and either unknown */
                      or as expected*/
-	             || strstr(theHatom->bondedto, theOtherAtom->atomname) 
+	             || strstr(theHatom->bondedto, theOtherAtom->atomname)
                                                                            ) ) )
             {
 	       targ->mark = distcount;
@@ -3226,16 +3234,16 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
 	    }
 #else /*NOT OLD_BONDING_CALC*/
 	    letItBond = FALSE; /* we start out skeptical */
-	    if ((! isAanH) && (! isBanH)) 
+	    if ((! isAanH) && (! isBanH))
             {/* neither atom is a hydrogen - both are heavy atoms */
 
-	       if (UseStdBond) 
+	       if (UseStdBond)
                {/* if we are allowing only "standard" bonding */
 
-		  if (! ATOMS_IN_THE_SAME_RES(src, targ)) 
+		  if (! ATOMS_IN_THE_SAME_RES(src, targ))
                   { /* and are in diff res */
 
-		     if ((src->props & MC_PROP) && (targ->props & MC_PROP)) 
+		     if ((src->props & MC_PROP) && (targ->props & MC_PROP))
                      {/* both are mc in diff res - */
                         /*only specific bonding patterns allowed */
 
@@ -3244,22 +3252,22 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
                         /* list matches reference str */
 
 			letItBond =
-                           (    !strcmp(" N  ", src->atomname) 
+                           (    !strcmp(" N  ", src->atomname)
                              && !strcmp(" C  ",targ->atomname) )
-                        || (    !strcmp(" N  ",targ->atomname) 
+                        || (    !strcmp(" N  ",targ->atomname)
                              && !strcmp(" C  ", src->atomname) )
-			|| (    !strcmp(" P  ", src->atomname) 
+			|| (    !strcmp(" P  ", src->atomname)
                              &&  strstr(" O3*: O3'", targ->atomname) )
-			|| (    !strcmp(" P  ",targ->atomname) 
+			|| (    !strcmp(" P  ",targ->atomname)
                              &&  strstr(" O3*: O3'",  src->atomname) );
 		     }
-		     else if(   !(src->props & MC_PROP) 
-                             && !(targ->props & MC_PROP) ) 
+		     else if(   !(src->props & MC_PROP)
+                             && !(targ->props & MC_PROP) )
                      {
 			/* both are sc in diff res they must be CYS-CYS SS */
-			letItBond = (   !strcmp(src->r->resname,  "CYS") 
+			letItBond = (   !strcmp(src->r->resname,  "CYS")
                                      && !strcmp(src->atomname,   " SG ")
-				     && !strcmp(targ->r->resname, "CYS") 
+				     && !strcmp(targ->r->resname, "CYS")
                                      && !strcmp(targ->atomname,  " SG ") );
 		     }
 
@@ -3269,22 +3277,22 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
                      /*Lmodeltest not needed, mage sends model # when needed*/
 
                   }/* and are in diff res */
-		  else 
+		  else
                   {/* both heavy atoms in same res */
                         /*strstr returns 1 when any str in colon delineated*/
                         /* list matches reference str */
 #ifdef STRICT_CONN_TABLE /*050111 seems to be not defined*/
 		     /* strict - heavy atom must be as exactly expected */
-		     letItBond = (   (src->bondedto != NULL) 
+		     letItBond = (   (src->bondedto != NULL)
                                   && strstr(src->bondedto, targ->atomname) );
 #else /*NOT STRICT_CONN_TABLE*/
 		     /* heavy atom either unknown or as expected */
-		     letItBond = (   (src->bondedto == NULL) 
+		     letItBond = (   (src->bondedto == NULL)
                                   || strstr(src->bondedto, targ->atomname) );
 #endif /*def? STRICT_CONN_TABLE*/
 		  }
                }/* if we are allowing only "standard" bonding */
-	       else 
+	       else
                {/* not using std bond table - */
                   /*so we let heavy atoms bond when they are close enough */
 		  letItBond = TRUE;
@@ -3300,12 +3308,12 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
 	       if(  (theHatom->bondedto == NULL) /* heavy atom either unknown*/
                                                  /*  or as expected */
 	          || strstr(theHatom->bondedto, theOtherAtom->atomname)
-	          || (UseHParent == FALSE) ) 
+	          || (UseHParent == FALSE) )
                {
 		  letItBond = TRUE;
 	       }
 	    }
-	    else 
+	    else
             {/*either both are hydrogens in the same residue- no bond possible*/
 	       /*  or one is a H and they are in diff res - no bond possible */
 	       letItBond = FALSE;
@@ -3315,12 +3323,12 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
             {
 	       targ->mark = distcount; /*initially == 1 as called externally*/
 	       if (distcount < max)  /*max == Maxbonded  as input or defaulted*/
-               {/*reentrant: no clashes between atoms within Maxbonded bonds*/ 
+               {/*reentrant: no clashes between atoms within Maxbonded bonds*/
 		  markBonds(targ, neighbors, distcount+1, max);
 	       }
-               /*else targ->mark == max > discount and loop will end*/ 
+               /*else targ->mark == max > discount and loop will end*/
 #ifdef DUMP_DEBUG_EXTRA
-	       if (DebugLevel > 7) 
+	       if (DebugLevel > 7)
                {
 		  fprintf(stdout, "{%4.4s%c%3.3s%2s%4.4s%c}P %8.3f%8.3f%8.3f\n",
 			   src->atomname, src->altConf,
@@ -3348,7 +3356,7 @@ void markBonds(atom *src, atom *neighbors, int distcount, int max)
 /*                         atoms which are more than cutoff bonds   */
 /*                         from the source when neither src or targ */
 /*                         is a hydrogen                            */
-void fixupLongBondChains(atom *src, atom *neighbors, int cutoff) 
+void fixupLongBondChains(atom *src, atom *neighbors, int cutoff)
 {
    atom *targ = NULL;
 
@@ -3363,7 +3371,7 @@ void fixupLongBondChains(atom *src, atom *neighbors, int cutoff)
 /*}}}fixupLongBondChains()___________________________________________________*/
 
 /*{{{dotType()****************************************************************/
-int dotType(atom *src, atom *atomList, int recalcOnly) 
+int dotType(atom *src, atom *atomList, int recalcOnly)
 {
    atom *a = NULL;
    int rslt = src->atomclass;
@@ -3394,7 +3402,7 @@ int dotType(atom *src, atom *atomList, int recalcOnly)
 /*}}}dotType()_______________________________________________________________*/
 
 /*{{{debugBondingLists()******************************************************/
-void debugBondingLists(atom *src, atom *neighbors) 
+void debugBondingLists(atom *src, atom *neighbors)
 {
    atom *targ = NULL;
    int i = 0;
@@ -3436,7 +3444,7 @@ void genDotIntersect(atom *allMainAtoms, atomBins *abins,
    atom *src = NULL, *atomList = NULL, *atomList2 = NULL;
    int type = 0, usesMovingAtoms = FALSE;
    int oktargsA = TRUE, oktargsB = TRUE;
-   
+
    usesMovingAtoms = ((allMovingAtoms != NULL) && (bbins != NULL));
 
    for(src = allMainAtoms; src; src = src->next) /*main==autobondrotstatic*/
@@ -3452,7 +3460,7 @@ void genDotIntersect(atom *allMainAtoms, atomBins *abins,
 	    atomList2 = findTouchingAtoms(src, atomList, bbins, probeRad, targFlg, &oktargsB);
 	 }
 	 else { atomList2 = atomList; }
-	 if (atomList2 && (oktargsA || (usesMovingAtoms && oktargsB) )) 
+	 if (atomList2 && (oktargsA || (usesMovingAtoms && oktargsB) ))
          {
 	    markBonds(src, atomList2, 1, Maxbonded); /*in genDotIntersect()*/
             /*markBonds identifies bonds between atoms - */
@@ -3466,7 +3474,7 @@ void genDotIntersect(atom *allMainAtoms, atomBins *abins,
 	    examineDots(src, type, atomList2, dots,
 			probeRad, spikelen, targFlg, results);
 
-	    if(Verbose && ShowTicks) 
+	    if(Verbose && ShowTicks)
             {
 		  fprintf(stderr, "%s%d   \r",
 			src->r->resname, src->r->resid);
@@ -3475,20 +3483,20 @@ void genDotIntersect(atom *allMainAtoms, atomBins *abins,
       }/*for each src atom*/
    }/*for: loop over all static atoms taking each in turn as the src-atom*/
 
-   if(usesMovingAtoms) 
+   if(usesMovingAtoms)
    {/*if: usesMovingAtoms==autobondrot*/
 
-      for(src = allMovingAtoms; src; src = src->next) 
+      for(src = allMovingAtoms; src; src = src->next)
       {/*for: loop over allMovingAtoms taking each in turn as the src-atom*/
 
 	 if (src->flags & srcFlag)  /*dcr?: what is being flagged here??*/
          {
 
-	    oktargsA = TRUE; 
+	    oktargsA = TRUE;
             oktargsB = TRUE;
 	    atomList  = findTouchingAtoms(src, NULL,     abins, probeRad, targFlg, &oktargsA);
 	    atomList2 = findTouchingAtoms(src, atomList, bbins, probeRad, targFlg, &oktargsB);
-	    if (atomList2 && (oktargsA || oktargsB)) 
+	    if (atomList2 && (oktargsA || oktargsB))
             {
 	       markBonds(src, atomList2, 1, Maxbonded);
                /*markBonds identifies bonds between atoms - */
@@ -3502,7 +3510,7 @@ void genDotIntersect(atom *allMainAtoms, atomBins *abins,
 	       examineDots(src, type, atomList2, dots,
 			probeRad, spikelen, targFlg, results);
 
-	       if(Verbose && ShowTicks) 
+	       if(Verbose && ShowTicks)
                {
 		  fprintf(stderr, "%s%d   \r",
 			src->r->resname, src->r->resid);
@@ -3525,12 +3533,12 @@ void genDotSurface(atom *allMainAtoms, atomBins *abins,
 			atom *allMovingAtoms, atomBins *bbins,
 			pointSet dots[],
 			float probeRad, float spikelen, int srcFlag,
-			dotNode *results[][NODEWIDTH]) 
+			dotNode *results[][NODEWIDTH])
 {
    atom *src = NULL, *atomList = NULL, *atomList2 = NULL;
    int type = 0, usesMovingAtoms = FALSE;
    int dummy = TRUE;
-   
+
    usesMovingAtoms = ((allMovingAtoms != NULL) && (bbins != NULL));
 
    for(src = allMainAtoms; src; src = src->next) {
@@ -3585,7 +3593,7 @@ void genDotSurface(atom *allMainAtoms, atomBins *abins,
 
 /*{{{surfDots() only called from genDotSurface(), method == EXTERNALSURFACE **/
 void surfDots(atom *src, int type, atom *scratch, pointSet dots[],
-		float probeRad, float spikelen, dotNode *results[][NODEWIDTH]) 
+		float probeRad, float spikelen, dotNode *results[][NODEWIDTH])
 {
    atom *targ;
    int i, nearpt, ok;
@@ -3655,7 +3663,7 @@ void surfDots(atom *src, int type, atom *scratch, pointSet dots[],
 /*}}}genDotIntersect()_______________________________________________________*/
 
 /*{{{initResults()************************************************************/
-void initResults(dotNode *results[][NODEWIDTH]) 
+void initResults(dotNode *results[][NODEWIDTH])
 {
    int i, j;
 
@@ -3668,7 +3676,7 @@ void initResults(dotNode *results[][NODEWIDTH])
 /*}}}initResults()___________________________________________________________*/
 
 /*{{{freeResults()************************************************************/
-void freeResults(dotNode *results[][NODEWIDTH]) 
+void freeResults(dotNode *results[][NODEWIDTH])
 {
    int i, j;
    dotNode *node, *next;
@@ -3687,7 +3695,7 @@ void freeResults(dotNode *results[][NODEWIDTH])
 /*}}}freeResults()___________________________________________________________*/
 
 /*{{{assignGapColorForKin()***************************************************/
-char* assignGapColorForKin(float gap, int class) 
+char* assignGapColorForKin(float gap, int class)
 {
    char *colorValue = "";
    if (class == 4)     { colorValue = "greentint "; } /* hbond */
@@ -3705,7 +3713,7 @@ char* assignGapColorForKin(float gap, int class)
 /*}}}assignGapColorForKin()__________________________________________________*/
 
 /*{{{assignGapColorForO()*****************************************************/
-char* assignGapColorForO(float gap, int class) 
+char* assignGapColorForO(float gap, int class)
 {
    char *colorValue = "";
    if (class == 4)     { colorValue = "pale_green ";      } /* hbond */
@@ -3723,14 +3731,14 @@ char* assignGapColorForO(float gap, int class)
 /*}}}assignGapColorForO()____________________________________________________*/
 
 /*{{{assignGapColorForXV()****************************************************/
-char* assignGapColorForXV(float gap, int class) 
+char* assignGapColorForXV(float gap, int class)
 {
    return assignGapColorForKin(gap, class);
 }
 /*}}}assignGapColorForXV()___________________________________________________*/
 
 /*{{{convertKinColorToO()*****************************************************/
-char* convertKinColorToO(char* incolor) 
+char* convertKinColorToO(char* incolor)
 {
    char *outcolor = "light_gray";
         if (strcmp(incolor, "red"       ) == 0) { outcolor = "red";             }
@@ -3761,7 +3769,7 @@ char* convertKinColorToO(char* incolor)
 /*}}}convertKinColorToO()____________________________________________________*/
 
 /*{{{convertKinColorToXV()****************************************************/
-char* convertKinColorToXV(char* incolor) 
+char* convertKinColorToXV(char* incolor)
 {
    return incolor;
 }
@@ -3781,7 +3789,7 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
    char *contactstr = "vdw contact"; /*060129*/
    char extraMstr[32]; /*fill below with extra master name 060129*/
    char pointid[100], lastpointid[100];
-   char ptmast[6]={'\0','\0','\0','\0','\0','\0'}; 
+   char ptmast[6]={'\0','\0','\0','\0','\0','\0'};
    /*dcr041009 string to hold 'M' (McMc), 'S' (ScSc), 'P' (McSc), 'O' (other)*/
    /*dcr041009 ptmaster part of each dotNode member of results[][]*/
    char masterchr=' '; /*dcr041017*/
@@ -3839,9 +3847,9 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
       masterchr = OTHERCHR; /*single char*/
       fprintf(outf, "@pointmaster '%c' {Hets contacts}\n",masterchr);
    }
-   for (i = 0; i < NUMATOMTYPES; i++) 
+   for (i = 0; i < NUMATOMTYPES; i++)
    {/*i: Hatom varients + rest of periodic table + base types, see atomprops.h*/
-      for (j = 0; j < NODEWIDTH; j++) 
+      for (j = 0; j < NODEWIDTH; j++)
       {/*j: wide contact, close contact, small overlap, bad overlap, H-bonds*/
 	 node = results[i][j]; /*head of list of dot nodes, i.e. first node*/
 	 if (node) { /*write list header*/
@@ -3885,7 +3893,7 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
 	    }
 	    lastpointid[0] = '\0'; /* reset */
 	 }/*write list header*/
-	 while(node) 
+	 while(node)
          {/*kinemage point or point-line for each node in (ij)th dot-node list*/
 	    a = node->a;
             if(node->ptmaster == ' ') /*dcr041009*/
@@ -3896,7 +3904,7 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
             {
                ptmast[0] = ' '; /*insure leading space*/
                ptmast[1] = '\''; /*surround single char pointmaster with*/
-               ptmast[2] = node->ptmaster; 
+               ptmast[2] = node->ptmaster;
                ptmast[3] = '\''; /*single quote marks*/
                ptmast[4] = ' '; /*need trailing space*/
                ptmast[5] = '\0'; /*end string*/
@@ -3948,7 +3956,7 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
 
 /*{{{writeAltFmtO()***********************************************************/
 void writeAltFmtO(FILE *outf, int showBegin, int showEnd,
-      char* groupname, dotNode *results[][NODEWIDTH], int spike) 
+      char* groupname, dotNode *results[][NODEWIDTH], int spike)
 {
    int i, j, numGroups, gn;
    dotNode *node;
@@ -4010,7 +4018,7 @@ void writeAltFmtO(FILE *outf, int showBegin, int showEnd,
 
 /*{{{writeAltFmtXV()**********************************************************/
 void writeAltFmtXV(FILE *outf, int showBegin, int showEnd,
-      char* groupname, dotNode *results[][NODEWIDTH], int spike) 
+      char* groupname, dotNode *results[][NODEWIDTH], int spike)
 {
    int i, j;
    dotNode *node;
@@ -4061,7 +4069,7 @@ void writeAltFmtXV(FILE *outf, int showBegin, int showEnd,
 /*}}}writeAltFmtXV()_________________________________________________________*/
 
 /*{{{dot2bullsEye()***********************************************************/
-float dot2bullsEye(point3d *dot, atom *src, atom *targ) 
+float dot2bullsEye(point3d *dot, atom *src, atom *targ)
 {
         point3d targ2srcVec, targSurfacePoint;
 
@@ -4073,7 +4081,7 @@ float dot2bullsEye(point3d *dot, atom *src, atom *targ)
 /*}}}dot2bullsEye()__________________________________________________________*/
 
 /*{{{dot2srcCenter()**********************************************************/
-float dot2srcCenter(point3d *dot, atom *src, atom *targ) 
+float dot2srcCenter(point3d *dot, atom *src, atom *targ)
 {
         point3d src2targVec, srcSurfacePoint;
 
@@ -4085,7 +4093,7 @@ float dot2srcCenter(point3d *dot, atom *src, atom *targ)
 /*}}}dot2srcCenter()_________________________________________________________*/
 
 /*{{{kissEdge2bullsEye()******************************************************/
-float kissEdge2bullsEye(float ra, float rb, float rp) 
+float kissEdge2bullsEye(float ra, float rb, float rp)
 {
  	return 2.0*ra*sqrt(rb*rp/((ra+rb)*(ra+rp)));
 }
@@ -4093,7 +4101,7 @@ float kissEdge2bullsEye(float ra, float rb, float rp)
 
 /*{{{writeRaw()***************************************************************/
 void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
-	       float probeRad, char* label, float density, int conFlag) //conFlag added by SJ 10/07/2011 
+	       float probeRad, char* label, float density, int conFlag) //conFlag added by SJ 10/07/2011
 {
    int i, j;
    dotNode *node;
@@ -4101,12 +4109,12 @@ void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
    char *mast[NODEWIDTH] = {"wc", "cc", "so", "bo", "hb"};
    float gap, sl, dtgp, ke2be, d2be, d2sc, score;
    double scaledGap;
-   for (i = 0; i < NUMATOMTYPES; i++) 
+   for (i = 0; i < NUMATOMTYPES; i++)
    {
-	
+
       for (j = 0; j < NODEWIDTH; j++)
       {
-	 
+
 	 node = results[i][j];
 	 if(node) // added 10/05/11 - SJ for condensing rawOutput
 	 {
@@ -4129,7 +4137,7 @@ void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
 		  ke2be = kissEdge2bullsEye(a->radius, t->radius, probeRad);
 		  d2be = dot2bullsEye(&(node->loc), a, t);
 		  d2sc = dot2srcCenter(&(node->loc), a, t);
-	       }   
+	       }
 	       sl = gapSize(&(node->loc), &(node->spike), 0.0);
 	       score = 0.0;
 	       switch(j)
@@ -4151,37 +4159,37 @@ void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
 		  fprintf(outf, "%.3f:%.3f:%.3f:%.3f:%.3f:%.3f:%.4f",  gap, dtgp, node->spike.x, node->spike.y, node->spike.z, sl, score/density);
 	   }
 	   else
-		 fprintf(outf, ":::::::"); 
+		 fprintf(outf, ":::::::");
 
 	   fprintf(outf, ":%s:%s:%.3f:%.3f:%.3f",getAtomName(i),(t?getAtomName(t->atomclass):""),node->loc.x,node->loc.y,node->loc.z);
-      
+
            if(t)
  	  	  fprintf(outf, ":%.2f:%.2f\n", a->bval, t->bval);
-	   else 
+	   else
 		  fprintf(outf, ":%.2f:\n", a->bval);
 
 	   node = node->next;
 	 }
       }
    }
-   
+
 }
 /*}}}writeRaw()______________________________________________________________*/
 
 /*{{{Condense()************************************************************ - SJ 10/05/11 for condensing rawOutput*/
 dotNode * Condense(dotNode * head, int conFlag)
 {
-	
+
 	// variables of the main for loop
 	char sourceCurStart[18],sourceCurEnd[18];
 	dotNode *curStart = NULL, *curEnd = NULL, *prevEnd = NULL, *nextStart = NULL, *prev = NULL;
 	atom *source = NULL;
-	
+
 	//variables for the sorting and removing duplciates loop
 	dotNode *i = NULL, *j = NULL, *next = NULL, *iPrev = NULL, *jPrev = NULL, *minPrev = NULL, *minNode = NULL;
 	char minTarget[18],jTarget[18],prevTarget[18],nextTarget[18];
 	atom *target = NULL;
-	
+
 	for(curStart=head;curStart!=NULL;curStart=nextStart)
 	{ /* main for loop which loops through the source atoms*/
 		source=curStart->a;
@@ -4197,19 +4205,19 @@ dotNode * Condense(dotNode * head, int conFlag)
 			sprintf(sourceCurEnd,"%2s%4.4s%c%s %s%c",source->r->chain,source->r->Hy36resno,
 				source->r->resInsCode,source->r->resname,source->atomname,source->altConf);
 			sourceCurEnd[17]='\0';
-			
+
 			if(strcmp(sourceCurStart,sourceCurEnd)!=0) // if the source atom differes, then break out of the loop
 				break;
 			prev=curEnd;
 		}
-		
-		nextStart=curEnd; // the start of the next source atoms 
+
+		nextStart=curEnd; // the start of the next source atoms
 		curEnd=prev; // the last dot for the current source atom
-		// isolating all the dots of the current source atom from the prev and next source atom 
+		// isolating all the dots of the current source atom from the prev and next source atom
 		if(prevEnd)
-			prevEnd->next = NULL; 
-		curEnd->next = NULL; 
-		
+			prevEnd->next = NULL;
+		curEnd->next = NULL;
+
 		/* sorting code - will have a curState and a curEnd pointed to indicate the start and end of the sorted list*/
 		iPrev = NULL;
 		jPrev = NULL;
@@ -4242,7 +4250,7 @@ dotNode * Condense(dotNode * head, int conFlag)
 			 	 }
 			 	 jPrev = j;
 			 }
-			 
+
 			 if(minNode != i) // if the nodes have to be swapped
 			 {
 			 	 next = minNode->next;
@@ -4258,28 +4266,28 @@ dotNode * Condense(dotNode * head, int conFlag)
 			 iPrev = i;
 		}/* sorting loop ends */
 		curEnd = iPrev; //updating the end of the dots for the source atom
-		
+
 		if(conFlag)
 		{/* code for removing duplicates - will update curEnd */
 			i=curStart;
 			next = NULL;
 			i->dotCount=1; //initialising the dot count
-			
+
 			while(i->next!=NULL)
 			{//removing duplicates
 				target=i->t;
 				sprintf(prevTarget,"%2s%4.4s%c%s %s%c",target->r->chain,target->r->Hy36resno,
 					target->r->resInsCode,target->r->resname,target->atomname,target->altConf);
 				prevTarget[17]='\0';
-			
+
 				target=i->next->t;
 				sprintf(nextTarget,"%2s%4.4s%c%s %s%c",target->r->chain,target->r->Hy36resno,
 					target->r->resInsCode,target->r->resname,target->atomname,target->altConf);
 				nextTarget[17]='\0';
-			
+
 				if(strcmp(prevTarget,nextTarget) == 0) //free the memory for the duplicate dot
 				{
-					next = i->next; 
+					next = i->next;
 					i->next = next->next;
 					free(next);
 					next=NULL;
@@ -4293,18 +4301,18 @@ dotNode * Condense(dotNode * head, int conFlag)
 			}//removing duplicate loop ends
 			curEnd = i; //updating the end of the dots of the source atom
 		}/*code for removing dots ends*/
-		
+
 		//integrating the condensed list of dots of the current source atom to prev and next source atoms
 		curEnd->next = nextStart;
 		if(prevEnd)
 			prevEnd->next = curStart;
 		else
 			head=curStart;
-		
+
 		prevEnd=curEnd; //making the current source atom as the prev source atom
-		
+
 	}/* main for loop*/
-	
+
 	return head;
 }
 /*}}}SortdotNodes()____________________________________________________________*/
@@ -4312,7 +4320,7 @@ dotNode * Condense(dotNode * head, int conFlag)
 void enumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
                float probeRad, int method,
 	       int nsel, int spike, int outdots, int numSkinDots,
-	       float density) 
+	       float density)
 {
    int i, j, doit;
    float gs, hs, bs, hslen, bslen, tgs, ths, tbs, thslen, tbslen, psas, tsas;
@@ -4482,7 +4490,7 @@ void rawEnumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
       fprintf(outf, "\n");
       return;
    }
-   
+
    tgs = ths = thslen = tbs = tbslen = 0.0;
    tGscore = tHscore = tBscore = tscore = 0.0;
    for (i = 0; i < NUMATOMTYPES; i++) {
@@ -4557,7 +4565,7 @@ void rawEnumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
 /*}}}rawEnumerate()__________________________________________________________*/
 
 /*{{{countSelected()**********************************************************/
-int countSelected(atom *theAtoms, int srcFlag) 
+int countSelected(atom *theAtoms, int srcFlag)
 {
    atom *a = NULL;
    int ns = 0;
@@ -4577,12 +4585,12 @@ int countSelected(atom *theAtoms, int srcFlag)
 
 int enumDotSkin(atom *allMainAtoms, atomBins *abins,
 	    atom *allMovingAtoms, atomBins *bbins,
-	    pointSet dots[], int srcFlag) 
+	    pointSet dots[], int srcFlag)
 {
    atom *src = NULL, *atomList = NULL, *atomList2 = NULL;
    int dotTotal = 0, usesMovingAtoms = FALSE;
    int dummy = TRUE;
-   
+
          /*numSkinDots used to normalize output score*/
 
    usesMovingAtoms = ((allMovingAtoms != NULL) && (bbins != NULL));
@@ -4633,7 +4641,7 @@ int enumDotSkin(atom *allMainAtoms, atomBins *abins,
 /*}}}enumDotSkin()___________________________________________________________*/
 
 /*{{{countSkin()**************************************************************/
-int countSkin(atom *src, atom *scratch, pointSet dots[]) 
+int countSkin(atom *src, atom *scratch, pointSet dots[])
 {
    atom *targ = NULL;
    int i = 0, within = 0, ok = 0;
@@ -4692,21 +4700,21 @@ int countSkin(atom *src, atom *scratch, pointSet dots[])
 /*       be NULL.                                                   */
 /*       allMovingAtoms refers to autobondrot set of atoms          */
 
-/*usual call: (i.e. NOT autobondrot) 
+/*usual call: (i.e. NOT autobondrot)
       updateHydrogenInfo(outf,         allMainAtoms,        abins,
-                                       NULL,                NULL, 
+                                       NULL,                NULL,
                                        SET1|SET2,           FALSE);
 */
 atom* updateHydrogenInfo(FILE *outf, atom *allMainAtoms,   atomBins *abins,
 				    atom *allMovingAtoms, atomBins *bbins,
-				    int selectedFlag, int mustSaveMainWater) 
+				    int selectedFlag, int mustSaveMainWater)
 {
    atom *src = NULL, *orig = NULL, *atomList = NULL, *a = NULL;
    atom *newH = NULL, *tempStaticList = NULL, *mainWaterStorage = NULL;
    int type = 0, newHcount = 0, i = 0, whichList = 0;
    int nProx = 0, usesMovingAtoms = FALSE;
    int dummy = FALSE;
-   
+
 /* Information specific to making sure only one H2O Hydrogen is     */
 /* generated which points into ring atoms on a given aromatic ring. */
    struct {atom  *a; float gap;} proximity[20];
@@ -4845,7 +4853,7 @@ atom* updateHydrogenInfo(FILE *outf, atom *allMainAtoms,   atomBins *abins,
 		  if ( (!foundAromRingAtom)
 		  && nProx < sizeof(proximity)/sizeof(proximity[0])) {
 		     proximity[nProx].a = a;
-		     proximity[nProx].gap  = hbgap;		   
+		     proximity[nProx].gap  = hbgap;
 		     ++nProx;
 		  }
 	       } /* end if acceptor_prop */
@@ -4886,7 +4894,7 @@ atom* updateHydrogenInfo(FILE *outf, atom *allMainAtoms,   atomBins *abins,
 		     newH->scratch  = NULL;
 		     newH->elem     = atomHOd; /*hb-only-dummy, phantom H atom*/
 		     newH->radius   = getRadius(newH->elem, 0);
-		     newH->covRad   = getCovRad(newH->elem); 
+		     newH->covRad   = getCovRad(newH->elem);
                       /*atomprops.h/atomProp AtomTbl covRad*/
 		     strcpy(newH->atomname, " H? ");
 
@@ -4959,7 +4967,7 @@ fprintf(stderr,
 /*}}}updateHydrogenInfo()____________________________________________________*/
 
 /*{{{dump_changes()***********************************************************/
-void dump_changes(FILE *outf) 
+void dump_changes(FILE *outf)
 {
 fprintf(outf, "Probe change log:\n");
 fprintf(outf, "\n");
@@ -5085,7 +5093,7 @@ fprintf(outf,"  -mastername flags extra master={name} (default: dots)\n");
 fprintf(outf,"060212 something about hets also marked prot,rna,dna... \n");
 fprintf(outf,"060831 -NOOCC atoms NOT filtered by occ value \n");
 fprintf(outf,"061018 not treat HIS as aromatic ACCEPTOR \n");
-fprintf(outf,"070801 rmi Updated for wwPDB remediation and PDB v3.0 \n"); 
+fprintf(outf,"070801 rmi Updated for wwPDB remediation and PDB v3.0 \n");
 fprintf(outf,"070801 Recognizes both new and old heavy atom names \n");
 fprintf(outf,"       Recognizes both new and old residue names for DNA \n");
 fprintf(outf,"       Builds atom connectivity and is able to generate contact dots on \n");
@@ -5095,14 +5103,14 @@ fprintf(outf,"070821 add strcasecmp to utility.c    rwgk \n");
 fprintf(outf,"070905 add alternate names of thymine methyl \n");
 fprintf(outf,"070913 add detail on probe unformatted to help \n");
 fprintf(outf,"070913 fixed handling of mixed RNA files \n");
-fprintf(outf,"071010 added support for Hybrid36 atom and residue numbers \n"); 
-fprintf(outf,"071025 added support of Coot style RNA names \n"); 
+fprintf(outf,"071010 added support for Hybrid36 atom and residue numbers \n");
+fprintf(outf,"071025 added support of Coot style RNA names \n");
 fprintf(outf,"071101 added support for two character chain names \n");
-fprintf(outf,"071107 added support for OT1 and  OT2 as C-term carboxylate oxygens \n");  
-fprintf(outf,"071128 bug fix in parsing of command line chainIds \n"); 
+fprintf(outf,"071107 added support for OT1 and  OT2 as C-term carboxylate oxygens \n");
+fprintf(outf,"071128 bug fix in parsing of command line chainIds \n");
 fprintf(outf,"110413 bug fix onlybadout outputs only bo, not cc     gjk\n");
 fprintf(outf,"110830 MacOSX10.6 GCC finicky re. no format string in \n");
-fprintf(outf,"       writeOutput function for color \n"); 
+fprintf(outf,"       writeOutput function for color \n");
 fprintf(outf,"110909 changed the elseif portion of coloroutput to have no extra space \n");
 
 exit(0);
@@ -5112,12 +5120,12 @@ exit(0);
 
 /*{{{countsummary()***********************************************************/
 /*
-filename: mcmc wide: mcmc close : mcmc small : mcmc bad: mcmc h- bond: 
-mcmc sum: scsc wide: scsc close: scsc small: scsc bad: scsc h-bond: 
-scsc sum: mcsc wide: mcsc close: mcsc small: mcsc bad: mcsc h-bond: 
-mcsc sum: other wide: other close: other small: other bad: other 
-h-bond: other sum: wide sum: close sum: small sum: bad sum: h-bond 
-sum: 
+filename: mcmc wide: mcmc close : mcmc small : mcmc bad: mcmc h- bond:
+mcmc sum: scsc wide: scsc close: scsc small: scsc bad: scsc h-bond:
+scsc sum: mcsc wide: mcsc close: mcsc small: mcsc bad: mcsc h-bond:
+mcsc sum: other wide: other close: other small: other bad: other
+h-bond: other sum: wide sum: close sum: small sum: bad sum: h-bond
+sum:
 */
 
 void countsummary(FILE *outf, char* modestr, int Lines, int Pass) /*dcr041101*/
@@ -5216,7 +5224,7 @@ void countsummary(FILE *outf, char* modestr, int Lines, int Pass) /*dcr041101*/
      ,summcont[0][5]);
   }
 
-  if (Verbose) 
+  if (Verbose)
   {
    sprintf(message,"%s",inputfilename);
    note(message);

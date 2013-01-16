@@ -22,10 +22,12 @@ static atomProp* AtomTblIndex[NUMATOMTYPES];
 static float ExplMaxRad = 0.0;
 static float ImplMaxRad = 0.0;
 
+extern int NuclearRadii; /* defined in probe.c JJH */
+
 void initalizeAtomTbl() {
    int i;
    atomProp *ap;
-   
+
    ExplMaxRad = 0.0;
    ImplMaxRad = 0.0;
    for(i=0; i < NUMATOMTYPES; i++) { /* default to noAtom */
@@ -43,7 +45,17 @@ void initalizeAtomTbl() {
 
 int   getAtno(int a)     { return AtomTblIndex[a]->atno;   }
 char* getAtomName(int a) { return AtomTblIndex[a]->name;   }
-float getExplRad(int a)  { return AtomTblIndex[a]->eRad;   }
+float getExplRad(int a)  {
+  if (NuclearRadii) {
+    if ( (strcmp(AtomTblIndex[a]->name, "H")    == 0) ||
+         (strcmp(AtomTblIndex[a]->name, "Har")  == 0) ||
+         (strcmp(AtomTblIndex[a]->name, "Hpol") == 0) ||
+         (strcmp(AtomTblIndex[a]->name, "HOd")  == 0) ) {
+      return ( (AtomTblIndex[a]->eRad - 0.05) );
+    }
+  }
+  return AtomTblIndex[a]->eRad;
+}
 float getImplRad(int a)  { return AtomTblIndex[a]->iRad;   }
 float getCovRad(int a)   { return AtomTblIndex[a]->covRad; }
 char* getColor(int a)    { return AtomTblIndex[a]->color;  }
@@ -61,7 +73,7 @@ int fixAtomName(const char* atomname, char resname[], int position) { /* no bool
    sprintf(resn, ":%-3.3s:", resname);
    for (i = 0; i < 4; i++) { /* uppercase the input */
       if (atomname[i] == '\0') { break; }
-      name[i] = toupper(atomname[i]); 
+      name[i] = toupper(atomname[i]);
    }
    name[i] = '\0';
         switch(name[position]) {
@@ -72,7 +84,7 @@ int fixAtomName(const char* atomname, char resname[], int position) { /* no bool
            case 'S': if (strstr(HS_RESNAMES, resn) != NULL) { return 1; }
            default: break;
 	}
-   return 0; 
+   return 0;
 }
 
 int identifyAtom(char* name, char resname[], int Verbose) {  /*dcr041007 allow warning choice*/
@@ -95,7 +107,7 @@ int identifyAtom(char* name, char resname[], int Verbose) {  /*dcr041007 allow w
       case 'F': n = atomF; break;
       case 'H':
         switch(name[2]) {
-        case 'E': n = fixAtomName(name,resname,2) ? atomHe : atomH; break; 
+        case 'E': n = fixAtomName(name,resname,2) ? atomHe : atomH; break;
         case 'F': n = fixAtomName(name,resname,2) ? atomHf : atomH; break;
         case 'G': n = fixAtomName(name,resname,2) ? atomHg : atomH; break;
         case 'O': n = fixAtomName(name,resname,2) ? atomHo : atomH; break;
@@ -108,8 +120,8 @@ int identifyAtom(char* name, char resname[], int Verbose) {  /*dcr041007 allow w
       case 'O': n = atomO; break;
       case 'P': n = atomP; break;
     /*case 'S': n = atomS; break;*/
-      case 'S': 
-         if(name[0] == ' ' && name[2] == 'E') 
+      case 'S':
+         if(name[0] == ' ' && name[2] == 'E')
          {/*_SE likely refmac,cns missplaced Selenium atom name dcr041007*/
                 n = atomSe; emitWarning = 1; break;
          }
@@ -142,7 +154,7 @@ int identifyAtom(char* name, char resname[], int Verbose) {  /*dcr041007 allow w
       case 'K': n = atomBk; break;
       case 'R': n = atomBr; break;
       } break;
-   case 'C': 
+   case 'C':
       switch(name[1]) {
       case 'A': n = atomCa; break;
       case 'C': n = atomC;  emitWarning = 1;break;
