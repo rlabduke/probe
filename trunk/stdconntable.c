@@ -2640,7 +2640,7 @@ void initStdConnTable() {
 /* searchForStdBondingPartner() - given a residue name and atom name find the bonded atom */
 char * searchForStdBondingPartner(char *resname, char *atomname, int isAhydrogen) {
    char querystring[10], *p;
-   
+
    /* a large part of this routine is devoted to converting residue names */
    /* and atom names into a search pattern. This pattern is 8 chars long  */
    /* and all uppercase. It has a colon as the forth character, separating*/
@@ -2716,8 +2716,8 @@ char * searchForStdBondingPartner(char *resname, char *atomname, int isAhydrogen
 
 	    querystring[0] = querystring[1] = ' '; /* i.e., blank-blank-[GACUT] */
 				    /* put the string back together */
-	    querystring[3] = ':'; 
-      
+	    querystring[3] = ':';
+
 	    p = SearchStdResConnTable(querystring); /* second time is a charm */
 	 }
       }
@@ -2734,7 +2734,7 @@ int HashInStdResTbl(char *s) {
 
    for (h = 0; *s != '\0'; s++) {
       h = (h<<4) + *s;
-      if (g = h & 0xf0000000) {
+      if ( (g = h & 0xf0000000) ) {
 	 h ^= g >> 24;
 	 h ^= g;
       }
@@ -2746,7 +2746,7 @@ int HashInStdResTbl(char *s) {
 int InsertInStdResConnTable(StdResConnTableEntry_t *elem) {
    int r = 0, h = 0, rc = 1;
    StdResConnTableEntry_t *t = NULL;
-   
+
    h = HashInStdResTbl(elem->key);
    t = StdResTblBucket[h];
 
@@ -2786,9 +2786,9 @@ int InsertInStdResConnTable(StdResConnTableEntry_t *elem) {
 char *SearchStdResConnTable(char *key) {
    int r = 0;
    StdResConnTableEntry_t *t;
-   
+
    t = StdResTblBucket[HashInStdResTbl(key)];
-   
+
    while (t && (r = strcmp(key, t->key)) > 0) {
       t = t->next;
    }
@@ -2800,7 +2800,7 @@ char *SearchStdResConnTable(char *key) {
 void dumpStdConnTable(FILE * outf) {
    int h;
    StdResConnTableEntry_t *t;
-   
+
    for (h = 0; h < M; h++) {
       fprintf(outf, "%5d] ", h);
       for (t = StdResTblBucket[h]; t; t = t->next) {
