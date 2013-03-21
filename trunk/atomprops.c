@@ -38,8 +38,13 @@ void initalizeAtomTbl() {
       ap = &(AtomTbl[i]);
       AtomTblIndex[ap->type] = ap;
 
-      if (ap->iRad > ImplMaxRad){ ImplMaxRad = ap->iRad; }
-      if (ap->eRad > ExplMaxRad){ ExplMaxRad = ap->eRad; }
+      if (ap->iRad     > ImplMaxRad){ ImplMaxRad = ap->iRad;     }
+      if (!NuclearRadii) {
+        if (ap->eRad     > ExplMaxRad){ ExplMaxRad = ap->eRad;   }
+      }
+      else {
+        if (ap->eRad_nuc > ExplMaxRad){ ExplMaxRad = ap->eRad_nuc; }
+      }
    }
 }
 
@@ -47,14 +52,17 @@ int   getAtno(int a)     { return AtomTblIndex[a]->atno;   }
 char* getAtomName(int a) { return AtomTblIndex[a]->name;   }
 float getExplRad(int a)  {
   if (NuclearRadii) {
-    if ( (strcmp(AtomTblIndex[a]->name, "H")    == 0) ||
+    /*if ( (strcmp(AtomTblIndex[a]->name, "H")    == 0) ||
          (strcmp(AtomTblIndex[a]->name, "Har")  == 0) ||
          (strcmp(AtomTblIndex[a]->name, "Hpol") == 0) ||
          (strcmp(AtomTblIndex[a]->name, "HOd")  == 0) ) {
       return ( (AtomTblIndex[a]->eRad - 0.05) );
-    }
+    }*/
+    return AtomTblIndex[a]->eRad_nuc;
   }
-  return AtomTblIndex[a]->eRad;
+  else {
+    return AtomTblIndex[a]->eRad;
+  }
 }
 float getImplRad(int a)  { return AtomTblIndex[a]->iRad;   }
 float getCovRad(int a)   { return AtomTblIndex[a]->covRad; }
