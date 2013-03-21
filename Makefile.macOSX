@@ -1,16 +1,17 @@
-#  This Makefile for Probe was adopted from the gcc makefile, it will 
-#  generate a MACH-O executable for MacOSX i386 (intel 32 bit chipset).
-#  It requires installation of the Apple Developer package, XCode in its
-#  default location: something like /Developer/SDKs/MacOSX10.6.sdk
-#  Modify the SDK location and/or the -arch flag (use x86_64 for
-#  intel 64 bit executable, i386 for intel 32 bit) to suit your computer.
-#  The command 'make -f Makefile.macOSX' will use this file in 
-#  the make process.
+#  Probe Makefile for Mac OS X 10.8.x (Mountain Lion).
+#  Uses 10.8 SDK with compiler flag declaring exec to be backward compatible
+#  to Mac OS X 10.6 (Snow Leopard); -mmacosx-version-min=10.6
+#  Either (or both) Intel architecture flags can be used: -arch i386 to create
+#  a 32bit MACH-O exec, -arch x86_64 to create a 64bit MACH-O exec.
 
+#  Either copy the Makefile.macOSX to Makefile to run the standard make command;
+#  or use 'make -f Makefile.macOSX'.
 
-MACHINEFLAGS = -arch x86_64 -arch i386
-CFLAGS = -isysroot /Developer/SDKs/MacOSX10.6.sdk $(MACHINEFLAGS)
-LFLAGS = -lm -Wl,-syslibroot,/Developer/SDKs/MacOSX10.6.sdk $(MACHINEFLAGS)
+MIN_OS      = -mmacosx-version-min=10.6
+SDK_HOME    = /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.8.sdk
+MACHINEFLAGS = -arch x86_64
+CFLAGS = -isysroot $(SDK_HOME) $(MACHINEFLAGS) $(MIN_OS)
+LFLAGS = -lm -Wl,-syslibroot,$(SDK_HOME) $(MACHINEFLAGS) $(MIN_OS)
 OBJLIST = dots.o select.o readPDBrecs.o geom3d.o  stdconntable.o \
           abin.o parse.o  atomprops.o   utility.o autobondrot.o  \
           hybrid_36_c.o
