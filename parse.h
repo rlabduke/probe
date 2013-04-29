@@ -84,7 +84,7 @@
 #define CHECK_ENDS_PROP (1 << 27)
 #define AMBIGWATER_PROP (1 << 28)
 #define        ION_PROP (1 << 29) /*re atomprops.h IONIC_ATOM_FLAG dcr041007*/
-
+#define  METHYLENE_PROP (1 << 30) /*re atomprops.h dcr20111210 */
 typedef struct patternType {
    struct patternType *lhs; /* link to sub-pattern */
    struct patternType *rhs; /*       ditto         */
