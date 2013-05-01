@@ -4271,12 +4271,14 @@ void genDotIntersect(atom *allMainAtoms, atomBins *abins,
 			int srcFlag, int targFlg, dotNode *results[][NODEWIDTH])
 {/*genDotIntersect()*/
         
-   if(Ldotdump) fprintf(stderr,"entered genDotIntersect()\n");
-        
    atom *src = NULL, *atomList = NULL, *atomList2 = NULL;
    int type = 0, usesMovingAtoms = FALSE;
    int oktargsA = TRUE, oktargsB = TRUE;
 
+   if(Ldotdump) {
+    fprintf(stderr,"entered genDotIntersect()\n");
+   }
+        
    usesMovingAtoms = ((allMovingAtoms != NULL) && (bbins != NULL));
 
    for(src = allMainAtoms; src; src = src->next) /*main==autobondrotstatic*/
@@ -4650,8 +4652,8 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
 {'z','y','x','w','v','u','t','g','r','q','f','F','Q','R','G','T','U','V','W','X','Y','Z'};
 /*0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9 ,10 ,11 ,12 ,13 ,14 ,15 ,16 ,17 ,18 ,19 ,20 ,21*/
    /*std gapbins scope at least -.5 to +.5, wider if probeRad > 0.25 standard*/ 
-int  gaplimit = ((2*(probeRad>0.25?probeRad:0.25) +0.5)/0.05)+2;  /*20111220dcr*/
-   long gapcounts[gaplimit];
+   int  gaplimit = ((2*(probeRad>0.25?probeRad:0.25) +0.5)/0.05)+2;  /*20111220dcr*/
+   long *gapcounts = (long *) malloc(gaplimit * sizeof(long));
    long maxgapcounts = 0;
    int  Lgotgapbin = FALSE;
    char strcName[6]; /*first nendstr char of inputfilename 20120120dcr*/
