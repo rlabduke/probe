@@ -88,7 +88,7 @@ typedef struct residue_t {
 	char resname[5]; /* residue name */
 	char resInsCode; /* insertion code */
 
-	char chain[3];      /* peptide chain code */
+	char chain[5];      /* peptide chain code */
 } residue, *residuePtr;
 
 typedef struct {
