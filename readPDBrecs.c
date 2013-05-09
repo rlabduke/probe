@@ -121,41 +121,41 @@ int isModel(char *line) {
 }
 
 int parseModel(char *line) {
-	
+
    return parseInteger(line, 6, 8);
 }
 
 /*
 int parseAtomNumber(char *line) {
-	
+
    return parseInteger(line, 6, 5);
 }
 
 int parseResidueNumber(char *line) {
-	
+
    return parseInteger(line, 22, 4);
 }
 */
 
 int parseAtomNumber(char *line) {
-   int atomno; 
+   int atomno;
    const char* errmsg = hy36decode(5, &line[6], 5, &atomno);
-/*   if (errmsg) throw std::runtime_error(errmsg); 
+/*   if (errmsg) throw std::runtime_error(errmsg);
      fprintf(stderr, "ATOM NUMBER   %d\n", atomno); */
 
    return atomno;
 }
 
 int parseResidueNumber(char *line) {
-   int resid; 
+   int resid;
    const char* errmsg = hy36decode(4, &line[22], 4, &resid);
-/*   if (errmsg) throw std::runtime_error(errmsg);  
+/*   if (errmsg) throw std::runtime_error(errmsg);
    fprintf(stderr, "RESIDUE NUMBER   %d\n", resid); */
 
    return resid;
 }
 
-void parseResidueHy36Num(char *line, char Hy36resno[]) { 
+void parseResidueHy36Num(char *line, char Hy36resno[]) {
    Hy36resno[0] = line[22];
    Hy36resno[1] = line[23];
    Hy36resno[2] = line[24];
@@ -171,7 +171,7 @@ void parseChain(char *line, char chain[]) {
 
 /*  Now using two character chain ids
 char parseChain(char *line) {
-	
+
    return line[21];
 }
 */
@@ -182,33 +182,33 @@ float parseOccupancy(char *line) {
 }
 
 float parseTempFactor(char *line) {
-	
+
    return nonblankrange(line, 60, 6) ? parseReal(line, 60, 6) : 0.0;
 }
 
 char parseResidueInsertionCode(char *line) {
-	
+
    return line[26];
 }
 
 char parseAltLocCode(char *line) {
-	
+
    return line[16];
 }
 
 void parseResidueName(char *line, char name[]) {
-   name[0] = line[17];	
-   name[1] = line[18];	
-   name[2] = line[19];	
-   name[3] = '\0';	
+   name[0] = line[17];
+   name[1] = line[18];
+   name[2] = line[19];
+   name[3] = '\0';
 }
 
 void parseAtomName(char *line, char name[]) {
-   name[0] = line[12];	
-   name[1] = line[13];	
-   name[2] = line[14];	
-   name[3] = line[15];	
-   name[4] = '\0';	
+   name[0] = line[12];
+   name[1] = line[13];
+   name[2] = line[14];
+   name[3] = line[15];
+   name[4] = '\0';
 }
 
 void parseXYZ(char *line, point3d *loc) {
@@ -224,5 +224,5 @@ void parseSegID(char *line, char id[]) {
    id[1] = (reclen >= 74) ? line[73] : ' ';
    id[2] = (reclen >= 75) ? line[74] : ' ';
    id[3] = (reclen >= 76) ? line[75] : ' ';
-   id[4] = '\0';	
+   id[4] = '\0';
 }
