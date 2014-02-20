@@ -231,7 +231,7 @@ static char *ChargedNucAcidAtomsList = ": P  : O1P: O2P:\
  S1G:";
  /*}}}ChargedNucAcidAtomsList */
  /*{{{WaterList              ***/
-static char *WaterList = ":HOH:DOD:H2O:D2O:WAT:TIP:SOL:MTO:";
+static char *WaterList = ":HOH:DOD:H2O:WAT:TIP:SOL:MTO:";
 /*}}}WaterList */
 /*{{{DonorAcceptorAtomTbl[]  ***/
 static ResidueAndAtomPair DonorAcceptorAtomTbl[] = {
@@ -341,8 +341,8 @@ static ResidueAndAtomPair DonorAcceptorAtomTbl[] = {
 ":  G:GUA:GTP:GDP:GMP:GSP:OMG:1MG:2MG:M2G:7MG: YG: DG: GR:", ": H8 :", DONOR_PROP|CH_DONOR_PROP,
 
 #ifdef EXPLICIT_WATER_ATOM_NAMES
-":HOH:DOD:H2O:D2O:WAT:TIP:SOL:MTO:", ": O  : OH2: OD2: OW :", DONOR_PROP|ACCEPTOR_PROP,
-":HOH:DOD:H2O:D2O:WAT:TIP:SOL:MTO:",
+":HOH:DOD:H2O:WAT:TIP:SOL:MTO:", ": O  : OH2: OD2: OW :", DONOR_PROP|ACCEPTOR_PROP,
+":HOH:DOD:H2O:WAT:TIP:SOL:MTO:",
   ": H  : H1 : H2 :1H  :2H  : D  : D1 : D2 :1D  :2D  : H? :", DONOR_PROP,
 #endif
 
