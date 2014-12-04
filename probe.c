@@ -758,6 +758,7 @@ void doCommand(FILE *outf, int method,
    	  	  genDotIntersect(allMainAtoms, abins, allMovingAtoms, bbins,dots, probeRad, spikelen,SET1, SET1, rslts);
    	  	  /*does this for all atoms... calls examineDots()*/
 
+          
    	  	  if (countDots)
    	  	  {/*autobondrot sets this, commandline can set this*/
    	  	  	  if (!rawOutput) {descrCommand(outf, "program:", "command:", argc, argv);}
@@ -1016,7 +1017,7 @@ void doCommand(FILE *outf, int method,
       {
 	 if (rawOutput)
 	 {
-	    writeRaw(outf, "2->1", rslts, probeRad,
+         writeRaw(outf, "2->1", rslts, probeRad,
 			groupLabel?groupLabel:"", density,conFlag);
 
 	 }
@@ -2834,7 +2835,8 @@ fprintf(stderr, "f(%c != %c) %s%d %s [%d, %d, %d] <1..%d, 1..%d, 1..%d>\n",
 	       if (( src->altConf != a->altConf) && /* conformations  */
 	           ( src->altConf != ' ')        && /* don't interact */
 	           (   a->altConf != ' ')     ) { continue; }
-
+            
+    
 /*nearpt seems to be essential to get any dots or spikes */
 /*...seems not to be where too-close atoms fail to get any dots or spikes*/
 	       nearpt = atomsClose(src, a, probeRad);/*only call to atomsClose*/
@@ -4379,6 +4381,51 @@ if(Ldotdump) fprintf(stderr,"genDotIntersect() calls examineOneDotEach()\n");
 	 }
       }/*for: loop over allMovingAtoms taking each in turn as the src-atom*/
    }/*if: usesMovingAtoms==autobondrot*/
+    
+    // SJ - 10/03/2014 - Code to delete contact dots (except H bonds) between atom pairs when atleast one of them has an altConf " " and the sum of their occpancies is <= 1
+    // UNKNOWN BUGS: Not sure what this code will do if the results is genearted using autobondrot
+    int i=0,j=0;
+    atom *source = NULL, *target=NULL;
+    dotNode *head = NULL, *curNode = NULL, *prevNode = NULL;
+    
+    for(i=0;i<NUMATOMTYPES;i++)
+    {/*loop over atom types*/
+        for(j=0;j<4;j++) // first j=0-3 in NODEWIDTH correspond to wc, cc, so and bo respectively. Not looping over H-bond dotNode
+        {/*loop over wc, cc, so and bo*/
+            head = results[i][j];
+            prevNode=NULL;
+            curNode=head;
+            while(curNode)
+            {
+                source = curNode->a;
+                target = curNode->t;
+                if((source->altConf == ' ' || target->altConf == ' ') && source->occ + target->occ <= 1)
+                { //this node has to be deleted
+                    if(curNode==head)
+                    {
+                        head=curNode->next;
+                        free(curNode);
+                        prevNode=NULL;
+                        curNode=head;
+                    }
+                    else
+                    {
+                        prevNode->next=curNode->next;
+                        free(curNode);
+                        curNode=prevNode->next;
+                    }
+                }
+                else
+                {//move forward when no deletion
+                    prevNode=curNode;
+                    curNode=curNode->next;
+                }
+            }/*while loop*/
+            results[i][j]=head;
+        }/*loop over wc, cc, so and bo*/
+    }/*for loop over atomtypes*/
+    //results now is filtered
+    
 }/*genDotIntersect()*/
 /*}}}genDotIntersect()_______________________________________________________*/
 
@@ -5282,10 +5329,12 @@ void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
          {/*while node...*/
              fprintf(outf, "%s:%s:%s:", label, groupname, mast[j]);
              a = node->a;
+             t = node->t;
+             
              fprintf(outf, "%s%4.4s%c%s %s%c:",
                      a->r->chain, a->r->Hy36resno, a->r->resInsCode,
                      a->r->resname,a->atomname, a->altConf);
-             t = node->t;
+             
              if(t)
              {/*t node exists*/
                  fprintf(outf, "%s%4.4s%c%s %s%c:",
