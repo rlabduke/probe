@@ -4756,7 +4756,7 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
       }
       if (OutputClashes || OnlyBadOut) { /*dcr041010*/
          if(!OnlyBadOut) {fprintf(outf, "@master {%s}\n", mast[2]);}
-         fprintf(outf, "@master {%s}\n", mast[3]); /*the Bad clashes*/
+         fprintf(outf, "@master {%s}\n", mast[3]); /*the Bad clashes*/ 
       }
       if (OutputHBs && !OnlyBadOut)
       { /*dcr041010*/
@@ -4842,35 +4842,35 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
            }/* contact */
            else if ((j == 2 || j == 3) && spike)
            {/* bump w/ spike */
-              if (AtomMasters)
+			  if (AtomMasters) 
               {
                  if(LOneDotEach)
                  {
-                    fprintf(outf,
-                    "@vectorlist {x} width=7 color=%s master={%s dots} master={%s}%s\n",
-                    getColor(i), getAtomName(i), mast[j],extraMstr);
-                 }
+					  fprintf(outf,
+					  "@vectorlist {x} width=7 color=%s master={%s dots} master={%s}%s\n", 
+					 getColor(i), getAtomName(i), mast[j],extraMstr); 
+			     }
                  else
                  {
-                    fprintf(outf,
-                    "@vectorlist {x} color=%s master={%s dots} master={%s}%s\n",
-                    getColor(i), getAtomName(i), mast[j],extraMstr);
-                 }
+					 fprintf(outf,
+					 "@vectorlist {x} color=%s master={%s dots} master={%s}%s\n",
+					 getColor(i), getAtomName(i), mast[j],extraMstr); 
+			     }
               }
               else
               {
                  if(LOneDotEach)
                  {
-                    fprintf(outf,
-                    "@vectorlist {x} width=7 color=%s master={%s}%s\n",
-                    getColor(i), mast[j],extraMstr);
-                 }
+					fprintf(outf,
+					 "@vectorlist {x} width=7 color=%s master={%s}%s\n",
+					 getColor(i), mast[j],extraMstr); 
+	             }
                  else
                  {
-                    fprintf(outf,
-                     "@vectorlist {x} color=%s master={%s}%s\n",
-                    getColor(i), mast[j],extraMstr);
-                 }
+					 fprintf(outf,
+					 "@vectorlist {x} color=%s master={%s}%s\n",
+					 getColor(i), mast[j],extraMstr); 
+			     }
               }
            }/* bump w/ spike */
            else if (j == 4)

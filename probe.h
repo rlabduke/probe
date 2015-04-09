@@ -28,8 +28,10 @@
 #include "autobondrot.h"
 
 /* number of dot categories */
-/*0 wide contact,1 close contact,2 small overlap,3 bad overlap,4 H-bonds*/
-#define NODEWIDTH 6 /*20111215dcr change 5 to 6 for optional weakHbonds*/
+/*0 wide contact,1 close contact,2 small overlap,3 bad overlap,4 H-bonds - original, changed by SJ see below*/
+/*0 wide contact,1 close contact,2 weak H bonds, 3 small overlap,4 bad overlap (0.4-0.5),5 worse overlap (>= 0.5), 6 H-bonds*/ /*04/08/2015 SJ moved weak H bonds catergory with the contacts, and separated bad overlap into bad and worse*/
+/*#define NODEWIDTH 6*/ /*20111215dcr change 5 to 6 for optional weak H bonds*/
+#define NODEWIDTH 7 /*04/08/2015 SJ adding category for worse overlap*/
 
 /* selection identifiers */
 #define SET1 1
