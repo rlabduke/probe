@@ -174,16 +174,18 @@ static char *OutPointColor = "gray";
 
 static pointSet COdots; /* adjustible radius dots for C=O carbon */
 
-/*dcr041020 NODEWIDTH defined 5 probe.h, hard code 6 to match initialization*/
-/*0 wide contact,1 close contact,2 small overlap,3 bad overlap,4 H-bonds*/
-/*5 running sum which can be tested for existance of any of these spikes*/
-static long mcmccont[2][6] = {0,0,0,0,0,0,0,0,0,0,0,0}; /*dcr041017,dcr041020*/
-static long scsccont[2][6] = {0,0,0,0,0,0,0,0,0,0,0,0}; /*dcr041017,dcr041020*/
-static long mcsccont[2][6] = {0,0,0,0,0,0,0,0,0,0,0,0}; /*dcr041017,dcr041020*/
-static long othrcont[2][6] = {0,0,0,0,0,0,0,0,0,0,0,0}; /*dcr041017,dcr041020*/
-static long summcont[2][6] = {0,0,0,0,0,0,0,0,0,0,0,0}; /*dcr041017,dcr041020*/
+/*Old: dcr041020 NODEWIDTH defined 5 probe.h, hard code 6 to match initialization*/
+/*Old: 0 wide contact,1 close contact,2 small overlap,3 bad overlap,4 H-bonds*/
+/*Old: 5 running sum which can be tested for existance of any of these spikes*/
+/* New 04/15/2015 SJ: 0 wide contact,1 close contact,2 weak H bonds, 3 small overlap, 4 bad overlap, 5 worse overlap, 6 H-bonds*/
+/* changing the size of the array to 8*/
+static long mcmccont[2][8] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; /*dcr041017,dcr041020, SJ 04/15/2015*/
+static long scsccont[2][8] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; /*dcr041017,dcr041020, SJ 04/15/2015*/
+static long mcsccont[2][8] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; /*dcr041017,dcr041020, SJ 04/15/2015*/
+static long othrcont[2][8] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; /*dcr041017,dcr041020, SJ 04/15/2015*/
+static long summcont[2][8] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0}; /*dcr041017,dcr041020, SJ 04/15/2015*/
 
-/* TODO: may have to change the above lines, but not sure what they do yet - SJ 04/09/2015*/
+/* comment: the above number 8 should not be hardcoded, maybe initialize in the main function? - SJ 04/09/2015*/
 
 static char inputfilename[256]; /*dcr041023 global, subroutines can report it*/
 static int  modelNumber[100]; /*global record of incoming model # 041114*/
@@ -1305,6 +1307,7 @@ else { /*longlist option*/
    fprintf(stderr, "  -HBWeight#   set relative scale for scoring Hbonds (default 4.0)\n");
    fprintf(stderr, "  -DIVLow#.#   Division for Bump categories    (default -0.4)\n");
    fprintf(stderr, "  -DIVHigh#.#  Division for Contact categories (default  0.25)\n");
+   fprintf(stderr, "  -SEPWORSE    To separate overlaps of >=0.4 and overlaps of >=0.5 (default false)\n");
    fprintf(stderr, "  -MINOCCupancy#.#  Occupancy below this is same as zero (default  0.02)\n");
    fprintf(stderr, "  -ELEMent     add master buttons for different elements in kin output\n");
    fprintf(stderr, "  -NOHBOUT     do not output contacts for HBonds\n");
@@ -1571,7 +1574,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
     else if(compArgStr(p+1, "WEAKHbonds", 5)){
          LweakHbonds = TRUE; /*111215dcr*/
     }
-    else if(compArgStr(p+1,"WORSEOVERlap",9)){
+    else if(compArgStr(p+1,"SEPWORSE",8)){
         LworseOverlap = TRUE; /*04/09/2015 SJ - for separating the worse overlaps(>=0.5A) into their own list*/
     }
     else if(compArgStr(p+1, "XHvector", 2)){
@@ -2993,6 +2996,7 @@ dotNode* newDot(atom *src, atom* targ, point3d *loc, point3d *spike,
 /*}}}INRANGEINLINE()_________________________________________________________*/
 
 /*{{{examineOneDotEach()****** called from genDotIntersect() LOneDotEach *****/
+/* TODO SJ: needs to be made compatible to new stuff*/
 void examineOneDotEach(atom *src, int type, atom *scratch,
       pointSet dots[], float probeRad,
       float spikelen, int targFlg, dotNode *results[][NODEWIDTH], atom *allMainAtoms)
@@ -3980,14 +3984,15 @@ void examineDots(atom *src, int type, atom *scratch,
                      ||(!OnlyBadOut && OutputVDWs && ovrlaptype == 0))
                 { /*logicals allow the overlaptype of this dot*/
 
-                    /*now derive ptmaster*/ /* TODO: SJ - have to change the mcmccount etc here, why increment 5 always*/
+                    /*now derive ptmaster*/
                      if( (src->props & MC_PROP)  && (cause->props & MC_PROP) )
                      {/*potential MC-MC to flag*/
                         if( !(( src->props & HET_PROP) || (cause->props & HET_PROP)) )
                         {/*neither can be a HET, what wierd condition is avoided?*/
                            ptmaster = 'M'; /*McMc interaction*/
                            mcmccont[0][idx]++;
-                           mcmccont[0][5]++;
+                           //mcmccont[0][5]++;
+                           mcmccont[0][7]++; /* SJ 04/15/2015 changing the second dimension to 7 to match new initialization*/
                         }
                      }
                      else if( (src->props & SC_PROP)  && (cause->props & SC_PROP) )
@@ -3996,7 +4001,8 @@ void examineDots(atom *src, int type, atom *scratch,
                         {/*neither can be a HET, what wierd condition is avoided?*/
                            ptmaster = 'S'; /*ScSc interaction*/
                            scsccont[0][idx]++;
-                           scsccont[0][5]++;
+                           //scsccont[0][5]++;
+                           scsccont[0][7]++;/* SJ 04/15/2015 changing the second dimension to 7 to match new initialization*/
                         }
                      }
                      else if(  ((src->props & SC_PROP)  && (cause->props & MC_PROP))
@@ -4006,14 +4012,16 @@ void examineDots(atom *src, int type, atom *scratch,
                         {/*neither can be a HET, what wierd condition is avoided?*/
                            ptmaster = 'P'; /*McSc or ScMc interaction*/
                            mcsccont[0][idx]++;
-                           mcsccont[0][5]++;
+                           //mcsccont[0][5]++;
+                           mcsccont[0][7]++;/* SJ 04/15/2015 changing the second dimension to 7 to match new initialization*/
                         }
                      }
                      else
                      {
                         ptmaster = 'O'; /*Oh for Other, general default*/
                         othrcont[0][idx]++;
-                        othrcont[0][5]++;
+                        //othrcont[0][5]++;
+                        othrcont[0][7]++;/* SJ 04/15/2015 changing the second dimension to 7 to match new initialization*/
                      }
 
                      saveDot(src, cause, type, &dotloc, &spikeloc,
@@ -4666,7 +4674,8 @@ void freeResults(dotNode *results[][NODEWIDTH])
 char* assignGapColorForKin(float gap, int class)
 {
    char *colorValue = "";
-   if (class == 4)     { colorValue = "greentint "; } /* hbond */
+   //if (class == 4)     { colorValue = "greentint "; } /* hbond */ /* 04/16/2015 SJ changed 4 to 6, as H-bond are now 6 in NODEWIDTH, see probe.h*/
+   if (class == 6)     { colorValue = "greentint "; }
    else if (gap > 0.35){ colorValue = "blue ";      }
    else if (gap > 0.25){ colorValue = "sky ";       }
    else if (gap > 0.15){ colorValue = "sea ";       }
@@ -4684,7 +4693,8 @@ char* assignGapColorForKin(float gap, int class)
 char* assignGapColorForO(float gap, int class)
 {
    char *colorValue = "";
-   if (class == 4)     { colorValue = "pale_green ";      } /* hbond */
+   //if (class == 4)     { colorValue = "pale_green ";      } /* hbond *//* 04/16/2015 SJ changed 4 to 6, as H-bond are now 6 in NODEWIDTH, see probe.h*/
+   if (class == 6)     { colorValue = "pale_green ";      }
    else if (gap > 0.35){ colorValue = "cornflower_blue "; }
    else if (gap > 0.25){ colorValue = "sky_blue ";        }
    else if (gap > 0.15){ colorValue = "aquamarine ";      }
@@ -4756,9 +4766,11 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
    atom *a; /*owner of dot*/
    atom *t; /*cause of dot, output for OneDotEach mode 110113*/
    char *color = "";
-   char *mast[NODEWIDTH] = {"wide  contact", "close contact", "small overlap",
-                            "bad overlap", "H-bonds", "H-weaks"};
+  // OLD: char *mast[NODEWIDTH] = {"wide  contact", "close contact", "small overlap",
+                           // "bad overlap", "H-bonds", "H-weaks"};
                             /*111215dcr weakHbonds option*/
+   char *mast[NODEWIDTH] = {"wide contact", "close contact", "weak H-bonds", "small overlap", "bad overlap",
+                            "worse overlap", "H-bonds"}; /* 04/13/2015 SJ changed to match new NODEWIDTH, see probe.h*/
    char *surfacestr = "surface"; /*041020*/
    char *contactstr = "vdw contact"; /*060129*/
    char extraMstr[32]; /*fill below with extra master name 060129*/
@@ -4815,34 +4827,47 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
          fprintf(outf, "@master {%s}\n", mast[1]);
       }
       if (OutputClashes || OnlyBadOut) { /*dcr041010*/
-         if(!OnlyBadOut) {fprintf(outf, "@master {%s}\n", mast[2]);}
-         fprintf(outf, "@master {%s}\n", mast[3]); /*the Bad clashes*/ 
+         if(!OnlyBadOut) {
+             //fprintf(outf, "@master {%s}\n", mast[2]);
+             fprintf(outf, "@master {%s}\n", mast[3]); /* 04/13/2015 SJ changed to match new number for small overlaps*/
+         }
+         //fprintf(outf, "@master {%s}\n", mast[3]); /*the Bad clashes*/
+         fprintf(outf, "@master {%s}\n", mast[4]); /* 04/13/2015 SJ changed to match new number for bad overlaps*/
+          if (LworseOverlap) {/* 04/13/2015 SJ if the worse overlaps are separated*/
+              fprintf(outf, "@master {%s}\n", mast[5]);
+          }
       }
       if (OutputHBs && !OnlyBadOut)
       { /*dcr041010*/
-         fprintf(outf, "@master {%s}\n", mast[4]);
+         //fprintf(outf, "@master {%s}\n", mast[4]);/* 04/13/2015 SJ changed to match new number for H bonds*/
+         fprintf(outf, "@master {%s}\n", mast[6]);
          if(LweakHbonds) /*111215dcr*/
          {
-            fprintf(outf, "@master {%s}\n", mast[5]);
+            //fprintf(outf, "@master {%s}\n", mast[5]);
+             fprintf(outf, "@master {%s}\n", mast[2]);/* 04/13/2015 SJ changed to match new number for weak H bonds*/
          }
       }
-   }/*fine control over masters names*/
-   if(mcmccont[0][5] > 0)
+   }/*fine control over masters names*/ /* 04/15/2015 SJ changing all 5s to 7s to reflect new initialization*/
+   //if(mcmccont[0][5] > 0)
+   if(mcmccont[0][7] > 0)
    {
       masterchr = MCMCCHR; /*single char*/
       fprintf(outf, "@pointmaster '%c' {McMc contacts}\n",masterchr);
    }
-   if(scsccont[0][5] > 0)
+   //if(scsccont[0][5] > 0)
+   if(scsccont[0][7] > 0)
    {
       masterchr = SCSCCHR; /*single char*/
       fprintf(outf, "@pointmaster '%c' {ScSc contacts}\n",masterchr);
    }
-   if(mcsccont[0][5] > 0)
+   //if(mcsccont[0][5] > 0)
+   if(mcsccont[0][7] > 0)
    {
       masterchr = MCSCCHR; /*single char*/
       fprintf(outf, "@pointmaster '%c' {McSc contacts}\n",masterchr);
    }
-   if(othrcont[0][5] > 0)
+   //if(othrcont[0][5] > 0)
+   if(othrcont[0][7] > 0)
    {
       masterchr = OTHERCHR; /*single char*/
       fprintf(outf, "@pointmaster '%c' {Hets contacts}\n",masterchr);
@@ -4858,8 +4883,9 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
    for (i = 0; i < NUMATOMTYPES; i++)
    {/*i: Hatom varients + rest of periodic table + base types, see atomprops.h*/
       for (j = 0; j < NODEWIDTH; j++)
-      {/*j: wide contact, close contact, small overlap, bad overlap, H-bonds*/
-              /*optionally: H-weaks if LweakHbonds  111215dcr*/
+      {/* OLD j: wide contact, close contact, small overlap, bad overlap, H-bonds*/
+              /*OLD optionally: H-weaks if LweakHbonds  111215dcr*/
+          /* NEW 04/13/2015 - SJ j: wide contact, close contact, weak H bonds, small overlap, bad overlap, worse overlap, H-bonds*/
          node = results[i][j]; /*head of list of dot nodes, i.e. first node*/
          if (node)
          {/*node exists, write list headers*/
@@ -4900,7 +4926,8 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
                 }
              }
            }/* contact */
-           else if ((j == 2 || j == 3) && spike)
+          // else if ((j == 2 || j == 3) && spike)
+           else if ((j == 3 || j == 4 || j == 5) && spike) /* 04/13/2015 SJ changed to reflect new numbers for different categories*/
            {/* bump w/ spike */
 			  if (AtomMasters) 
               {
@@ -4933,7 +4960,8 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
 			     }
               }
            }/* bump w/ spike */
-           else if (j == 4)
+           //else if (j == 4)
+           else if (j == 6)/* 04/13/2015 SJ changed to reflect new numbers for different categories*/
            {/* bump w/o spike or H-bond */
              if (AtomMasters)
              {
@@ -5100,7 +5128,8 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
                           {maxgapcounts = gapcounts[gaplimit-1];}*/
                }
             }
-            if ((j == 2 || j == 3) && spike)
+            //if ((j == 2 || j == 3) && spike)
+            if ((j == 3 || j == 4 || j == 5) && spike)/* 04/13/2015 SJ changed to reflect new numbers for different categories*/
             {/* bump */
               fprintf(outf,
                      "P %s%.3f,%.3f,%.3f {\"}%s %s%.3f,%.3f,%.3f\n", /*dcr041009*/
@@ -5115,7 +5144,7 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
             }
             node = node->next; /*in this (ij)th dot-node list*/
          }/*kinemage point or point-line for each node in (ij)th dot-node list*/
-      }/*j: wide contact, close contact, small overlap, bad overlap, H-bonds*/
+      }/*OLD j: wide contact, close contact, small overlap, bad overlap, H-bonds*/ /* see new def in NODEWIDTH probe.h*/
    }/*i: Hatom varients + rest of periodic table + base types, see atomprops.h*/
    if(Lgapbins) /*111020dcr gapbins pointmasters, 111215dcr count bin entries*/
    {/*Lgapbins TRUE*/
@@ -5175,7 +5204,7 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
       for (i = 0; i < NUMATOMTYPES; i++)
       {/*i: Hatom varients + rest of periodic table + base types, see atomprops.h*/
        for (j = 0; j < NODEWIDTH; j++)
-       {/*j: wide contact, close contact, small overlap, bad overlap, H-bonds*/
+       {/*Old: j: wide contact, close contact, small overlap, bad overlap, H-bonds*/ /* see NODEWIDTH in probe.h for new def. SJ 04/16/2015*/
               /*optionally: H-weaks if LweakHbonds  111215dcr*/
         node = results[i][j]; /*head of list of dot nodes, i.e. first node*/
         if (node)
@@ -5225,8 +5254,9 @@ void writeAltFmtO(FILE *outf, int showBegin, int showEnd,
    int i, j, numGroups, gn;
    dotNode *node;
    char *color = "", *prevColor = "";
-   char *mast[NODEWIDTH] = {"WC", "CC", "SO", "BO", "HB"};
-
+   //Old: char *mast[NODEWIDTH] = {"WC", "CC", "SO", "BO", "HB"};
+   char *mast[NODEWIDTH] = {"WC", "CC", "WH", "SO", "BO", "WO", "HB"}; /* 04/15/2015 SJ changed to match new NODEWIDTH, see probe.h*/
+    
    numGroups = (showBegin && showEnd) ? 1 : 2;
    gn = (!showBegin && showEnd) ? 2 : 1;
 
@@ -5251,7 +5281,7 @@ void writeAltFmtO(FILE *outf, int showBegin, int showEnd,
 	       fprintf(outf, "colour %s\n", color);
 	       prevColor = color;
 	    }
-	    if ((j == 2 || j == 3) && spike) {/* bump */
+	    if ((j == 3 || j == 4 || j ==5) && spike) {/* bump */ /* 04/15/2015 SJ changed j numbers to match new ones for so, bo, and wo*/
 	       fprintf(outf,
 		  "move %.3f %.3f %.3f\nline %.3f %.3f %.3f\n",
 		  node->loc.x, node->loc.y, node->loc.z,
@@ -5287,8 +5317,10 @@ void writeAltFmtXV(FILE *outf, int showBegin, int showEnd,
    int i, j;
    dotNode *node;
    char *color = "";
-   char *mast[NODEWIDTH] = {"wide contact", "close contact", "small overlap", "bad overlap", "H-bonds"};
-
+   //Old: char *mast[NODEWIDTH] = {"wide contact", "close contact", "small overlap", "bad overlap", "H-bonds"};
+    /* 04/15/2015 SJ changed to reflect new NODEWIDTH, see probe.h*/
+   char *mast[NODEWIDTH] = {"wide contact", "close contact", "weak H-bonds", "small overlap", "bad overlap", "worse overlap", "H-bonds"};
+    
    if (showBegin) {
       if (showEnd) { fprintf(outf, "# begin %s\n", groupname); }
       else         { fprintf(outf, "# begin object\n#  group: %s\n", groupname); }
@@ -5309,7 +5341,7 @@ void writeAltFmtXV(FILE *outf, int showBegin, int showEnd,
 	       }
 	       else { color = "124";}
 	    }
-	    if ((j == 2 || j == 3) && spike) {/* bump */
+	    if ((j == 3 || j == 4 || j == 5) && spike) {/* bump */ /* 04/15/2015 SJ changed j numbers to match new ones for so, bo, and wo*/
 	       fprintf(outf,
 		  "%.3f %.3f %.3f %.3f %.3f %.3f %s\n",
 		  node->loc.x, node->loc.y, node->loc.z,
@@ -5370,7 +5402,9 @@ void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
    int i, j;
    dotNode *node;
    atom *a, *t;
-   char *mast[NODEWIDTH] = {"wc", "cc", "so", "bo", "hb"};
+  // char *mast[NODEWIDTH] = {"wc", "cc", "so", "bo", "hb"};
+   char *mast[NODEWIDTH] = {"wc","cc","wh","so","bo","wo","hb"}; /* 04/10/2015 SJ to changed to match new categories of weak H bonds and worse overlap (these lists are made only if LweakHbonds and LworseOverlap are true respectively). see NODEWIDTH probe.h*/
+   
    float gap, sl, dtgp, ke2be, d2be, d2sc, score;
    double scaledGap;
    for (i = 0; i < NUMATOMTYPES; i++)
@@ -5410,16 +5444,18 @@ void writeRaw(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
                  }
                  sl = gapSize(&(node->loc), &(node->spike), 0.0);
                  score = 0.0;
-                 switch(j)
+                 switch(j) /* SJ 04/10/2015 changed to include new categories*/
                  {
                     case 0:
                     case 1:
                            scaledGap = dtgp/GAPweight;
                            score = exp(-scaledGap*scaledGap);
                            break;
-                    case 2:
-                    case 3: score = -BUMPweight * sl; break;
-                    case 4: score =    HBweight * sl; break;
+                    case 2: /* TODO: SJ weak H bonds, don't know what to do here, because they can be both wc and cc, so will have to check*/
+                    case 3: /* small overlap, doing nothing, as before*/
+                    case 4: score = -BUMPweight * sl; break;
+                    case 5: score = -BUMPweight * sl; break; /* worse overlap, same as bad overlap*/
+                    case 6: score =    HBweight * sl; break;
                  }
                  if(conFlag)
                  {
@@ -5616,8 +5652,10 @@ void enumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
    float dtgp, score, tGscore, tHscore, tBscore, tscore, scoreValue, a_radius;
    double scaledGap, slen;
    dotNode *node;
-   char *mast[NODEWIDTH] = {"wide_contact  ", "close_contact ",
-                            "small_overlap ", "bad_overlap   ", "H-bond        "};
+  /* char *mast[NODEWIDTH] = {"wide_contact  ", "close_contact ",
+                            "small_overlap ", "bad_overlap   ", "H-bond        "};*/
+    /* 04/10/2015 SJ changed to match the new categories, see NODEWIDTH in probe.h*/
+    char *mast[NODEWIDTH] = {"wide_contact","close_contact","weak_H-bond","small_overlap","bad_overlap","worse_overlap","H-bond"};
 
    /* psas and tsas are the partial and total solvent accessible surface */
 
@@ -5638,83 +5676,92 @@ void enumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
 
    tgs = ths = thslen = tbs = tbslen = tsas = 0.0;
    tGscore = tHscore = tBscore = tscore = 0.0;
-   for (i = 0; i < NUMATOMTYPES; i++) {
-   for (j = 0; j < NODEWIDTH; j++) {
-      gs = hs = hslen = bs = bslen = score = psas = 0.0;
-      node = results[i][j];
-      doit = (node != NULL);
-      if (doit) {
-         fprintf(outf, "%3s %s ", getAtomName(i),
+   for (i = 0; i < NUMATOMTYPES; i++)
+   {
+       for (j = 0; j < NODEWIDTH; j++)
+       {
+           gs = hs = hslen = bs = bslen = score = psas = 0.0;
+           node = results[i][j];
+           doit = (node != NULL);
+           if (doit) {
+               fprintf(outf, "%3s %s ", getAtomName(i),
 	                   outdots?"external_dots ":mast[j]);
-      }
-      while(node) {
-         if (spike) {
-	    if (j == 0 || j == 1) { /* contact dot */
-	       gs += 1.0;
-	       dtgp = node->gap;
-	       scaledGap = dtgp/GAPweight;
-	       scoreValue = exp(-scaledGap*scaledGap);
-	       score   += scoreValue;
-	       tGscore += scoreValue;
-	    }
-	    else if (j == 2 || j == 3) { /* bump */
-	       bs += 1.0;
-	       slen = 0.5*FABS(node->gap);
-	       bslen += slen;
-	       scoreValue = - BUMPweight * slen;
-	       score   += scoreValue;
-	       tBscore += scoreValue;
-	    }
-	    else { /* H-bond */
-	       hs += 1.0;
-	       slen = 0.5*FABS(node->gap);
-	       hslen += slen;
-	       scoreValue = HBweight * slen;
-	       score   += scoreValue;
-	       tHscore += scoreValue;
-	    }
-         }
-         else { gs += 1.0; }
+           }
+           while(node)
+           {
+               if (spike)/* 04/10/2015 SJ changed the if statements in this block to reflect change in dots ordering, see NODEWIDTH in probe.h*/
+               {
+                  // if (j == 0 || j == 1) { /* contact dot */
+                   if(j==0 || j ==1 || j ==2) { /* contact dot, and weak H bond*/
+                       gs += 1.0;
+                       dtgp = node->gap;
+                       scaledGap = dtgp/GAPweight;
+                       scoreValue = exp(-scaledGap*scaledGap);
+                       score   += scoreValue;
+                       tGscore += scoreValue;
+                   }
+                  // else if (j == 2 || j == 3) { /* bump */
+                   else if (j ==3 || j ==4 || j ==5){ /* bump*/
+                       bs += 1.0;
+                       slen = 0.5*FABS(node->gap);
+                       bslen += slen;
+                       scoreValue = - BUMPweight * slen;
+                       score   += scoreValue;
+                       tBscore += scoreValue;
+                   }
+                   else { /* H-bond */
+                       hs += 1.0;
+                       slen = 0.5*FABS(node->gap);
+                       hslen += slen;
+                       scoreValue = HBweight * slen;
+                       score   += scoreValue;
+                       tHscore += scoreValue;
+                   }
+               }
+               else { gs += 1.0; }
 
-	 if (method == EXTERNALSURFACE) {
-	    a_radius = node->a->radius;
-	    psas += (a_radius + probeRad)*(a_radius + probeRad)/(a_radius * a_radius);
-	 }
-         node = node->next;
-      }
-      if (doit) {
-         if (spike) {
-	    if (j == 0 || j == 1) { /* contact dot */
-	       fprintf(outf, "%7.0f %5.1f%% %9.1f %9.2f\n",
-	                 gs, 100.0*gs/numSkinDots, score/density,
-			 1000.0*score/numSkinDots);
-	    }
-	    else if (j == 2 || j == 3) { /* bump */
-	       fprintf(outf, "%7.0f %5.1f%% %9.1f %9.2f\n",
-			 bs, 100.0*bs/numSkinDots, score/density,
-			 1000.0*score/numSkinDots);
-	    }
-	    else { /* H-bond */
-	       fprintf(outf, "%7.0f %5.1f%% %9.1f %9.2f\n",
-	                 hs, 100.0*hs/numSkinDots, score/density,
-			 1000.0*score/numSkinDots);
-	    }
-         }
-         else {
-            fprintf(outf, "%7.0f %5.1f%%\n",
-		     gs, 100.0*gs/numSkinDots);
-         }
-         tgs += gs;
-         ths += hs;
-         thslen += hslen;
-         tbs += bs;
-         tbslen += bslen;
-	 tscore += score;
-	 if (method == EXTERNALSURFACE) {
-	    tsas += psas; /* tally the solvent accessible surface */
-	 }
-      }
-   }
+               if (method == EXTERNALSURFACE) {
+                   a_radius = node->a->radius;
+                   psas += (a_radius + probeRad)*(a_radius + probeRad)/(a_radius * a_radius);
+               }
+               node = node->next;
+           }
+           if (doit)/* 04/10/2015 SJ changed the if statements in this block to reflect change in dots ordering, see NODEWIDTH in probe.h*/
+           {
+               if (spike) {
+                  // if (j == 0 || j == 1) { /* contact dot */
+                   if(j==0 || j ==1 || j ==2) { /* contact dot, and weak H bond*/
+                        fprintf(outf, "%7.0f %5.1f%% %9.1f %9.2f\n",
+                                gs, 100.0*gs/numSkinDots, score/density,
+                                1000.0*score/numSkinDots);
+                   }
+                  // else if (j == 2 || j == 3) { /* bump */
+                   else if (j ==3 || j ==4 || j ==5){ /* bump*/
+                        fprintf(outf, "%7.0f %5.1f%% %9.1f %9.2f\n",
+                                bs, 100.0*bs/numSkinDots, score/density,
+                                1000.0*score/numSkinDots);
+                   }
+                   else { /* H-bond */
+                        fprintf(outf, "%7.0f %5.1f%% %9.1f %9.2f\n",
+                                hs, 100.0*hs/numSkinDots, score/density,
+                                1000.0*score/numSkinDots);
+                   }
+               }
+               else {
+                   fprintf(outf, "%7.0f %5.1f%%\n",
+                           gs, 100.0*gs/numSkinDots);
+               }
+               tgs += gs;
+               ths += hs;
+               thslen += hslen;
+               tbs += bs;
+               tbslen += bslen;
+               tscore += score;
+               if (method == EXTERNALSURFACE) {
+                   tsas += psas; /* tally the solvent accessible surface */
+               }
+           }
+       }
    }
    if (spike) {
 /*      fprintf(outf, "                                   score/A^2 x 1000\n");*/
@@ -6456,6 +6503,7 @@ fprintf(outf,"130427 dcr reconciliation of trunk <- probeVector incl ODE\n");
 fprintf(outf,"2.15.130427 version number change for merged code! \n");
 fprintf(outf,"2.16.130509 jjh added support for segid instead of chaind\n");
 fprintf(outf,"2.16.130520 jjh fixed bug in segid handling\n");
+fprintf(outf,"04/16/2015 - SJ added the -sepworse flag, if true will seperate the overlaps of >= 0.4 and overlaps of >=0.5. This is default by false. Had to change NODEWIDTH value (see probe.h)\n Please do not try with autobondrot and oneDotEach\n Also oneDotEach may be broken for now.");
 
 exit(0);
 
@@ -6465,7 +6513,7 @@ exit(0);
 /*{{{countsummary()***********************************************************/
 /*count arrays indecies: Nth pass, contact width (wide to overlap, Hbond,...)*/
 /*N either 1 or 2 depending on direction of relationship                     */
-/* contact width                                                  20111215dcr*/
+/* Old: contact width                                                  20111215dcr*/
 /*    0            1            2           3           4            5
 mcmc wide:  mcmc close:   mcmc small : mcmc bad:  mcmc H-bond:  mcmc H-weak
 scsc wide:  scsc close:   scsc small:  scsc bad:  scsc H-bond:  scsc H-weak
@@ -6474,9 +6522,17 @@ other wide: other close:  other small: other bad: other H-bond  other H-weak
 wide sum:   close sum:    small sum:   bad sum:   H-bond sum    H-weak sum
 */
 /*5 contact width criteria include optional 6th index 5 weakHbond 20111215dcr*/
+/* New: contact width 04/15/2015 SJ*/
+/*    0            1            2           3           4            5             6
+ mcmc wide:  mcmc close:   mcmc H-weak:  mcmc small:  mcmc bad:  mcmc worse:  mcmc H-bond:
+ scsc wide:  scsc close:   scsc H-weak:  scsc small:  scsc bad:  scsc worse:  scsc H-bond:
+ mcsc wide:  mcsc close:   mcsc H-weak:  mcsc small:  mcsc bad:  mcsc worse:  mcsc H-bond:
+ other wide: other close:  other H-weak: other small: other bad: other worse: other H-bond
+ wide sum:   close sum:    H-weak sum:   small sum:   bad sum:   worse sum:   H-bond sum:
+ */
 
 void countsummary(FILE *outf, char* modestr, int Lines, int Pass) /*dcr041101*/
-{
+{/* TODO SJ: needs to make sure this prints new stuff by checking the flags*/
    char message[200];
    int  N=0; /*index Number*/
    int  k=0;
@@ -6490,11 +6546,12 @@ void countsummary(FILE *outf, char* modestr, int Lines, int Pass) /*dcr041101*/
    summcont[N][3] = mcmccont[N][3]+scsccont[N][3]+mcsccont[N][3]+othrcont[N][3];
    summcont[N][4] = mcmccont[N][4]+scsccont[N][4]+mcsccont[N][4]+othrcont[N][4];
    summcont[N][5] = mcmccont[N][5]+scsccont[N][5]+mcsccont[N][5]+othrcont[N][5];
+   summcont[N][6] = mcmccont[N][6]+scsccont[N][6]+mcsccont[N][6]+othrcont[N][6]; /* added SJ 04/15/2015*/
    /*20111215dcr weakHbond optional Nodewith criteria*/
 
  if(Pass == 0)
  {/*expect another pass, so save these values, and clear arrays for next pass*/
-      for(k=0 ; k<=5 ; k++)
+      for(k=0 ; k<=6 ; k++) /* changed from k<=5 to k<=6 SJ 04/15/2015*/
       {/*copy values*/
          mcmccont[1][k] = mcmccont[0][k];
          scsccont[1][k] = scsccont[0][k];
@@ -6502,7 +6559,7 @@ void countsummary(FILE *outf, char* modestr, int Lines, int Pass) /*dcr041101*/
          othrcont[1][k] = othrcont[0][k];
          summcont[1][k] = summcont[0][k];
       }
-      for(k=0 ; k<=5 ; k++)
+      for(k=0 ; k<=6 ; k++)/* changed from k<=5 to k<=6 SJ 04/15/2015*/
       {/*clear arrays*/
          mcmccont[0][k] = 0;
          scsccont[0][k] = 0;
@@ -6513,7 +6570,7 @@ void countsummary(FILE *outf, char* modestr, int Lines, int Pass) /*dcr041101*/
  }
  if(Pass == 2)
  {/*should have been a previous pass with values saved*/
-      for(k=0 ; k<=5 ; k++)
+      for(k=0 ; k<=6 ; k++)/* changed from k<=5 to k<=6 SJ 04/15/2015*/
       {
          mcmccont[0][k] = mcmccont[0][k] + mcmccont[1][k];
          scsccont[0][k] = scsccont[0][k] + scsccont[1][k];
@@ -6527,25 +6584,27 @@ void countsummary(FILE *outf, char* modestr, int Lines, int Pass) /*dcr041101*/
  {/*output*/
   if(Lines == 1) /*for accummulating oneliners for comparisons dcr041101*/
   {
-   /*0 wide contact,1 close contact,2 small overlap,3 bad overlap,4 H-bonds*/
-   /*INDEX 5 NOW USED FOR OPTIONAL 6TH CONTACT CRITERIA OF WEAKHBONDS*/
-   fprintf(outf,": %s "
-                ":%9ld :%9ld :%9ld :%9ld :%9ld :%9ld "
-                ":%9ld :%9ld :%9ld :%9ld :%9ld :%9ld "
-                ":%9ld :%9ld :%9ld :%9ld :%9ld :%9ld "
-                ":%9ld :%9ld :%9ld :%9ld :%9ld :%9ld "
-                ":%9ld :%9ld :%9ld :%9ld :%9ld :%9ld :\n"
+   /*Old: 0 wide contact,1 close contact,2 small overlap,3 bad overlap,4 H-bonds*/
+   /*Old: INDEX 5 NOW USED FOR OPTIONAL 6TH CONTACT CRITERIA OF WEAKHBONDS*/
+   /* New:0 wide contact,1 close contact,2 weak H-bonds, 3 small overlap,4 bad overlap,5 worse overlap, 6 H-bonds - SJ 04/15/2015*/
+   // added the [0][6] to all SJ 04/15/2015
+      fprintf(outf,": %s "
+                ":%9ld :%9ld :%9ld :%9ld :%9ld :%9ld :%9ld "
+                ":%9ld :%9ld :%9ld :%9ld :%9ld :%9ld :%9ld "
+                ":%9ld :%9ld :%9ld :%9ld :%9ld :%9ld :%9ld "
+                ":%9ld :%9ld :%9ld :%9ld :%9ld :%9ld :%9ld "
+                ":%9ld :%9ld :%9ld :%9ld :%9ld :%9ld :%9ld :\n"
      ,inputfilename
      ,mcmccont[0][0],mcmccont[0][1],mcmccont[0][2],mcmccont[0][3],mcmccont[0][4]
-     ,mcmccont[0][5]
+     ,mcmccont[0][5],mcmccont[0][6]
      ,scsccont[0][0],scsccont[0][1],scsccont[0][2],scsccont[0][3],scsccont[0][4]
-     ,scsccont[0][5]
+     ,scsccont[0][5],scsccont[0][6]
      ,mcsccont[0][0],mcsccont[0][1],mcsccont[0][2],mcsccont[0][3],mcsccont[0][4]
-     ,mcsccont[0][5]
+     ,mcsccont[0][5],mcsccont[0][6]
      ,othrcont[0][0],othrcont[0][1],othrcont[0][2],othrcont[0][3],othrcont[0][4]
-     ,othrcont[0][5]
+     ,othrcont[0][5],othrcont[0][6]
      ,summcont[0][0],summcont[0][1],summcont[0][2],summcont[0][3],summcont[0][4]
-     ,summcont[0][5]
+     ,summcont[0][5],summcont[0][6]
    );
 
   }
@@ -6554,8 +6613,11 @@ void countsummary(FILE *outf, char* modestr, int Lines, int Pass) /*dcr041101*/
    fprintf(outf,"@text\n");
    fprintf(outf,"probe: %s\n",modestr);
    fprintf(outf,"%s\n",inputfilename);
-   /*0 wide contact,1 close contact,2 small overlap,3 bad overlap,4 H-bonds*/
-   fprintf(outf,":CONTACT:   WIDE   :  CLOSE   :  SMALL   :   BAD    :  H-BOND  : weakHbond :\n");
+   /*Old: 0 wide contact,1 close contact,2 small overlap,3 bad overlap,4 H-bonds*/
+   //fprintf(outf,":CONTACT:   WIDE   :  CLOSE   :  SMALL   :   BAD    :  H-BOND  : weakHbond :\n");
+   /*New: SJ 04/15/2015 0 wide contact,1 close contact,2 weak H-bonds, 3 small overlap,4 bad overlap,5 worse overlap, 6 H-bonds*/
+   fprintf(outf,":CONTACT:   WIDE   :  CLOSE   :  weak H-bonds  : SMALL   :   BAD    :  WORSE  :  H-BOND  :\n");
+     /* TODO: added the [0][6] to all SJ 04/15/2015*/
    fprintf(outf,":MCMC   :%9ld :%9ld :%9ld :%9ld :%9ld :%9ld :\n"
      ,mcmccont[0][0],mcmccont[0][1],mcmccont[0][2],mcmccont[0][3],mcmccont[0][4]
      ,mcmccont[0][5]);
@@ -6573,7 +6635,7 @@ void countsummary(FILE *outf, char* modestr, int Lines, int Pass) /*dcr041101*/
      ,summcont[0][5]);
   }
 
-  if (Verbose)
+  if (Verbose) /* TODO SJ needs to change to reflect new stuff*/
   {
    sprintf(message,"%s",inputfilename);
    note(message);
