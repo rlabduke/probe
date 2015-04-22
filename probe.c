@@ -1308,7 +1308,7 @@ else { /*longlist option*/
    fprintf(stderr, "  -DIVLow#.#   Division for Bump categories    (default -0.4)\n");
    fprintf(stderr, "  -DIVHigh#.#  Division for Contact categories (default  0.25)\n");
    fprintf(stderr, "  -DIVWorse#.#  Division for regarding a clash as a worse clash (default  -0.5)\n"); /* 04/21/2015 SJ*/
-   fprintf(stderr, "  -SEPWORSE    To separate overlaps of >=0.4 and overlaps of >=0.5 (default false)\n");
+   fprintf(stderr, "  -SEPWORSE    To separate bad overlaps and worse overlaps (default false, if true, deafult value to separate the worse clashes is -0.5)\n");
    fprintf(stderr, "  -MINOCCupancy#.#  Occupancy below this is same as zero (default  0.02)\n");
    fprintf(stderr, "  -ELEMent     add master buttons for different elements in kin output\n");
    fprintf(stderr, "  -NOHBOUT     do not output contacts for HBonds\n");
@@ -3000,7 +3000,6 @@ dotNode* newDot(atom *src, atom* targ, point3d *loc, point3d *spike,
 /*}}}INRANGEINLINE()_________________________________________________________*/
 
 /*{{{examineOneDotEach()****** called from genDotIntersect() LOneDotEach *****/
-/* TODO SJ: needs to be made compatible to new stuff*/
 void examineOneDotEach(atom *src, int type, atom *scratch,
       pointSet dots[], float probeRad,
       float spikelen, int targFlg, dotNode *results[][NODEWIDTH], atom *allMainAtoms)
@@ -6513,7 +6512,7 @@ fprintf(outf,"130427 dcr reconciliation of trunk <- probeVector incl ODE\n");
 fprintf(outf,"2.15.130427 version number change for merged code! \n");
 fprintf(outf,"2.16.130509 jjh added support for segid instead of chaind\n");
 fprintf(outf,"2.16.130520 jjh fixed bug in segid handling\n");
-fprintf(outf,"04/16/2015 - SJ added the -sepworse flag, if true will seperate the overlaps of >= 0.4 and overlaps of >=0.5. This is default by false. Had to change NODEWIDTH value (see probe.h)\n Please do not try with autobondrot and oneDotEach\n Also oneDotEach may be broken for now.");
+fprintf(outf,"04/16/2015 - SJ added the -sepworse flag, if true will seperate the overlaps of >= 0.4 and overlaps of >=0.5. This is default by false. Had to change NODEWIDTH value (see probe.h)\n One can change the 0.5 cutoff for worse overlap by specifying the flag DIVWorse\n");
 
 exit(0);
 
