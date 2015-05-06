@@ -4292,6 +4292,10 @@ void genDotIntersect(atom *allMainAtoms, atomBins *abins,
    int type = 0, usesMovingAtoms = FALSE;
    int oktargsA = TRUE, oktargsB = TRUE;
 
+    int i=0,j=0;/* SJ - 05/06/2015 moved the variables here from below for compatibility with windows C compiler*/ 
+    atom *source = NULL, *target=NULL;
+    dotNode *head = NULL, *curNode = NULL, *prevNode = NULL;
+
    if(Ldotdump) {
     fprintf(stderr,"entered genDotIntersect()\n");
    }
@@ -4384,9 +4388,6 @@ if(Ldotdump) fprintf(stderr,"genDotIntersect() calls examineOneDotEach()\n");
     
     // SJ - 10/03/2014 - Code to delete contact dots (except H bonds) between atom pairs when atleast one of them has an altConf " " and the sum of their occpancies is <= 1
     // UNKNOWN BUGS: Not sure what this code will do if the results is genearted using autobondrot
-    int i=0,j=0;
-    atom *source = NULL, *target=NULL;
-    dotNode *head = NULL, *curNode = NULL, *prevNode = NULL;
     
     for(i=0;i<NUMATOMTYPES;i++)
     {/*loop over atom types*/
