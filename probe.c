@@ -3397,8 +3397,8 @@ fprintf(stderr," NEIGHBOR [%s %s %s] BENIGN for src---targ interaction\n",targ->
                      v3scale(&gapvect, src->radius + gap);
                      v3add(&(src->loc), &gapvect, &gaploc);
 
-                     if(  (  v3distance(&gaploc,&perploc) < abs(gap) )
-                        &&(  v3distance(&dotloc,&perploc) < abs(gap) ) )
+                     if(  (  v3distance(&gaploc,&perploc) < fabs(gap) )
+                        &&(  v3distance(&dotloc,&perploc) < fabs(gap) ) )
                      {/*perp hits within gap so does occlude line of sight*/
                          if(Ldotdump)
                              fprintf(stderr,"atom [%s %s %s] OCCLUDES src---targ line at %7.3f %7.3f %7.3f, DOT REJECTED\n" ,targ->atomname,targ->r->resname,targ->r->Hy36resno,perploc.x,perploc.y,perploc.z);
