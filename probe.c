@@ -51,7 +51,8 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char *versionString = "probe: version 2.16.130520, Copyright 1996-2013, J. Michael Word";
+static char *versionString = "probe: version 2.16.160404, Copyright 1996-2016, J. Michael Word";
+/*static char *versionString = "probe: version 2.16.130520, Copyright 1996-2013, J. Michael Word";*/
 /*"probe: version 2.15.130427, merged probeVector, Copyright 1996-2013, J. Michael Word";*/
 /*"probe: version 2.14.130116, Copyright 1996-2013, J. Michael Word";*/
 /*"probe: version 2.13.120907, Copyright 1996-2012, J. Michael Word";*/
@@ -69,7 +70,8 @@ static char *versionString = "probe: version 2.16.130520, Copyright 1996-2013, J
 /*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
    /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char *shortVersionStr = "probe.2.16.130520";
+static char *shortVersionStr = "probe.2.16.160404";
+/*static char *shortVersionStr = "probe.2.16.130520";*/
 /*static char *shortVersionStr = "probe.2.15.130427";*/
 /*static char *shortVersionStr = "probe.2.14.130116";*/
 /*static char *shortVersionStr = "probe.2.13.120907"; gjk changed %s for OUTCOLor to make -OUT work again*/
