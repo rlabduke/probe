@@ -10,10 +10,9 @@
 /* NOTICE: This is free software and the source code is freely   */
 /* available. You are free to redistribute or modify under the   */
 /* conditions that (1) this notice is not removed or modified    */
-/* in any way and (2) any modified versions of the program are   */
-/* also available for free.                                      */
+/* in any way.                                                   */
 /*               ** Absolutely no Warranty **                    */
-/* Copyright (C) 1996-2013 J. Michael Word                       */
+/* Copyright (C) 1996-2016 J. Michael Word                       */
 /*****************************************************************/
 
 /*Updated to work with the remediated PDB names rmi 070727 */
@@ -51,7 +50,8 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char *versionString = "probe: version 2.16.160404, Copyright 1996-2016, J. Michael Word";
+static char *versionString = "probe: version 2.16.160828, Copyright 1996-2016, J. Michael Word";
+/*static char *versionString = "probe: version 2.16.160404, Copyright 1996-2016, J. Michael Word";*/
 /*static char *versionString = "probe: version 2.16.130520, Copyright 1996-2013, J. Michael Word";*/
 /*"probe: version 2.15.130427, merged probeVector, Copyright 1996-2013, J. Michael Word";*/
 /*"probe: version 2.14.130116, Copyright 1996-2013, J. Michael Word";*/
@@ -70,7 +70,8 @@ static char *versionString = "probe: version 2.16.160404, Copyright 1996-2016, J
 /*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
    /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char *shortVersionStr = "probe.2.16.160404";
+static char *shortVersionStr = "probe.2.16.160828";
+/*static char *shortVersionStr = "probe.2.16.160404";*/
 /*static char *shortVersionStr = "probe.2.16.130520";*/
 /*static char *shortVersionStr = "probe.2.15.130427";*/
 /*static char *shortVersionStr = "probe.2.14.130116";*/
@@ -2221,10 +2222,13 @@ void ProcessResInfo(chainEndData_t *ed, atom *a)
          if (ed->first == a->r->rescnt) { /* mark the Nterm -- jmw 20011001 */
             a->props |= CHECK_ENDS_PROP;
          }
-
+         /*dcr_Aug16segfault: surmise alt atoms can mess ed->ambigN[] content*/
+         /*as of 20160828 NOT checked to see if results are correct behaviour*/ 
+         
 	 for (i = 0; i < 4; i++) {/* first Ns[0-3] (cleared at chain ends)*/
-	    if (ed->ambigN[i] == NULL) {
-	       if ((i == 0) || (ed->ambigN[i-1]->r == a->r)) {
+	    if (ed->ambigN[i] == NULL) { 
+               /*dcr 20160828mod2 does ed->ambigN[i-1] need existence test before read? */ 
+	     if ((i == 0) || (ed->ambigN[i-1]->r == a->r)) { 
 		  ed->ambigN[i] = a;
 	       }
 	       break;
@@ -2232,24 +2236,32 @@ void ProcessResInfo(chainEndData_t *ed, atom *a)
 	 }
 	 for (i = 4; i < 8; i++) {   /* last Ns[4-7] (cleared each res)*/
 	    if (ed->ambigN[i] == NULL) {
-	       if ((i == 4) || (ed->ambigN[i-1]->r == a->r)) {
+               /*dcr 20160828mod2 does ed->ambigN[i-1] need existence test before read? */ 
+	       if ((i == 4) || (ed->ambigN[i-1]->r == a->r)) { 
 		  ed->ambigN[i] = a;
 	       }
 	       break;
 	    }
 	 }
       }
+         /*dcr_Aug16segfault: surmise alt atoms can mess ed->ambigN[] content*/
+         /*as of 20160828 NOT checked to see if results are correct behaviour*/
+         /* but checking that (ed->ambigN[i-1] != NULL) alleviated segfault */
+
       if (!strcmp(a->atomname, " O  ")) { /* last Os[0-7]  (cleared each res)*/
 	 for (i = 0; i < 8; i++) {
 	    if (ed->ambigO[i] == NULL) {
-	       if ((i == 0)|| (ed->ambigN[i-1]->r == a->r)) {
+	     /*if ((i == 0)|| (ed->ambigN[i-1]->r == a->r))  dcr 20160828 */
+	/*if(((i == 0) ||(ed->ambigN[i-1] != NULL)) && (ed->ambigN[i-1]->r == a->r))*/
+	       if ((i == 0) || ((ed->ambigN[i-1] != NULL) && (ed->ambigN[i-1]->r == a->r)))
+               {
 		  ed->ambigO[i] = a;
 	       }
 	       break;
-	    }
-	 }
-      }
-   }
+	    }/*ed->ambigO[i] == NULL*/
+	 }/*i from 0 to 7*/
+      }/*atomname " O  "*/
+   }/*atom property  a->props & MAYBECHG_PROP */
 
 }
 /*}}}ProcessResInfo()________________________________________________________*/
@@ -6516,7 +6528,8 @@ fprintf(outf,"2.15.130427 version number change for merged code! \n");
 fprintf(outf,"2.16.130509 jjh added support for segid instead of chaind\n");
 fprintf(outf,"2.16.130520 jjh fixed bug in segid handling\n");
 fprintf(outf,"04/16/2015 - SJ added the -sepworse flag, if true will seperate the overlaps of >= 0.4 and overlaps of >=0.5. This is default by false. Had to change NODEWIDTH value (see probe.h)\n One can change the 0.5 cutoff for worse overlap by specifying the flag DIVWorse\n");
-
+fprintf(outf,"160828 DCR git branch dcr_Aug16segfault, some files with alts\n e.g. 1ob6,3ov5 segfault at probe.c/ProcessResInfo near end reading ed->ambigN[]\n segfault alleviated by check ed->ambigN[i-1] != null,\n correct final behavior NOT determined\n reason caused by some atom alts NOT determined\n");
+fprintf(outf,"160828 DCR git branch dcr_Aug16segfault, probe.c license notice\n simplified per RLab programmer's 2014 aggrement, see kinemage website/software\n");
 exit(0);
 
 }/*dump_changes()*/

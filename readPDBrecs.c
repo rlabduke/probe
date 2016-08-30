@@ -20,10 +20,8 @@
 
 char globPDBrec[PDBRECSIZE + 1];
 char globPDBrecLen = 0;
-
 char * getPDBrecord(FILE *inf) {
    int rlen;
-
    rlen = readRecord(inf, globPDBrec, PDBRECSIZE );
    if (rlen < 0) {
       globPDBrecLen = 0;
