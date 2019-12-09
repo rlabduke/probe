@@ -52,15 +52,20 @@ int readRecord(FILE *inf, char buffer[], int maxChars) {
    else {
       while(!done) {
 	 ch = getc(inf);
-	 if ((ch == '@') || (ch == '#')) {
-	    /* special codes turn off forced uppercase */
-	    /* "at sign" used for commands */
-	    /* "hash" used for comments */
-	    makeUpperCase  = 0;
-	 }
-	 if (makeUpperCase) {
-	    ch = toupper(ch);
-	 }
+	 // This block removed by cjw, 12-09-2019
+	 // It appears to convert PDB lines to all-uppercase on read-in
+	 // Some large files use lowercase chain IDs, which *must* be preserved
+	 // Be warned that its removal allows past unsupported lower case chars in
+	 //   atomnames, etc
+	 //if ((ch == '@') || (ch == '#')) {
+	 //   /* special codes turn off forced uppercase */
+	 //   /* "at sign" used for commands */
+	 //   /* "hash" used for comments */
+	 //   makeUpperCase  = 0;
+	 //}
+	 //if (makeUpperCase) {
+	 //   ch = toupper(ch);
+	 //}
 	 if ((ch == EOF) || (ch == '\n')) {
 	    done = 1;
 	 }
