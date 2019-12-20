@@ -52,6 +52,9 @@ int readRecord(FILE *inf, char buffer[], int maxChars) {
    else {
       while(!done) {
 	 ch = getc(inf);
+	 if (count < 6){ //set line identifier (REMARK, ATOM) to uppercase - cjw
+	   ch = toupper(ch);
+	   }
 	 // This block removed by cjw, 12-09-2019
 	 // It appears to convert PDB lines to all-uppercase on read-in
 	 // Some large files use lowercase chain IDs, which *must* be preserved
