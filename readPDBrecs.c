@@ -44,6 +44,8 @@ int readRecord(FILE *inf, char buffer[], int maxChars) {
    register int count = 0;
    register int done  = 0;
    int makeUpperCase  = 1;
+   int setCase = 0;
+   char linecard[5];
 
    if (!inf || feof(inf)) {
       count = -1; /* signal end-of-file */
@@ -52,9 +54,32 @@ int readRecord(FILE *inf, char buffer[], int maxChars) {
    else {
       while(!done) {
 	 ch = getc(inf);
-	 if (count < 6){ //set line identifier (REMARK, ATOM) to uppercase - cjw
+	 // This block added by cjw, 01-21-2020
+	 // Forces uppercase on record type, resname, and atomname fields
+	 // Preserves existing case for all other fields, assumes internal file
+	 //   consistency.
+	 if (count < 6){
+	   //set 6-char line identifier (REMARK, ATOM) to uppercase
+	   ch = toupper(ch);
+	   if (count < 4){
+	     //build short record type from first 4 chars
+	     linecard[count] = ch;
+	     }
+	   else if (count ==4){
+	     linecard[count] = '\0'; //finish linecard string
+	     //setCase if line is applicable record
+	     if ((strncmp(linecard, "ATOM", 4) == 0) || (strncmp(linecard, "HETA", 4) == 0) || (strncmp(linecard, "TER", 3) == 0)){
+	       setCase = 1;
+	       }
+	     }
+	   }
+//0123456789*123456789*123456789*123456789*123456789*123456789*123456789*1234567
+//ATOM   1568  CE2 TYR B  90       0.565  40.044  57.767  1.00 16.94           C
+	 else if (setCase && count >= 12 && count < 20 && count != 16){
+	   //fix case for atom (12-15) and resname (17-19)
 	   ch = toupper(ch);
 	   }
+
 	 // This block removed by cjw, 12-09-2019
 	 // It appears to convert PDB lines to all-uppercase on read-in
 	 // Some large files use lowercase chain IDs, which *must* be preserved
