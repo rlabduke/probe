@@ -1899,7 +1899,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	       }
 	       else {
 		  file++;
-		  inf = fopen(p, "r"); /*p holds autobondrot input file name*/
+		  inf = fopen(p, "rb"); /*p holds autobondrot input file name*/
 		  if (inf) {
 		     if (mabip) {
 			mabip->filenum  = file;
@@ -1965,7 +1965,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
     else
     {
        file++;
-       inf = fopen(p, "r");
+       inf = fopen(p, "rb");
        if (inf)
        {
           strcpy(inputfilename,p); /*dcr041023*/
@@ -1992,7 +1992,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
          DoMcMc = TRUE;
          DoHet  = TRUE;
          file++;
-         inf = fopen(p, "r");
+         inf = fopen(p, "rb");
          if (inf)
          {
             strcpy(inputfilename,p); /*dcr041023*/
