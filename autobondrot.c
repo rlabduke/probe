@@ -140,7 +140,7 @@ void scanXDBinputText(xformDatabase* xdb, FILE *inf, FILE *outf,
 	 }
 	 else if (s[0] == '@') { /* include file */
 	    FILE *if2 = NULL;
-	    if2 = fopen(s+1, "r");
+	    if2 = fopen(s+1, "rb");
 	    if (if2) { /* recursive call */
 	       fprintf(outf, "%s%s\n", cch, s);
 
