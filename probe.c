@@ -51,7 +51,8 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char *versionString = "probe: version 2.16.160404, Copyright 1996-2016, J. Michael Word";
+static char* versionString = "probe: version 2.17.210924, Copyright 1996-2016, J. Michael Word; 2021 Richardson Lab";
+/*static char *versionString = "probe: version 2.16.160404, Copyright 1996-2016, J. Michael Word";*/
 /*static char *versionString = "probe: version 2.16.130520, Copyright 1996-2013, J. Michael Word";*/
 /*"probe: version 2.15.130427, merged probeVector, Copyright 1996-2013, J. Michael Word";*/
 /*"probe: version 2.14.130116, Copyright 1996-2013, J. Michael Word";*/
@@ -70,7 +71,8 @@ static char *versionString = "probe: version 2.16.160404, Copyright 1996-2016, J
 /*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
    /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char *shortVersionStr = "probe.2.16.160404";
+static char* shortVersionStr = "probe.2.17.210924";
+/*static char *shortVersionStr = "probe.2.16.160404";*/
 /*static char *shortVersionStr = "probe.2.16.130520";*/
 /*static char *shortVersionStr = "probe.2.15.130427";*/
 /*static char *shortVersionStr = "probe.2.14.130116";*/
@@ -2242,7 +2244,7 @@ void ProcessResInfo(chainEndData_t *ed, atom *a)
       if (!strcmp(a->atomname, " O  ")) { /* last Os[0-7]  (cleared each res)*/
 	 for (i = 0; i < 8; i++) {
 	    if (ed->ambigO[i] == NULL) {
-	       if ((i == 0)|| (ed->ambigN[i-1]->r == a->r)) {
+	       if ((i == 0)|| (ed->ambigO[i-1]->r == a->r)) {
 		  ed->ambigO[i] = a;
 	       }
 	       break;
@@ -6516,6 +6518,7 @@ fprintf(outf,"2.15.130427 version number change for merged code! \n");
 fprintf(outf,"2.16.130509 jjh added support for segid instead of chaind\n");
 fprintf(outf,"2.16.130520 jjh fixed bug in segid handling\n");
 fprintf(outf,"04/16/2015 - SJ added the -sepworse flag, if true will seperate the overlaps of >= 0.4 and overlaps of >=0.5. This is default by false. Had to change NODEWIDTH value (see probe.h)\n One can change the 0.5 cutoff for worse overlap by specifying the flag DIVWorse\n");
+fprintf(outf,"09/24/2021 - RMT Version 2.17 Fixed crash when finding ambiguous Oxygens\n");
 
 exit(0);
 
