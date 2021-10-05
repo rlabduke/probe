@@ -51,7 +51,7 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char* versionString = "probe: version 2.17.210924, Copyright 1996-2016, J. Michael Word; 2021 Richardson Lab";
+static char* versionString = "probe: version 2.18.211005, Copyright 1996-2016, J. Michael Word; 2021 Richardson Lab";
 /*static char *versionString = "probe: version 2.16.160404, Copyright 1996-2016, J. Michael Word";*/
 /*static char *versionString = "probe: version 2.16.130520, Copyright 1996-2013, J. Michael Word";*/
 /*"probe: version 2.15.130427, merged probeVector, Copyright 1996-2013, J. Michael Word";*/
@@ -71,7 +71,7 @@ static char* versionString = "probe: version 2.17.210924, Copyright 1996-2016, J
 /*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
 /*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
    /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char* shortVersionStr = "probe.2.17.210924";
+static char* shortVersionStr = "probe.2.18.211005";
 /*static char *shortVersionStr = "probe.2.16.160404";*/
 /*static char *shortVersionStr = "probe.2.16.130520";*/
 /*static char *shortVersionStr = "probe.2.15.130427";*/
@@ -151,7 +151,7 @@ static float Min_regular_hb_cutoff=0.6; /* globals controling hbond cutoff */
 static float Min_charged_hb_cutoff=0.8; /* defaults set in processCommandline() */
 static float RadScaleFactor       =1.0; /* global VDW radius scale Factor r*f */
 static float RadScaleOffset       =0.0; /* global VDW radius scale Offset r+o */
-static float CORadScale   =(1.65/1.75); /* global VDW radius scale Factor for C=O */
+static float CORadScale   =(1.65/ATOMC_EXPLICIT_VDW); /* global VDW radius scale Factor for C=O */
 static float GAPweight            =0.25;/* global raw GAP score weight */
 static float BUMPweight           =10.0;/* global raw BUMP score scale Factor */
 static float HBweight             = 4.0;/* global raw HBond score scale Factor */
@@ -299,7 +299,7 @@ int mainProbeProc(int argc, char **argv, FILE *outf)
 	    note(message);
 	 }
 	 sprintf(message, "C=O carbon VDW scaled by %.3f to a radius of %g A",
-			   CORadScale, CORadScale*1.75);
+			   CORadScale, CORadScale* ATOMC_EXPLICIT_VDW);
 	 note(message);
 	 if (rawOutput || countDots) {
 	    sprintf(message, "Score Weights: gapWt=%g, bumpWt=%g, HBWt=%g",
@@ -6519,6 +6519,7 @@ fprintf(outf,"2.16.130509 jjh added support for segid instead of chaind\n");
 fprintf(outf,"2.16.130520 jjh fixed bug in segid handling\n");
 fprintf(outf,"04/16/2015 - SJ added the -sepworse flag, if true will seperate the overlaps of >= 0.4 and overlaps of >=0.5. This is default by false. Had to change NODEWIDTH value (see probe.h)\n One can change the 0.5 cutoff for worse overlap by specifying the flag DIVWorse\n");
 fprintf(outf,"09/24/2021 - RMT Version 2.17 Fixed crash when finding ambiguous Oxygens\n");
+fprintf(outf,"10/05/2021 - RMT Version 2.18 Makes default C=O radius scale depend on table value\n");
 
 exit(0);
 
