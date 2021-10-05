@@ -93,6 +93,9 @@ enum atomIdentifiers {
 #define METALIC_ATOM_FLAG (1 <<  0) /*atomProp AtomTbl flags: element features*/
 #define   IONIC_ATOM_FLAG (1 <<  1) /*dcr041007 partial, now on halides*/
 
+/* Explicit vdW radius of carbonyl (C=O, atomC) entry. */
+#define ATOMC_EXPLICIT_VDW (1.70)
+
 #ifdef INIT_ATOM_TABLE
 /* For non-metals, explicit VDW radii from                      */
 /* Gavezzotti, J. Am. Chem. Soc. (1983) 105, 5220-5225.         */
@@ -120,7 +123,7 @@ atomProp AtomTbl[NUMATOMTYPES] = { /* noAtom must be first */
    {atomHarom,   1, "Har",  1.05, 1.00, 0.00, 0.30, "grey",   0},
    {atomHpolar,  1, "Hpol", 1.05, 1.00, 0.00, 0.30, "grey",   0},
    {atomHOd,     1, "HOd",  1.05, 1.00, 0.00, 0.30, "grey",   0},/*hb-only-dummy*/
-   {atomC,       6, "C",    1.70, 1.70, 1.90, 0.77, "white",  0},
+   {atomC,       6, "C",    ATOMC_EXPLICIT_VDW, ATOMC_EXPLICIT_VDW, 1.90, 0.77, "white",  0},
    {atomCarom,   6, "Car",  1.75, 1.75, 1.90, 0.77, "white",  0},
    {atomN,       7, "N",    1.55, 1.55, 1.70, 0.70, "sky",    0},
    {atomO,       8, "O",    1.40, 1.40, 1.50, 0.66, "red",    0},
