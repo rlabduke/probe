@@ -51,43 +51,8 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char* versionString = "probe: version 2.18.211005, Copyright 1996-2016, J. Michael Word; 2021 Richardson Lab";
-/*static char *versionString = "probe: version 2.16.160404, Copyright 1996-2016, J. Michael Word";*/
-/*static char *versionString = "probe: version 2.16.130520, Copyright 1996-2013, J. Michael Word";*/
-/*"probe: version 2.15.130427, merged probeVector, Copyright 1996-2013, J. Michael Word";*/
-/*"probe: version 2.14.130116, Copyright 1996-2013, J. Michael Word";*/
-/*"probe: version 2.13.120907, Copyright 1996-2012, J. Michael Word";*/
-/*"probe: version 2.14.120109, Copyright 1996-2011, J. Michael Word";probeVector version*/
-/*"probe: version 2.13.110909, Copyright 1996-2011, J. Michael Word";*/
-/*"probe: version 2.13.110830, Copyright 1996-2011, J. Michael Word";*/
-/*"probe: version 2.12.110413, Copyright 1996-2007, J. Michael Word";*/
-/*"probe: version 2.12.070821, Copyright 1996-2007, J. Michael Word";*/
-/*"probe: version 2.11.061018, Copyright 1996-2006, J. Michael Word";*/
-/*"probe: version 2.11.060831, Copyright 1996-2006, J. Michael Word";*/
-/*minor work: 2.11.060212*/
-/*"probe: version 2.11.060129, Copyright 1996-2006, J. Michael Word";*/
-/*"probe: version 2.11.050121, Copyright 1996-2005, J. Michael Word";*/
-/*"probe: version 2.11.041112, Copyright 1996-2004, J. Michael Word";*/
-/*"probe: version 2.10.031014dcr041101, Copyright 1996-2004, J. Michael Word";*/
-/*"probe: version 2.10  10/14/2003, Copyright 1996-2003, J. Michael Word";*/
-   /*jmw & dcr agreement on version name and maintenance by dcr 041110*/
-static char* shortVersionStr = "probe.2.18.211005";
-/*static char *shortVersionStr = "probe.2.16.160404";*/
-/*static char *shortVersionStr = "probe.2.16.130520";*/
-/*static char *shortVersionStr = "probe.2.15.130427";*/
-/*static char *shortVersionStr = "probe.2.14.130116";*/
-/*static char *shortVersionStr = "probe.2.13.120907"; gjk changed %s for OUTCOLor to make -OUT work again*/
-/*static char *shortVersionStr = "probe.2.14.120109";probeVector version*/
-/*static char *shortVersionStr = "probe.2.13.110909";*/
-/*static char *shortVersionStr = "probe.2.13.110830";*/
-/*static char *shortVersionStr = "probe.2.12.110413";*/
-/*static char *shortVersionStr = "probe.2.11.061018";*/
-/*static char *shortVersionStr = "probe.2.11.060831";*/
-/*static char *shortVersionStr = "Probe V2.11.060129";*/
-/*static char *shortVersionStr = "Probe V2.11.050121";*/
-/*static char *shortVersionStr = "Probe V2.11.041112";*/ /*041112 version change*/
-/*static char *shortVersionStr = "Probe V2.10.031014dcr041101";*/
-/*static char *shortVersionStr = "Probe V2.9 ( 10/14/2003)";*/
+static char* versionString = "probe: version 2.19.211209, Copyright 1996-2016, J. Michael Word; 2021 Richardson Lab";
+static char* shortVersionStr = "probe.2.19.211209";
 static char *referenceString = "Word, et. al. (1999) J. Mol. Biol. 285, 1711-1733.";
 static char *electronicReference = "http://kinemage.biochem.duke.edu/";
 
@@ -199,6 +164,8 @@ static int  modelLimit = 0;   /*global loop's flag for multiple models 041114*/
 static int  modelSrc  = 0; /*global model specified for source 041114*/
 static int  modelTarg = 0; /*global model specified for target 041114*/
 static int  modelToProcess = 0; /*global model specified for processing 041114*/
+
+static char* dumpFileName = 0;  /* global name of file to dump atom info to (default none) */
 
 #define ATOMS_IN_THE_SAME_RES(aa, bb) IS_THE_SAME_RES((aa)->r, (bb)->r)
 /*041112 IS_THE_SAME_RES() cannot avoid modeltest, i.e. implied Lmodeltest==1*/
@@ -1328,6 +1295,7 @@ else { /*longlist option*/
    fprintf(stderr, "  -OLDU        generate old style -u output: kissEdge2BullsEye, etc\n");
    fprintf(stderr, "  -VErbose     verbose mode (default)\n");
    fprintf(stderr, "  -DOTDUMP     dump dot info while doing examineDots()\n");
+   fprintf(stderr, "  -DUMPATOMS filename  dump atom information to filename for regression testing\n");
    fprintf(stderr, "  -REFerence   display reference string\n");
    fprintf(stderr, "  -CHANGEs     display a list of program changes\n");
    fprintf(stderr, "  -Quiet       quiet mode\n");
@@ -1496,6 +1464,13 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	 }
      else if(compArgStr(p+1, "DOTDUMP", 7)){
         Ldotdump = TRUE; /*111202dcr Ldotdump in examineOneDotEach() */
+     }
+     else if(compArgStr(p+1, "DUMPATOMS", 9)){
+	    if (++i < argc) {
+	       dumpFileName = argv[i];
+	    } else {
+	       halt("no filename after -DUMPATOMS flag");
+	    }
      }
 	 else if(compArgStr(p+1, "QUIET", 1)){
 	    Verbose = FALSE;
@@ -2321,6 +2296,10 @@ atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
 
    initEndData(&endData);
 
+   FILE* dumpFile = 0;
+   if (dumpFileName) {
+     dumpFile = fopen(dumpFileName, "wb");
+   }
    while((rec = getPDBrecord(fp))) { /*loop over all records in pdb file*/
       if (isTer(rec)) {
          prevChain[0] = prevChain[1] = '?';
@@ -2359,6 +2338,16 @@ atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
 	    continue;
 	 }
 
+   if (dumpFile) {
+     fprintf(dumpFile, "%s %s %3d %-4s %c %7.3f %7.3f %7.3f %5.2f %s %s %s\n",
+       a->r->chain, a->r->resname, a->r->resid, a->atomname,
+       a->altConf == ' ' ? '-' : a->altConf,
+       a->loc.x, a->loc.y, a->loc.z, a->radius,
+       a->props & ACCEPTOR_PROP ? "isAcceptor" : "noAcceptor",
+       a->props & DONOR_PROP ? "isDonor" : "noDonor",
+       a->props & METAL_PROP ? "isMetallic" : "noMetallic");
+   }
+
 	 if (!atomlist) {
 	    boundingBox->min = a->loc;
 	    boundingBox->max = a->loc;
@@ -2395,6 +2384,10 @@ if(Verbose)
 }
       }
    }/*loop over all records in pdb file*/
+   if (dumpFile) {
+     fclose(dumpFile);
+     dumpFile = 0;
+   }
    if (rescnt) { resCheck(&endData, atomlist, rescnt); }
    CtermCheck(&endData, rescnt, TRUE);
 
@@ -6520,6 +6513,7 @@ fprintf(outf,"2.16.130520 jjh fixed bug in segid handling\n");
 fprintf(outf,"04/16/2015 - SJ added the -sepworse flag, if true will seperate the overlaps of >= 0.4 and overlaps of >=0.5. This is default by false. Had to change NODEWIDTH value (see probe.h)\n One can change the 0.5 cutoff for worse overlap by specifying the flag DIVWorse\n");
 fprintf(outf,"09/24/2021 - RMT Version 2.17 Fixed crash when finding ambiguous Oxygens\n");
 fprintf(outf,"10/05/2021 - RMT Version 2.18 Makes default C=O radius scale depend on table value\n");
+fprintf(outf,"12/09/2021 - RMT Version 2.19 Adds commend-line argument to dump atom info\n");
 
 exit(0);
 
