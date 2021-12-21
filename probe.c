@@ -51,8 +51,8 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char* versionString = "probe: version 2.19.211209, Copyright 1996-2016, J. Michael Word; 2021 Richardson Lab";
-static char* shortVersionStr = "probe.2.19.211209";
+static char* versionString = "probe: version 2.20.211221, Copyright 1996-2016, J. Michael Word; 2021 Richardson Lab";
+static char* shortVersionStr = "probe.2.20.211221";
 static char *referenceString = "Word, et. al. (1999) J. Mol. Biol. 285, 1711-1733.";
 static char *electronicReference = "http://kinemage.biochem.duke.edu/";
 
@@ -112,21 +112,21 @@ static int OutputVDWs    = TRUE; /* global controling display of contact categor
 static int OnlyBadOut = FALSE; /* global controling display of contact categories dcr041010*/
 static int ContactSUMMARY = FALSE; /* global controling output of contact summaries dcr041101*/
 
-static float Min_regular_hb_cutoff=0.6; /* globals controling hbond cutoff */
-static float Min_charged_hb_cutoff=0.8; /* defaults set in processCommandline() */
+static float Min_regular_hb_cutoff=0.6f; /* globals controling hbond cutoff */
+static float Min_charged_hb_cutoff=0.8f; /* defaults set in processCommandline() */
 static float RadScaleFactor       =1.0; /* global VDW radius scale Factor r*f */
 static float RadScaleOffset       =0.0; /* global VDW radius scale Offset r+o */
-static float CORadScale   =(1.65/ATOMC_EXPLICIT_VDW); /* global VDW radius scale Factor for C=O */
+static float CORadScale   =(float)(1.65/ATOMC_EXPLICIT_VDW); /* global VDW radius scale Factor for C=O */
 static float GAPweight            =0.25;/* global raw GAP score weight */
 static float BUMPweight           =10.0;/* global raw BUMP score scale Factor */
 static float HBweight             = 4.0;/* global raw HBond score scale Factor */
 static float CHOHBfactor          = 0.5;/* global CH..O HBond score scale Factor */
 
-static float LowGoodCut           =-0.4;/* global cutoff for good bin */
+static float LowGoodCut           =-0.4f;/* global cutoff for good bin */
 static float HighGoodCut          = 0.25;/* global cutoff for good bin */
 static float WorseBumpCut         =-0.5; /* SJ 04/10/2015 - global cutoff for worse overlap*/
 
-static float OccupancyCutoff      =0.02; /* global occupancy below which atom has presence but no clashes */
+static float OccupancyCutoff      =0.02f; /* global occupancy below which atom has presence but no clashes */
    /*unfortunately, one needs intervening atoms to avoid clashes between atoms*/
    /*that are separated by <= Maxbonded, which thus needs to pass through any*/
    /*atom no matter what it's own occupancy happens to be */
@@ -398,7 +398,24 @@ int mainProbeProc(int argc, char **argv, FILE *outf)
             /*(returned param used on separate call for autobondrot processing)*/
             /*e.g. creates: newH->elem = atomHOd , dummy Hydrogen to make an H-Bond*/
          }
-         /*now do the real work: */
+
+    /* Dump the atom information if we've been asked to. */
+    if (dumpFileName) {
+      FILE* dumpFile = 0;
+      dumpFile = fopen(dumpFileName, "wb");
+      for (atom* a = allMainAtoms; a; a = a->next) {
+        fprintf(dumpFile, "%s %s %3d %-4s %c %7.3f %7.3f %7.3f %5.2f %s %s %s\n",
+          a->r->chain, a->r->resname, a->r->resid, a->atomname,
+          a->altConf == ' ' ? '-' : a->altConf,
+          a->loc.x, a->loc.y, a->loc.z, a->radius,
+          a->props& ACCEPTOR_PROP ? "isAcceptor" : "noAcceptor",
+          a->props& DONOR_PROP ? "isDonor" : "noDonor",
+          a->props& METAL_PROP ? "isMetallic" : "noMetallic");
+      }
+      fclose(dumpFile);
+    }
+
+   /*now do the real work: */
 	 doCommand(outf, method,
 	    allMainAtoms, abins, NULL, NULL,
 	    dots, probeRad, density, spikelen,
@@ -1608,14 +1625,14 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	    argcnt = 1;
 	    * srcArg = "not water";
 	    *keepUnselected = FALSE;
-	    *probeRad      = 1.4;
+	    *probeRad      = 1.4f;
 	    *groupLabel = "SCS";
 	 }
 	 else if(compArgStr(p+1, "EXPOSED", 4)){
 	    *method = EXTERNALSURFACE;
 	    nargs = 1;
 	    *keepUnselected = FALSE;
-	    *probeRad      = 1.4;
+	    *probeRad      = 1.4f;
 	    *groupLabel = "SCS";
 	 }
 	 else if(compArgStr(p+1, "ASURFACE", 2)){
@@ -1624,7 +1641,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	    argcnt = 1;
 	    * srcArg = "not water";
 	    *keepUnselected = FALSE;
-	    RadScaleOffset = 1.4;
+	    RadScaleOffset = 1.4f;
 	    *probeRad      = 0.0;
 	    *groupLabel = "AS";
 	 }
@@ -1632,7 +1649,7 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	    *method = EXTERNALSURFACE;
 	    nargs = 1;
 	    *keepUnselected = FALSE;
-	    RadScaleOffset = 1.4;
+	    RadScaleOffset = 1.4f;
 	    *probeRad      = 0.0;
 	    *groupLabel = "AS";
 	 }
@@ -2296,10 +2313,6 @@ atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
 
    initEndData(&endData);
 
-   FILE* dumpFile = 0;
-   if (dumpFileName) {
-     dumpFile = fopen(dumpFileName, "wb");
-   }
    while((rec = getPDBrecord(fp))) { /*loop over all records in pdb file*/
       if (isTer(rec)) {
          prevChain[0] = prevChain[1] = '?';
@@ -2338,16 +2351,6 @@ atom* loadAtoms(FILE *fp, atom *atomlist, region *boundingBox, int file,
 	    continue;
 	 }
 
-   if (dumpFile) {
-     fprintf(dumpFile, "%s %s %3d %-4s %c %7.3f %7.3f %7.3f %5.2f %s %s %s\n",
-       a->r->chain, a->r->resname, a->r->resid, a->atomname,
-       a->altConf == ' ' ? '-' : a->altConf,
-       a->loc.x, a->loc.y, a->loc.z, a->radius,
-       a->props & ACCEPTOR_PROP ? "isAcceptor" : "noAcceptor",
-       a->props & DONOR_PROP ? "isDonor" : "noDonor",
-       a->props & METAL_PROP ? "isMetallic" : "noMetallic");
-   }
-
 	 if (!atomlist) {
 	    boundingBox->min = a->loc;
 	    boundingBox->max = a->loc;
@@ -2384,10 +2387,6 @@ if(Verbose)
 }
       }
    }/*loop over all records in pdb file*/
-   if (dumpFile) {
-     fclose(dumpFile);
-     dumpFile = 0;
-   }
    if (rescnt) { resCheck(&endData, atomlist, rescnt); }
    CtermCheck(&endData, rescnt, TRUE);
 
@@ -2405,7 +2404,7 @@ atomBins* binAtoms(atom *theAtoms, region *boundingBox, char serialNum,
    atomBins *bins = NULL;
 
    bins = initBins(serialNum, boundingBox,
-	    2.0*(getMaxRadius(ImplicitH)+probeRad)+0.2);
+	    2.0f*(getMaxRadius(ImplicitH)+probeRad)+0.2f);
    if (bins) {
       for(a = theAtoms; a; a = a->next) {
 	 if (keepUnselected || (a->flags & selflags)) {
@@ -2701,7 +2700,7 @@ int atomsClose(atom *a, atom *b, float probeRad)
 
    lim = a->radius + b->radius + probeRad + probeRad;
 
-   dsq = v3distanceSq(&(a->loc), &(b->loc));
+   dsq = (float)v3distanceSq(&(a->loc), &(b->loc));
 
    /* if too close they must be the same atom...dummy atom?? */
 
@@ -3005,15 +3004,13 @@ void examineOneDotEach(atom *src, int type, atom *scratch,
    /*called from genDotIntersect() with same names except scratch==atomList2 */
    /*cloned and modified from examineDots to do only the OneDotEach option 111205*/
    /*111013 switch to dump details... 111202 now input param: -dotdump */
-   float neighborhoodsq,neighbor2dotsq;
    atom *holdsrc;
    atom *holdcause;
    int holdtype;
    point3d holddotloc;
    point3d holdspikeloc;
-   dotNode *holdresults;
    int holdovrlaptype;
-   float holdmingap = 999.9;
+   float holdmingap = 999.9f;
    char holdptmaster;
    int Lholdingdot = FALSE; /*111021dcr src and targ can have diff patterns*/
    int Lbetweenatoms = FALSE; /*111202dcr*/
@@ -3029,13 +3026,12 @@ void examineOneDotEach(atom *src, int type, atom *scratch,
    point3d targetloc, dotloc, dotvect, exploc, spikeloc;
    point3d gapvect, gaploc;
    point3d perploc; /*LOneDotEach occluder perpendicular to src-targ 111018*/
-   point3d distalloc,distalvec; /*point across gap from source dot 111024dcr*/
    pointSet *srcDots = NULL;
    char ptmaster = ' '; /*pointmaster character  dcr041009*/
    int idx = 0; /*dcr041020*/
    atom *parent = NULL; /*dcr20120120*/
    /*int LXHvector = TRUE;*/  /*dcr20120120  eventually commandline param*/
-   float XHdistance = 99.9;  /*dcr20120120*/
+   float XHdistance = 99.9f;  /*dcr20120120*/
    float XHTangle = 0.0;  /*dcr20120120*/
 
    if (src->elem == ignoreAtom)
@@ -3110,7 +3106,7 @@ void examineOneDotEach(atom *src, int type, atom *scratch,
            fprintf(stderr,"[src %s %s %s] DOT [%s %s %s] dotloc:%7.3f,%7.3f,%7.3f DOT\n",src->atomname,src->r->resname,src->r->Hy36resno,extratarg->atomname,extratarg->r->resname,extratarg->r->Hy36resno,dotloc.x,dotloc.y,dotloc.z);
 /* */
 
-      mingap = 999.9;
+      mingap = 999.9f;
       isaHB = tooCloseHB = FALSE;
       hbondbumpgap = 0.0;
       ok = FALSE; /*expect dot to be rejected*/
@@ -3456,8 +3452,8 @@ fprintf(stderr," NEIGHBOR [%s %s %s] BENIGN for src---targ interaction\n",targ->
 
          if(nearpt == 2) /*disasterously near, i.e. on top of each other*/
          {
-            sl = -((src->radius) +  (extratarg->radius))/2.0;
-            mingap = 2.0*LowGoodCut; /*force arbitrary bad clash*/
+            sl = -((src->radius) +  (extratarg->radius))/2.0f;
+            mingap = 2.0f*LowGoodCut; /*force arbitrary bad clash*/
             ovrlaptype =-1; /*disaster overlap == clash!! */
             /*spikeloc calc from src->radius + sl, sl=spikelen*mingap,*/
             /*spikelen = 0.50 OR input param*/
@@ -3673,7 +3669,7 @@ fprintf(stderr," NEIGHBOR [%s %s %s] BENIGN for src---targ interaction\n",targ->
                if(XHdistance < 1.2 && XHdistance > 0.1 )
                {/*parent atom for this Hydrogen*/
                   XHTangle = v3angle(&(parent->loc), &(src->loc), &(holdcause->loc));
-                  XHTangle = XHTangle*360/(2*3.14159265);
+                  XHTangle = XHTangle*360/(2*3.14159265f);
 
                    if(Ldotdump)
                        fprintf(stderr,"[src %s %s %s] :: [parent %s %s %s]*YES**about to saveDot:: mingap %8.3f, XHdistance: %8.3f, XHTangle: %8.3f HOLD\n",holdsrc->atomname,holdsrc->r->resname,holdsrc->r->Hy36resno,parent->atomname,parent->r->resname,parent->r->Hy36resno,holdmingap,XHdistance,XHTangle);
@@ -3747,7 +3743,7 @@ void examineDots(atom *src, int type, atom *scratch,
       v3add(&(src->loc), &dotvect, &exploc);
 
       ok = FALSE;
-      mingap = 999.9;
+      mingap = 999.9f;
       isaHB = tooCloseHB = FALSE;
       hbondbumpgap = 0.0;
 
@@ -4663,7 +4659,6 @@ void freeResults(dotNode *results[][NODEWIDTH])
 {
    int i, j;
    dotNode *node, *next;
-   atom * a;
 
    for (i = 0; i < NUMATOMTYPES; i++) {
       for (j = 0; j < NODEWIDTH; j++) {
@@ -4793,7 +4788,7 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
 {'z','y','x','w','v','u','t','g','r','q','f','F','Q','R','G','T','U','V','W','X','Y','Z'};
 /*0 , 1 , 2 , 3 , 4 , 5 , 6 , 7 , 8 , 9 ,10 ,11 ,12 ,13 ,14 ,15 ,16 ,17 ,18 ,19 ,20 ,21*/
    /*std gapbins scope at least -.5 to +.5, wider if probeRad > 0.25 standard*/
-   int  gaplimit = ((2*(probeRad>0.25?probeRad:0.25) +0.5)/0.05)+2;  /*20111220dcr*/
+   int  gaplimit = ((2*(probeRad>0.25f?probeRad:0.25f) +0.5f)/0.05f)+2;  /*20111220dcr*/
    long *gapcounts = (long *) malloc(gaplimit * sizeof(long));
    long maxgapcounts = 0;
    int  Lgotgapbin = FALSE;
@@ -6203,7 +6198,7 @@ atom* updateHydrogenInfo(FILE *outf, atom *allMainAtoms,   atomBins *abins,
               {
                  if (a->props & ACCEPTOR_PROP)
                  {/* bgn: if acceptor_prop */
-                    float hbgap = gapSize(&(a->loc), &(orig->loc), a->radius + 2.0);
+                    float hbgap = gapSize(&(a->loc), &(orig->loc), a->radius + 2.0f);
                     int   foundAromRingAtom = FALSE;
 
                     if (a->props & AROMATIC_PROP)
@@ -6514,6 +6509,7 @@ fprintf(outf,"04/16/2015 - SJ added the -sepworse flag, if true will seperate th
 fprintf(outf,"09/24/2021 - RMT Version 2.17 Fixed crash when finding ambiguous Oxygens\n");
 fprintf(outf,"10/05/2021 - RMT Version 2.18 Makes default C=O radius scale depend on table value\n");
 fprintf(outf,"12/09/2021 - RMT Version 2.19 Adds commend-line argument to dump atom info\n");
+fprintf(outf,"12/21/2021 - RMT Version 2.20 Dumps atom information after hydrogens have been updated.\n");
 
 exit(0);
 
