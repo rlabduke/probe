@@ -51,8 +51,8 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char* versionString = "probe: version 2.20.211221, Copyright 1996-2016, J. Michael Word; 2021 Richardson Lab";
-static char* shortVersionStr = "probe.2.20.211221";
+static char* versionString = "probe: version 2.21.211221, Copyright 1996-2016, J. Michael Word; 2021 Richardson Lab";
+static char* shortVersionStr = "probe.2.21.211221";
 static char *referenceString = "Word, et. al. (1999) J. Mol. Biol. 285, 1711-1733.";
 static char *electronicReference = "http://kinemage.biochem.duke.edu/";
 
@@ -404,13 +404,16 @@ int mainProbeProc(int argc, char **argv, FILE *outf)
       FILE* dumpFile = 0;
       dumpFile = fopen(dumpFileName, "wb");
       for (atom* a = allMainAtoms; a; a = a->next) {
-        fprintf(dumpFile, "%s %s %3d %-4s %c %7.3f %7.3f %7.3f %5.2f %s %s %s\n",
-          a->r->chain, a->r->resname, a->r->resid, a->atomname,
-          a->altConf == ' ' ? '-' : a->altConf,
-          a->loc.x, a->loc.y, a->loc.z, a->radius,
-          a->props& ACCEPTOR_PROP ? "isAcceptor" : "noAcceptor",
-          a->props& DONOR_PROP ? "isDonor" : "noDonor",
-          a->props& METAL_PROP ? "isMetallic" : "noMetallic");
+        /* Don't dump Phantom Hydrogen information. */
+        if (a->elem != atomHOd) {
+          fprintf(dumpFile, "%s %s %3d %-4s %c %7.3f %7.3f %7.3f %5.2f %s %s %s\n",
+            a->r->chain, a->r->resname, a->r->resid, a->atomname,
+            a->altConf == ' ' ? '-' : a->altConf,
+            a->loc.x, a->loc.y, a->loc.z, a->radius,
+            a->props & ACCEPTOR_PROP ? "isAcceptor" : "noAcceptor",
+            a->props & DONOR_PROP ? "isDonor" : "noDonor",
+            a->props & METAL_PROP ? "isMetallic" : "noMetallic");
+        }
       }
       fclose(dumpFile);
     }
@@ -6510,6 +6513,7 @@ fprintf(outf,"09/24/2021 - RMT Version 2.17 Fixed crash when finding ambiguous O
 fprintf(outf,"10/05/2021 - RMT Version 2.18 Makes default C=O radius scale depend on table value\n");
 fprintf(outf,"12/09/2021 - RMT Version 2.19 Adds commend-line argument to dump atom info\n");
 fprintf(outf,"12/21/2021 - RMT Version 2.20 Dumps atom information after hydrogens have been updated.\n");
+fprintf(outf,"12/21/2021 - RMT Version 2.21 Does not dump Phantom Hydrogen information.\n");
 
 exit(0);
 
