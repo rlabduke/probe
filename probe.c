@@ -204,7 +204,7 @@ int mainProbeProc(int argc, char **argv, FILE *outf)
    int method;
    int keepUnselected;
    region boundingBoxA;
-   atom *allMainAtoms = NULL;
+   atom *a, *allMainAtoms = NULL;
    atomBins *abins = NULL;
    pointSet dots[NUMATOMTYPES];
    char *srcArg=NULL, *targArg=NULL, *extraArg=NULL, *ignoreArg=NULL; /* extraArg dcr 111022*/
@@ -215,6 +215,7 @@ int mainProbeProc(int argc, char **argv, FILE *outf)
    char message[200];
    movingAtomBuildInfo mabis;
    residue *resLst = NULL;
+   FILE* dumpFile = NULL;
 
    /*mabis moving atom build info structure */
    /*buffer to pass data to newMovingAtom for autobondrot*/
@@ -401,9 +402,7 @@ int mainProbeProc(int argc, char **argv, FILE *outf)
 
     /* Dump the atom information if we've been asked to. */
     if (dumpFileName) {
-      FILE* dumpFile = 0;
       dumpFile = fopen(dumpFileName, "wb");
-      atom* a;
       for (a = allMainAtoms; a; a = a->next) {
         /* Don't dump Phantom Hydrogen information. */
         if (a->elem != atomHOd) {
