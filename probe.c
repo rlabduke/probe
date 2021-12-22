@@ -403,7 +403,8 @@ int mainProbeProc(int argc, char **argv, FILE *outf)
     if (dumpFileName) {
       FILE* dumpFile = 0;
       dumpFile = fopen(dumpFileName, "wb");
-      for (atom* a = allMainAtoms; a; a = a->next) {
+      atom* a;
+      for (a = allMainAtoms; a; a = a->next) {
         /* Don't dump Phantom Hydrogen information. */
         if (a->elem != atomHOd) {
           fprintf(dumpFile, "%s %s %3d %-4s %c %7.3f %7.3f %7.3f %5.2f %s %s %s\n",
