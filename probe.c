@@ -51,8 +51,8 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char* versionString = "probe: version 2.21.211221, Copyright 1996-2016, J. Michael Word; 2021 Richardson Lab";
-static char* shortVersionStr = "probe.2.21.211221";
+static char* versionString = "probe: version 2.22.033122, Copyright 1996-2016, J. Michael Word; 2021-2022 Richardson Lab";
+static char* shortVersionStr = "probe.2.22.033122";
 static char *referenceString = "Word, et. al. (1999) J. Mol. Biol. 285, 1711-1733.";
 static char *electronicReference = "http://kinemage.biochem.duke.edu/";
 
@@ -6509,11 +6509,13 @@ fprintf(outf,"2.15.130427 version number change for merged code! \n");
 fprintf(outf,"2.16.130509 jjh added support for segid instead of chaind\n");
 fprintf(outf,"2.16.130520 jjh fixed bug in segid handling\n");
 fprintf(outf,"04/16/2015 - SJ added the -sepworse flag, if true will seperate the overlaps of >= 0.4 and overlaps of >=0.5. This is default by false. Had to change NODEWIDTH value (see probe.h)\n One can change the 0.5 cutoff for worse overlap by specifying the flag DIVWorse\n");
-fprintf(outf,"09/24/2021 - RMT Version 2.17 Fixed crash when finding ambiguous Oxygens\n");
-fprintf(outf,"10/05/2021 - RMT Version 2.18 Makes default C=O radius scale depend on table value\n");
-fprintf(outf,"12/09/2021 - RMT Version 2.19 Adds commend-line argument to dump atom info\n");
-fprintf(outf,"12/21/2021 - RMT Version 2.20 Dumps atom information after hydrogens have been updated.\n");
-fprintf(outf,"12/21/2021 - RMT Version 2.21 Does not dump Phantom Hydrogen information.\n");
+fprintf(outf,"09/24/2021 - RMT Version 2.17 fixed crash when finding ambiguous Oxygens\n");
+fprintf(outf,"10/05/2021 - RMT Version 2.18 makes default C=O radius scale depend on table value\n");
+fprintf(outf,"12/09/2021 - RMT Version 2.19 adds commend-line argument to dump atom info\n");
+fprintf(outf,"12/21/2021 - RMT Version 2.20 dumps atom information after hydrogens have been updated.\n");
+fprintf(outf,"12/21/2021 - RMT Version 2.21 does not dump Phantom Hydrogen information.\n");
+fprintf(outf,"03/31/2022 - RMT Version 2.22 does not mark Nitrogens in the HIS ring or atoms in the.\n");
+fprintf(outf,"   TRP 5-membered ring as acceptors.  Too many side contacts are made to these rings.\n");
 
 exit(0);
 
