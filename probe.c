@@ -51,8 +51,8 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char* versionString = "probe: version 2.22.033122, Copyright 1996-2016, J. Michael Word; 2021-2022 Richardson Lab";
-static char* shortVersionStr = "probe.2.22.033122";
+static char* versionString = "probe: version 2.23.040422, Copyright 1996-2016, J. Michael Word; 2021-2022 Richardson Lab";
+static char* shortVersionStr = "probe.2.23.040422";
 static char *referenceString = "Word, et. al. (1999) J. Mol. Biol. 285, 1711-1733.";
 static char *electronicReference = "http://kinemage.biochem.duke.edu/";
 
@@ -5219,6 +5219,7 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
          {/*kinemage point or point-line for each node in (ij)th dot-node list*/
            a = node->a; /*owner of dot*/
            t = node->t; /*cause of dot, use for OneDotEach 111013dcr*/
+           /* Slow way to determine integer truncation of k/5 with a maximum of 9. */
            for(k=0; k<10; k++){if(a->bval < k*5) {break;}}
            /*2:10A,3:15B,4:20C,5:25D,6:30E,8:40F,10:50G*/
            if(k<=2){ptm[0] = 'A';}
@@ -5226,8 +5227,8 @@ void writeOutput(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH], int
            else if(k<=4){ptm[0] = 'C';}
            else if(k<=5){ptm[0] = 'D';}
            else if(k<=6){ptm[0] = 'E';}
-           else if(k<=2){ptm[0] = 'F';}
-           else if(k<=2){ptm[0] = 'G';}
+           else if(k<=7){ptm[0] = 'F';}
+           else if(k<=8){ptm[0] = 'G';}
            else{ptm[0] = 'H';}
            /*Note first nemdstr char of inputfilename 20120120dcr*/
            fprintf(outf,"{%6s %s%c%s%s%c%s:O=%4.2f, B=%6.2f; %s%c%s%s%c%s:O=%4.2f, B=%6.2f; GAP %6.3f}'%s' %8.3f, %8.3f , %8.3f\n",
@@ -6514,8 +6515,9 @@ fprintf(outf,"10/05/2021 - RMT Version 2.18 makes default C=O radius scale depen
 fprintf(outf,"12/09/2021 - RMT Version 2.19 adds commend-line argument to dump atom info\n");
 fprintf(outf,"12/21/2021 - RMT Version 2.20 dumps atom information after hydrogens have been updated.\n");
 fprintf(outf,"12/21/2021 - RMT Version 2.21 does not dump Phantom Hydrogen information.\n");
-fprintf(outf,"03/31/2022 - RMT Version 2.22 does not mark Nitrogens in the HIS ring or atoms in the.\n");
+fprintf(outf,"03/31/2022 - RMT Version 2.22 does not mark Nitrogens in the HIS ring or atoms in the\n");
 fprintf(outf,"   TRP 5-membered ring as acceptors.  Too many side contacts are made to these rings.\n");
+fprintf(outf,"04/04/2022 - RMT Version 2.22 fixes copy/paste bug to allow F and G pointmasters.\n");
 
 exit(0);
 
