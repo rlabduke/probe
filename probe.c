@@ -51,8 +51,8 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char* versionString = "probe: version 2.23.040422, Copyright 1996-2016, J. Michael Word; 2021-2022 Richardson Lab";
-static char* shortVersionStr = "probe.2.23.040422";
+static char* versionString = "probe: version 2.24.092922, Copyright 1996-2016, J. Michael Word; 2021-2022 Richardson Lab";
+static char* shortVersionStr = "probe.2.24.092922";
 static char *referenceString = "Word, et. al. (1999) J. Mol. Biol. 285, 1711-1733.";
 static char *electronicReference = "http://kinemage.biochem.duke.edu/";
 
@@ -5573,7 +5573,14 @@ dotNode * Condense(dotNode * head, int conFlag)
 			 	 sprintf(jTarget,"%s%4.4s%c%s %s%c",target->r->chain,target->r->Hy36resno,
 			 	 	target->r->resInsCode,target->r->resname,target->atomname,target->altConf);
 			 	 //jTarget[17]='\0';
-			 	 if(strcmp(jTarget,minTarget) < 0) // if the target atom of j is less than that of the min then swap it
+                 // if the target atom of j is less than that of the min then swap it:
+                 // also swap if the names are the same but the gap is less so that we
+                 // get the list sorted from smallest (most negative) to largest gap.
+                 // This will be important when we are using condensed output so that we
+                 // pick the node with the smallest gap.
+                 if ( (strcmp(jTarget,minTarget) < 0) ||
+                     ((strcmp(jTarget, minTarget) == 0) && (j->gap < minNode->gap) )
+                    )
 			 	 {
 			 	 	 strcpy(minTarget,jTarget);
 			 	 	 minNode = j;
@@ -6517,7 +6524,8 @@ fprintf(outf,"12/21/2021 - RMT Version 2.20 dumps atom information after hydroge
 fprintf(outf,"12/21/2021 - RMT Version 2.21 does not dump Phantom Hydrogen information.\n");
 fprintf(outf,"03/31/2022 - RMT Version 2.22 does not mark Nitrogens in the HIS ring or atoms in the\n");
 fprintf(outf,"   TRP 5-membered ring as acceptors.  Too many side contacts are made to these rings.\n");
-fprintf(outf,"04/04/2022 - RMT Version 2.22 fixes copy/paste bug to allow F and G pointmasters.\n");
+fprintf(outf,"04/04/2022 - RMT Version 2.23 fixes copy/paste bug to allow F and G pointmasters.\n");
+fprintf(outf,"09/29/2022 - RMT Version 2.24 sorts raw dots by increasing gap, providing smallest for condensed output.\n");
 
 exit(0);
 
