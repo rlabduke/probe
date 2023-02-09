@@ -51,8 +51,8 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char* versionString = "probe: version 2.24.092922, Copyright 1996-2016, J. Michael Word; 2021-2022 Richardson Lab";
-static char* shortVersionStr = "probe.2.24.092922";
+static char* versionString = "probe: version 2.25.020823, Copyright 1996-2016, J. Michael Word; 2021-2023 Richardson Lab";
+static char* shortVersionStr = "probe.2.25.020823";
 static char *referenceString = "Word, et. al. (1999) J. Mol. Biol. 285, 1711-1733.";
 static char *electronicReference = "http://kinemage.biochem.duke.edu/";
 
@@ -6526,6 +6526,7 @@ fprintf(outf,"03/31/2022 - RMT Version 2.22 does not mark Nitrogens in the HIS r
 fprintf(outf,"   TRP 5-membered ring as acceptors.  Too many side contacts are made to these rings.\n");
 fprintf(outf,"04/04/2022 - RMT Version 2.23 fixes copy/paste bug to allow F and G pointmasters.\n");
 fprintf(outf,"09/29/2022 - RMT Version 2.24 sorts raw dots by increasing gap, providing smallest for condensed output.\n");
+fprintf(outf,"02/08/2023 - RMT Version 2.25 makes the Nigrogens in TRP and HIS 5-membered rings acceptors.\n");
 
 exit(0);
 
