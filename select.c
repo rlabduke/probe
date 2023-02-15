@@ -64,10 +64,10 @@ static ResidueAndAtomPair AromaticAtomsTbl[] = {
 ":HIS:", ": ND1: CD2: CE1: NE2: CG :", 0,
 ":TYR:", ": CG : CD1: CD2: CE1: CE2: CZ :",                TEST_ACCEPT_ANGLE_PROP,
 // The 5-membered ring is not treated as an aromatic acceptor face, but the 6-membered
-// ring is. The nitrogen remains a possible acceptor because it can be unprotonated.
+// ring is. The Nitrogen is not an acceptor because it is protonated.
 //":TRP:", ": CG : CD1: CD2: NE1: CE2: CE3: CZ2: CZ3: CH2:", TEST_ACCEPT_ANGLE_PROP,
-":TRP:", ": CG : CD1:", 0,
-":TRP:", ": CD2: NE1: CE2: CE3: CZ2: CZ3: CH2:", TEST_ACCEPT_ANGLE_PROP,
+":TRP:", ": CG : CD1: NE1:", 0,
+":TRP:", ": CD2: CE2: CE3: CZ2: CZ3: CH2:", TEST_ACCEPT_ANGLE_PROP,
 ":  U:URA:UTP:UDP:UMP:PSU: UR:",
                ": N1 : C2 : N3 : C4 : C5 : C6 :",               TEST_ACCEPT_ANGLE_PROP,
 ":  T:THY:TTP:TDP:TMP:5MU: DT: TR:",
