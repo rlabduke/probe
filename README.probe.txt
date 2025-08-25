@@ -1,3 +1,18 @@
+
+** Deprecation Notice **
+
+This version of probe is being replaced by probe2, which is integrated into the CCTBX
+project as described at https://github.com/cctbx/cctbx_project/tree/master/mmtbx/probe
+with additional development being done there.  The probe2 program handle native CIF file
+input and is being maintained with ongoing file-format and other changes.  Probe2 is
+slower than probe and there are a few corner-case files where it does not work, but it
+produces more accurate results in most cases.
+
+** License **
+
+As of 8/25/2025, this code is licensed under the Apache License, Version 2.0 (the "License");
+see the LICENSE.txt file included with this distribution for more information.
+
 README.probe                                                 JMW - 7/25/01
 
 The program "probe" generates "contact dots" at points on the van der Waals
