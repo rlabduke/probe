@@ -51,8 +51,8 @@
 
 #define INLINE_FOR_SPEED 1
 
-static char* versionString = "probe: version 2.26.021123, Copyright 1996-2016, J. Michael Word; 2021-2023 Richardson Lab";
-static char* shortVersionStr = "probe.2.26.021123";
+static char* versionString = "probe: version 2.27.101226, Copyright 1996-2016, J. Michael Word; 2021-2026 Richardson Lab";
+static char* shortVersionStr = "probe.2.27.101226";
 static char *referenceString = "Word, et. al. (1999) J. Mol. Biol. 285, 1711-1733.";
 static char *electronicReference = "http://kinemage.biochem.duke.edu/";
 
@@ -2039,6 +2039,9 @@ void hisNHcheck(chainEndData_t *ed, atom *atomlist, int rescnt)
    if (ed->hisNHcount[0]) { /* the zeroth counter flags: Is this a HIS? */
       /*is a histidine*/
       for(rat = atomlist; rat; rat = rat->next) {
+	 /* loadAtoms() puts each atom at the head of the list, so this
+	    residue's atoms come first: stop at the first earlier one */
+	 if (rat->r->rescnt < rescnt) { break; }
 	 if ((rat->r->rescnt == rescnt) && (rat->props & POSITIVE_PROP)) {
 	    char altc = toupper(rat->altConf);
 	    int ialt = 0;
@@ -6528,6 +6531,7 @@ fprintf(outf,"04/04/2022 - RMT Version 2.23 fixes copy/paste bug to allow F and 
 fprintf(outf,"09/29/2022 - RMT Version 2.24 sorts raw dots by increasing gap, providing smallest for condensed output.\n");
 fprintf(outf,"02/08/2023 - RMT Version 2.25 makes the Nitrogens in TRP and HIS 5-membered rings acceptors.\n");
 fprintf(outf,"02/11/2023 - RMT Version 2.26 makes the Nitrogen in TRP not an acceptor.\n");
+fprintf(outf,"10/12/2026 - RMT Version 2.27 adds speedup submitted by @aozalevsky.\n");
 
 exit(0);
 
