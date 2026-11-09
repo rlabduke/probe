@@ -82,6 +82,8 @@ static int DoHet     = TRUE;  /* global controling non-Water HET dots   */
 static int DoH2O     = TRUE;  /* global controling Water dots           */
 static int DoWatWat  = FALSE; /* global controling water->water dots */
 static int LimitDots = TRUE;  /* global controling chopping around bumps*/
+static int ExactExtrema = FALSE; /* global: -EXTREMA, add dots at exact worst-overlap points */
+static int ExtraDotNow = FALSE;  /* set while saveDot() stores a -EXTREMA dot */
 static int LensDots  = FALSE; /* global controling lens keyword in kin file*/
 static int ColorGap  = TRUE;  /* global controling coloration of Gaps   */
 static int ByNABaseColor= FALSE;  /* global controling coloration of dots */
@@ -1305,6 +1307,7 @@ else { /*longlist option*/
    fprintf(stderr, "  -NOHBOUT     do not output contacts for HBonds\n");
    fprintf(stderr, "  -NOCLASHOUT  do not output contacts for clashes\n");
    fprintf(stderr, "  -NOVDWOUT    do not output contacts for van der Waals interactions\n");
+   fprintf(stderr, "  -EXTREMA     also test dots at the exact worst-overlap points of close pairs\n");
    fprintf(stderr, "  -ONLYBADOUT  onlybadout output bad clashes (severe overlap contacts)\n"); /*dcr041010*/
    fprintf(stderr, "  -SUMMARY     output summary list of contacts and clashes\n"); /*dcr041101*/
    fprintf(stderr, "  -ONELINE     output summary list on oneline\n"); /*dcr041101*/
@@ -1847,6 +1850,9 @@ atom* processCommandline(int argc, char **argv, int *method, region *bboxA,
 	 }
 	 else if(compArgStr(p+1, "NOVDWOUT", 8)){
 	    OutputVDWs = FALSE;
+	 }
+	 else if(compArgStr(p+1, "EXTREMA", 7)){
+	    ExactExtrema = TRUE;
 	 }
 	 else if(compArgStr(p+1, "ONLYBADOUT", 10)){ /*dcr041010*/
 	    OnlyBadOut = TRUE;
@@ -2985,6 +2991,7 @@ dotNode* newDot(atom *src, atom* targ, point3d *loc, point3d *spike,
       d->gap   = gap;
       d->ptmaster   = masterchr; /*dcr041009*/
       d->angle = angle; /* XHTangle dcr20120120*/
+      d->extra = (char)ExtraDotNow;
    }
    else warn("could not allocate space for new dot");
 
@@ -3697,6 +3704,663 @@ fprintf(stderr," NEIGHBOR [%s %s %s] BENIGN for src---targ interaction\n",targ->
 }/*examineOneDotEach()*/
 /*}}}examineOneDotEach()_____________________________________________________*/
 
+/*{{{extremaDots()*** -EXTREMA: dots at the exact worst-overlap points *********/
+/* With -EXTREMA, examineDots() also examines a few dots that are placed
+ * analytically for each close pair (src, t), after the dot sphere.
+ *
+ * Why: the worst gap reported for a pair is the minimum over the dots that
+ * Probe keeps for it. On a finite dot sphere that minimum is above the true
+ * one (less overlap), by an amount that depends on where the dots happen to
+ * fall, so it also changes when the model is rotated. Pairs close to the
+ * bad-overlap cut are then counted or not depending on orientation.
+ *
+ * Which pairs: those whose centre overlap r_s + r_t - d_t can reach the
+ * bad-overlap cut (for a pair that can H-bond, the cut plus the H-bond
+ * cutoff, since only a too-close H-bond counts as a clash).
+ *
+ * Geometry. A dot is the surface point p = c_s + r_s n of src, n a unit
+ * vector. With u_t the unit vector from c_s to t's centre c_t, and d_t their
+ * distance, the distance from the dot to c_t is
+ *
+ *     rho^2 = |p - c_t|^2 = r_s^2 + d_t^2 - 2 r_s d_t (n.u_t),
+ *
+ * and the gap to t is rho - r_t. So the gap depends on n only through
+ * y = n.u_t, and it gets more negative as y grows: the worst gap Probe can
+ * report for (src, t) is reached at the largest n.u_t among the dots that
+ * Probe keeps for t. Conversely, y and rho determine each other:
+ *
+ *     y = Y(rho) = (r_s^2 + d_t^2 - rho^2) / (2 r_s d_t).                (1)
+ *
+ * The per-dot rules of examineDots(), written as regions of the unit sphere:
+ *   - the dot touches t: rho < r_t, i.e. n.u_t > y0 (a cap around u_t);
+ *   - it is outside every atom m bonded to src (mark != 0): |p - c_m| >= r_m,
+ *     i.e. n.u_m <= lam_m = (r_s^2 + d_m^2 - r_m^2) / (2 r_s d_m). A cap
+ *     around u_m is removed; its edge is a circle, the "exclusion circle";
+ *   - t is its nearest eligible atom: for every other atom a that could take
+ *     the dot, gap(a) >= gap(t), i.e. |p - c_a| >= rho + (r_a - r_t). The
+ *     edge of that region (the "border" with a) is the curve
+ *     |p - c_a| - |p - c_t| = r_a - r_t on the sphere, in general not a
+ *     circle. At fixed rho, i.e. on a fixed latitude circle about u_t, it is a
+ *     cap condition again: n.u_a <= A(rho), with
+ *
+ *     A(rho) = (r_s^2 + d_a^2 - (rho + r_a - r_t)^2) / (2 r_s d_a).       (2)
+ *
+ * Where the maximum is. We maximise the linear function n.u_t over a region
+ * of the sphere bounded by exclusion circles and borders. At the maximum
+ * either no constraint is active (then n = u_t), or one boundary is active
+ * and the latitude circle about u_t is tangent to it (the point of that
+ * boundary nearest u_t), or two boundaries meet there (a corner). So the
+ * worst kept gap is reached at one of these points:
+ *   1. the point facing t, n = u_t;
+ *   2. the point of an exclusion circle nearest u_t. It lies on the great
+ *      circle through u_t and u_m: n = lam_m u_m + sqrt(1 - lam_m^2) e, where
+ *      e is the unit vector along u_t - (u_t.u_m) u_m. Closed form;
+ *   3. a crossing of two exclusion circles: n.u_1 = lam_1, n.u_2 = lam_2,
+ *      |n| = 1, so n = x u_1 + y u_2 +/- z (u_1 x u_2). Closed form;
+ *   4. the point of a border nearest u_t. By symmetry it lies on the great
+ *      circle through u_t and u_a: n = Y u_t + sqrt(1 - Y^2) w, where w is the
+ *      unit vector along u_a - c u_t and c = u_a.u_t. Then
+ *      n.u_a = c Y + s sqrt(1 - Y^2), with s = sqrt(1 - c^2), and setting it
+ *      equal to A gives s^2 (1 - Y^2) = (A - c Y)^2: a quartic in rho, since
+ *      Y and A are quadratics in rho (1, 2);
+ *   5. a crossing of an exclusion circle and a border: n.u_t = Y(rho),
+ *      n.u_m = lam_m, n.u_a = A(rho). Solving this 3x3 linear system for n
+ *      gives n = v0 + v1 rho + v2 rho^2, and |n|^2 = 1 is a quartic in rho;
+ *   6. a crossing of two borders (e.g. both phantom H of a water):
+ *      n.u_t = Y(rho), n.u_a = A(rho), n.u_b = B(rho), solved the same way.
+ * The real roots of each quartic are found by isolating them between the
+ * roots of its derivatives (extPolyRoots()). Degenerate geometry has no single
+ * nearest point, and is sampled instead (EXT_NSCAN samples, then bisection):
+ *   - an atom centred on the axis (u_a = +-u_t): its border is itself a
+ *     latitude circle about u_t;
+ *   - an exclusion circle centred on the axis: all its points are equally near;
+ *   - three nearly coplanar directions: the 3x3 system is singular.
+ *
+ * Each point is then moved off its defining boundaries into the allowed side,
+ * by the smallest step (from EXT_STEP_MIN, doubling) for which every
+ * constraint of the pair holds with a margin that Probe's own tests resolve
+ * (double distances, float gaps). It then goes through the normal per-dot
+ * code in examineDots(), so all of Probe's rules decide whether and how it
+ * counts; only bumps are kept. Extra dots are real surface points: they can
+ * only reveal overlap that is there. Without -EXTREMA nothing changes.
+ */
+#define EXT_STEP_MIN 1.0e-9
+#define EXT_STEP_MAX 1.0e-3
+#define EXT_NSCAN 512
+#define EXT_PI 3.14159265358979323846
+
+typedef struct {
+   double u[3];   /* unit vector from src to the atom */
+   double d, r;   /* centre distance and radius */
+   double lam;    /* the atom's sphere meets src's surface at n.u = lam */
+   atom *at;      /* the atom itself, for Probe's own tests in extAllowed() */
+} extNbr;
+
+typedef struct {  /* one directed pair src -> t and its constraints */
+   atom *src;
+   double rs, y0;          /* src radius; overlap with t <=> n.u_t >= y0 */
+   const extNbr *t;
+   const extNbr *msk; int nm;   /* exclusion circles that reach the cap */
+   const extNbr *cmp; int nc;   /* atoms that can take a dot from t there */
+} extPair;
+
+typedef struct { point3d *p; int n, cap; } extList;
+
+static double extMax(double a, double b) { return a > b ? a : b; }
+static double extMin(double a, double b) { return a < b ? a : b; }
+
+static double extDot(const double *a, const double *b)
+{
+   return a[0]*b[0] + a[1]*b[1] + a[2]*b[2];
+}
+
+static int extUnit(double *v)
+{
+   double s = sqrt(extDot(v, v));
+   if (s < 1.0e-12) { return 0; }
+   v[0] /= s; v[1] /= s; v[2] /= s;
+   return 1;
+}
+
+static void extCross(const double *a, const double *b, double *c)
+{
+   c[0] = a[1]*b[2] - a[2]*b[1];
+   c[1] = a[2]*b[0] - a[0]*b[2];
+   c[2] = a[0]*b[1] - a[1]*b[0];
+}
+
+/* distance from the surface point rs*n (relative to src) to the centre of a */
+static double extRho(double rs, const double *n, const extNbr *a)
+{
+   double q = rs*rs + a->d*a->d - 2.0*rs*a->d*extDot(n, a->u);
+   return sqrt(q > 0.0 ? q : 0.0);
+}
+
+/* gap(a) - gap(t) at n: > 0 when t, not a, is the nearer atom */
+static double extBorder(const extPair *P, const double *n, const extNbr *a)
+{
+   return (extRho(P->rs, n, a) - a->r) - (extRho(P->rs, n, P->t) - P->t->r);
+}
+
+/* spacing of float numbers near x (gaps are compared as floats) */
+static double extFloatUlp(double x)
+{
+   int e;
+   frexp(extMax(fabs(x), 1.0/1024.0), &e);
+   return ldexp(1.0, e - 24);
+}
+
+/* Does Probe keep the dot rs*n for t? Same arithmetic as examineDots(): the dot
+   location is src->loc + dotvect, bonded atoms use INRANGEINLINE (float r*r),
+   gaps are gapSize() floats. Small margins absorb compiler differences. */
+static int extAllowed(const extPair *P, const double *n)
+{
+   point3d dv, dl;
+   float gt, ga;
+   int k;
+   if (extDot(n, P->t->u) < P->y0) { return 0; }
+   dv.x = P->rs*n[0]; dv.y = P->rs*n[1]; dv.z = P->rs*n[2];
+   v3add(&(P->src->loc), &dv, &dl);
+   for (k = 0; k < P->nm; k++) {
+      atom *b = P->msk[k].at;
+      float rr = b->radius*b->radius;
+      double d2 = ((dl.x - b->loc.x)*(dl.x - b->loc.x)) + ((dl.y - b->loc.y)*(dl.y - b->loc.y))
+                + ((dl.z - b->loc.z)*(dl.z - b->loc.z));
+      if (d2 <= (double)rr*(1.0 + 1.0e-12)) { return 0; }
+   }
+   gt = gapSize(&dl, &(P->t->at->loc), P->t->at->radius);
+   for (k = 0; k < P->nc; k++) {
+      ga = gapSize(&dl, &(P->cmp[k].at->loc), P->cmp[k].at->radius);
+      if ((double)ga - (double)gt < 2.0*extFloatUlp(gt)) { return 0; }
+   }
+   return 1;
+}
+
+/* tangential unit vector of v at n (zero if parallel) */
+static void extTangent(const double *v, const double *n, double *g)
+{
+   double c = extDot(v, n);
+   g[0] = v[0] - c*n[0]; g[1] = v[1] - c*n[1]; g[2] = v[2] - c*n[2];
+   if (!extUnit(g)) { g[0] = g[1] = g[2] = 0.0; }
+}
+
+/* n0 lies on the boundaries of masks m1, m2 and/or borders with a1, a2 (at most
+   two of them). Step into the allowed side along x, with g.x = 1 for each
+   boundary's inward unit normal g (so a thin wedge is entered too), by the
+   smallest step for which extAllowed() holds, and keep that point. */
+static void extEmit(extList *L, const extPair *P, const double *n0,
+                    const extNbr *m1, const extNbr *m2, const extNbr *a1, const extNbr *a2)
+{
+   double n[3], p[3], x[3] = {0.0, 0.0, 0.0}, g[4][3], gr[3], c, step;
+   int ng = 0, j, k, ok = FALSE;
+   const extNbr *a[2];
+
+   a[0] = a1; a[1] = a2;
+   n[0] = n0[0]; n[1] = n0[1]; n[2] = n0[2];
+   if (!extUnit(n)) { return; }
+   if (m1) { extTangent(m1->u, n, g[ng]); for (k = 0; k < 3; k++) { g[ng][k] = -g[ng][k]; } ng++; }
+   if (m2) { extTangent(m2->u, n, g[ng]); for (k = 0; k < 3; k++) { g[ng][k] = -g[ng][k]; } ng++; }
+   for (j = 0; j < 2; j++) {   /* gradient of extBorder() */
+      if (a[j]) {
+         double ka = -P->rs*a[j]->d / extMax(extRho(P->rs, n, a[j]), 1.0e-12);
+         double kt = P->rs*P->t->d / extMax(extRho(P->rs, n, P->t), 1.0e-12);
+         for (k = 0; k < 3; k++) { gr[k] = ka*a[j]->u[k] + kt*P->t->u[k]; }
+         extTangent(gr, n, g[ng]); ng++;
+      }
+   }
+   if (ng == 0) {
+      p[0] = n[0]; p[1] = n[1]; p[2] = n[2];
+      ok = extAllowed(P, p);
+   }
+   else {
+      if (ng == 1) { for (k = 0; k < 3; k++) { x[k] = g[0][k]; } }
+      else {
+         c = extDot(g[0], g[1]);
+         if (c < -1.0 + 1.0e-12) { return; }   /* boundaries touch: no area */
+         for (k = 0; k < 3; k++) { x[k] = (g[0][k] + g[1][k]) / (1.0 + c); }
+      }
+      for (step = EXT_STEP_MIN; step <= EXT_STEP_MAX && !ok; step *= 2.0) {
+         for (k = 0; k < 3; k++) { p[k] = n[k] + step*x[k]; }
+         ok = extUnit(p) && extAllowed(P, p);
+      }
+   }
+   if (!ok) { return; }
+   if (L->n >= L->cap) {
+      int cap = L->cap ? 2*L->cap : 64;
+      point3d *q = (point3d *)realloc(L->p, cap*sizeof(point3d));
+      if (!q) { return; }   /* keep what we have */
+      L->p = q; L->cap = cap;
+   }
+   L->p[L->n].x = P->rs*p[0]; L->p[L->n].y = P->rs*p[1]; L->p[L->n].z = P->rs*p[2];
+   L->n++;
+}
+
+/*---- polynomials in rho, coefficients in ascending order ----*/
+static double extPolyEval(const double *c, int deg, double x)
+{
+   double v = 0.0;
+   int i;
+   for (i = deg; i >= 0; i--) { v = v*x + c[i]; }
+   return v;
+}
+
+/* real roots of the polynomial in [lo, hi]: the roots of its derivative split
+   [lo, hi] into pieces on which it is monotone; bisect each sign change, and
+   keep a critical point where the polynomial touches zero. Returns the count. */
+static int extPolyRoots(const double *c, int deg, double lo, double hi, double *out)
+{
+   double d[4], cp[6], a, b, fa, fb, m, fm, scale = 0.0;
+   int ncp, i, it, n = 0;
+
+   while (deg > 0 && c[deg] == 0.0) { deg--; }
+   if (deg <= 0 || hi < lo) { return 0; }
+   if (deg == 1) {
+      m = -c[0] / c[1];
+      if (m >= lo && m <= hi) { out[n++] = m; }
+      return n;
+   }
+   for (i = 0; i <= deg; i++) { scale += fabs(c[i])*pow(extMax(1.0, extMax(fabs(lo), fabs(hi))), i); }
+   for (i = 1; i <= deg; i++) { d[i-1] = i*c[i]; }
+   ncp = extPolyRoots(d, deg - 1, lo, hi, cp + 1);
+   cp[0] = lo; cp[ncp + 1] = hi;
+   for (i = 0; i <= ncp; i++) {
+      a = cp[i]; b = cp[i+1];
+      fa = extPolyEval(c, deg, a); fb = extPolyEval(c, deg, b);
+      if (fabs(fa) <= 1.0e-13*scale) {   /* root or touching zero at a */
+         if (n == 0 || a - out[n-1] > 1.0e-12) { out[n++] = a; }
+      }
+      else if (fabs(fb) > 1.0e-13*scale && (fa < 0.0) != (fb < 0.0)) {
+         for (it = 0; it < 200 && b - a > 1.0e-15; it++) {
+            m = 0.5*(a + b); fm = extPolyEval(c, deg, m);
+            if ((fm < 0.0) == (fa < 0.0)) { a = m; fa = fm; } else { b = m; }
+         }
+         out[n++] = 0.5*(a + b);
+      }
+   }
+   fb = extPolyEval(c, deg, hi);
+   if (fabs(fb) <= 1.0e-13*scale && (n == 0 || hi - out[n-1] > 1.0e-12)) { out[n++] = hi; }
+   return n;
+}
+
+static void extPolyMul2(const double *a, const double *b, double *out)   /* quadratics */
+{
+   int i, j;
+   for (i = 0; i < 5; i++) { out[i] = 0.0; }
+   for (i = 0; i < 3; i++) { for (j = 0; j < 3; j++) { out[i+j] += a[i]*b[j]; } }
+}
+
+/* n.u_t = Y(rho), eq. (1), and on the border with a, n.u_a = A(rho), eq. (2);
+   coefficients of 1, rho, rho^2 (see the comment above extremaDots()) */
+static void extYPoly(const extPair *P, double *y)
+{
+   double Q = 2.0*P->rs*P->t->d;
+   y[0] = (P->rs*P->rs + P->t->d*P->t->d) / Q; y[1] = 0.0; y[2] = -1.0 / Q;
+}
+
+static void extAPoly(const extPair *P, const extNbr *a, double *A)
+{
+   double D = a->r - P->t->r, Q = 2.0*P->rs*a->d;
+   A[0] = (P->rs*P->rs + a->d*a->d - D*D) / Q; A[1] = -2.0*D / Q; A[2] = -1.0 / Q;
+}
+
+/* rho range where the gap to t is <= 0 and the border points exist */
+static void extRhoRange(const extPair *P, const extNbr *a, const extNbr *b, double *lo, double *hi)
+{
+   *lo = fabs(P->rs - P->t->d);
+   if (a) { *lo = extMax(*lo, P->t->r - a->r); }
+   if (b) { *lo = extMax(*lo, P->t->r - b->r); }
+   *hi = P->t->r;
+}
+
+/* n with n.R[i] = p_i(rho) (quadratics) for three directions R: n = v0 + v1 rho + v2 rho^2,
+   and |n|^2 = 1 is a quartic. Returns 0 if the directions are nearly coplanar. */
+static int extSolve3(const double *R0, const double *R1, const double *R2,
+                     const double *p0, const double *p1, const double *p2, double v[3][3], double *quart)
+{
+   double C[3][3], det;
+   const double *p[3];
+   int i, j, k;
+
+   extCross(R1, R2, C[0]); extCross(R2, R0, C[1]); extCross(R0, R1, C[2]);
+   det = extDot(R0, C[0]);
+   if (fabs(det) < 1.0e-6) { return 0; }
+   p[0] = p0; p[1] = p1; p[2] = p2;
+   for (j = 0; j < 3; j++) {          /* power of rho */
+      for (k = 0; k < 3; k++) {       /* component */
+         v[j][k] = 0.0;
+         for (i = 0; i < 3; i++) { v[j][k] += p[i][j]*C[i][k]; }
+         v[j][k] /= det;
+      }
+   }
+   quart[0] = extDot(v[0], v[0]) - 1.0;
+   quart[1] = 2.0*extDot(v[0], v[1]);
+   quart[2] = extDot(v[1], v[1]) + 2.0*extDot(v[0], v[2]);
+   quart[3] = 2.0*extDot(v[1], v[2]);
+   quart[4] = extDot(v[2], v[2]);
+   return 1;
+}
+
+/*---- fallbacks for near-degenerate geometry: bracket on EXT_NSCAN samples ----*/
+typedef void (*extCurve)(double s, const double *p, double *n);
+
+static void extGreatCircle(double s, const double *p, double *n)
+{  /* p = {u_t, w}: cos s u_t + sin s w */
+   int k;
+   for (k = 0; k < 3; k++) { n[k] = cos(s)*p[k] + sin(s)*p[3+k]; }
+}
+
+static void extSmallCircle(double s, const double *p, double *n)
+{  /* p = {o, f1, f2, rho}: o + rho (cos s f1 + sin s f2) */
+   int k;
+   for (k = 0; k < 3; k++) { n[k] = p[k] + p[9]*(cos(s)*p[3+k] + sin(s)*p[6+k]); }
+}
+
+static void extScanCurve(extList *L, const extPair *P, const extNbr *a, const extNbr *m,
+                         extCurve curve, const double *p, double s0, double s1)
+{
+   double n[3], sa, sb, ha, hb, sm, hm, lo, hi, hlo;
+   int i, it;
+
+   curve(s0, p, n);
+   sa = s0; ha = extBorder(P, n, a);
+   for (i = 1; i <= EXT_NSCAN; i++) {
+      sb = s0 + (s1 - s0)*i/EXT_NSCAN;
+      curve(sb, p, n);
+      hb = extBorder(P, n, a);
+      if ((ha < 0.0) != (hb < 0.0)) {
+         lo = sa; hi = sb; hlo = ha;
+         for (it = 0; it < 60; it++) {
+            sm = 0.5*(lo + hi);
+            curve(sm, p, n);
+            hm = extBorder(P, n, a);
+            if ((hm < 0.0) == (hlo < 0.0)) { lo = sm; hlo = hm; } else { hi = sm; }
+         }
+         curve(0.5*(lo + hi), p, n);
+         extEmit(L, P, n, m, NULL, a, NULL);
+      }
+      sa = sb; ha = hb;
+   }
+}
+
+/* the points with n.u1 = l1 and n.u2 = l2 (unit u1, u2); returns 0 or 2 */
+static int extCircleCircle(const double *u1, double l1, const double *u2, double l2, double n[2][3])
+{
+   double G = extDot(u1, u2), den = 1.0 - G*G, x, y, z2, cc[3], base[3];
+   int q;
+   if (den < 1.0e-14) { return 0; }
+   x = (l1 - l2*G) / den;
+   y = (l2 - l1*G) / den;
+   extCross(u1, u2, cc);
+   for (q = 0; q < 3; q++) { base[q] = x*u1[q] + y*u2[q]; }
+   z2 = (1.0 - extDot(base, base)) / extDot(cc, cc);
+   if (z2 < 0.0) { return 0; }
+   for (q = 0; q < 3; q++) {
+      n[0][q] = base[q] + sqrt(z2)*cc[q];
+      n[1][q] = base[q] - sqrt(z2)*cc[q];
+   }
+   return 2;
+}
+
+/* on the border with a: the points at distance rho from t's centre */
+static int extBorderAt(const extPair *P, const extNbr *a, double rho, double n[2][3])
+{
+   double ra = rho + a->r - P->t->r, rs = P->rs;
+   if (ra < 0.0) { return 0; }
+   return extCircleCircle(P->t->u, (rs*rs + P->t->d*P->t->d - rho*rho) / (2.0*rs*P->t->d),
+                          a->u, (rs*rs + a->d*a->d - ra*ra) / (2.0*rs*a->d), n);
+}
+
+/* two borders, coplanar directions: walk each branch of border a in rho */
+static void extScanBorders(extList *L, const extPair *P, const extNbr *a, const extNbr *b)
+{
+   double lo, hi, n[2][3], r0, r1, h0, h1, rm, hm, hlo;
+   int br, i, it, ok0, ok1;
+
+   extRhoRange(P, a, NULL, &lo, &hi);
+   if (hi <= lo) { return; }
+   for (br = 0; br < 2; br++) {
+      ok0 = extBorderAt(P, a, lo, n);
+      r0 = lo; h0 = ok0 ? extBorder(P, n[br], b) : 0.0;
+      for (i = 1; i <= EXT_NSCAN; i++) {
+         r1 = lo + (hi - lo)*i/EXT_NSCAN;
+         ok1 = extBorderAt(P, a, r1, n);
+         h1 = ok1 ? extBorder(P, n[br], b) : 0.0;
+         if (ok0 && ok1 && ((h0 < 0.0) != (h1 < 0.0))) {
+            double ra = r0, rb = r1;
+            hlo = h0;
+            for (it = 0; it < 60; it++) {
+               rm = 0.5*(ra + rb);
+               if (!extBorderAt(P, a, rm, n)) { break; }
+               hm = extBorder(P, n[br], b);
+               if ((hm < 0.0) == (hlo < 0.0)) { ra = rm; hlo = hm; } else { rb = rm; }
+            }
+            if (extBorderAt(P, a, 0.5*(ra + rb), n)) { extEmit(L, P, n[br], NULL, NULL, a, b); }
+         }
+         r0 = r1; h0 = h1; ok0 = ok1;
+      }
+   }
+}
+
+/*---- the six kinds ----*/
+static void extNearestOnBorder(extList *L, const extPair *P, const extNbr *a)
+{
+   double c = extDot(a->u, P->t->u), s, w[3], y[3], A[3], d1[3], q1[5], q2[5], quart[5];
+   double roots[8], n[3], yy, qq, angt;
+   int i, k, nr;
+
+   for (k = 0; k < 3; k++) { w[k] = a->u[k] - c*P->t->u[k]; }
+   if (extUnit(w)) {   /* 4. on the great circle through u_t and u_a, exact */
+      double lo, hi;
+      s = sqrt(extMax(0.0, 1.0 - c*c));
+      extYPoly(P, y); extAPoly(P, a, A);
+      for (k = 0; k < 3; k++) { d1[k] = A[k] - c*y[k]; }
+      extPolyMul2(y, y, q1); extPolyMul2(d1, d1, q2);   /* s^2 (1 - Y^2) - (A - cY)^2 */
+      for (k = 0; k < 5; k++) { quart[k] = -s*s*q1[k] - q2[k]; }
+      quart[0] += s*s;
+      extRhoRange(P, a, NULL, &lo, &hi);
+      nr = extPolyRoots(quart, 4, lo, hi, roots);
+      for (i = 0; i < nr; i++) {
+         yy = extPolyEval(y, 2, roots[i]);
+         qq = (extPolyEval(A, 2, roots[i]) - c*yy) / s;
+         for (k = 0; k < 3; k++) { n[k] = yy*P->t->u[k] + qq*w[k]; }
+         extEmit(L, P, n, NULL, NULL, a, NULL);
+      }
+   }
+   else {   /* a on the axis: the border is a circle around it, sample its azimuth */
+      double f1[3], f2[3], ref[3] = {1.0, 0.0, 0.0}, p[6], az;
+      angt = acos(extMax(-1.0, extMin(1.0, P->y0)));
+      if (fabs(P->t->u[0]) > 0.9) { ref[0] = 0.0; ref[1] = 1.0; }
+      extCross(P->t->u, ref, f1); extUnit(f1); extCross(P->t->u, f1, f2);
+      for (k = 0; k < 3; k++) { p[k] = P->t->u[k]; }
+      for (az = 0.0; az < EXT_PI - 1.0e-9; az += EXT_PI/8.0) {
+         for (k = 0; k < 3; k++) { p[3+k] = cos(az)*f1[k] + sin(az)*f2[k]; }
+         extScanCurve(L, P, a, NULL, extGreatCircle, p, -angt, angt);
+      }
+   }
+}
+
+static void extRimBorder(extList *L, const extPair *P, const extNbr *m, const extNbr *a)
+{
+   double y[3], A[3], lam[3] = {0.0, 0.0, 0.0}, v[3][3], quart[5], roots[8], n[3], lo, hi;
+   int i, k, nr;
+
+   extYPoly(P, y); extAPoly(P, a, A); lam[0] = m->lam;
+   if (extSolve3(P->t->u, a->u, m->u, y, A, lam, v, quart)) {   /* 5., exact */
+      extRhoRange(P, a, NULL, &lo, &hi);
+      nr = extPolyRoots(quart, 4, lo, hi, roots);
+      for (i = 0; i < nr; i++) {
+         for (k = 0; k < 3; k++) { n[k] = v[0][k] + v[1][k]*roots[i] + v[2][k]*roots[i]*roots[i]; }
+         extEmit(L, P, n, m, NULL, a, NULL);
+      }
+   }
+   else {   /* nearly coplanar: bracket along the exclusion circle */
+      double p[10], ref[3] = {1.0, 0.0, 0.0}, c = extDot(P->t->u, m->u);
+      for (k = 0; k < 3; k++) { p[k] = m->lam*m->u[k]; p[3+k] = P->t->u[k] - c*m->u[k]; }
+      if (!extUnit(p + 3)) {
+         if (fabs(m->u[0]) > 0.9) { ref[0] = 0.0; ref[1] = 1.0; }
+         extCross(m->u, ref, p + 3); extUnit(p + 3);
+      }
+      extCross(m->u, p + 3, p + 6);
+      p[9] = sqrt(extMax(0.0, 1.0 - m->lam*m->lam));
+      extScanCurve(L, P, a, m, extSmallCircle, p, -EXT_PI, EXT_PI);
+   }
+}
+
+static void extBorderBorder(extList *L, const extPair *P, const extNbr *a, const extNbr *b)
+{
+   double y[3], A[3], B[3], v[3][3], quart[5], roots[8], n[3], lo, hi;
+   int i, k, nr;
+
+   extYPoly(P, y); extAPoly(P, a, A); extAPoly(P, b, B);
+   if (extSolve3(P->t->u, a->u, b->u, y, A, B, v, quart)) {   /* 6., exact */
+      extRhoRange(P, a, b, &lo, &hi);
+      nr = extPolyRoots(quart, 4, lo, hi, roots);
+      for (i = 0; i < nr; i++) {
+         for (k = 0; k < 3; k++) { n[k] = v[0][k] + v[1][k]*roots[i] + v[2][k]*roots[i]*roots[i]; }
+         extEmit(L, P, n, NULL, NULL, a, b);
+      }
+   }
+   else {   /* nearly coplanar: walk each border along the other */
+      extScanBorders(L, P, a, b);
+      extScanBorders(L, P, b, a);
+   }
+}
+
+/* examineDots()' rules for which atoms can take a dot from src */
+static int extHBondPair(atom *src, atom *b, int maskHB)
+{
+   int both = (src->props & (NEGATIVE_PROP|POSITIVE_PROP)) && (b->props & (NEGATIVE_PROP|POSITIVE_PROP));
+   int compl = ((src->props & POSITIVE_PROP) && (b->props & NEGATIVE_PROP))
+            || ((src->props & NEGATIVE_PROP) && (b->props & POSITIVE_PROP));
+   return (b->props & maskHB) && ((!both) || compl);
+}
+
+static int extCanCause(atom *src, atom *b, int maskHB)
+{
+   if (b->mark || b->elem == ignoreAtom) { return 0; }
+   if (OccupancyCriteria && b->occ < OccupancyCutoff) { return 0; }
+   if (DoMcMc == FALSE && (src->props & MC_PROP) && (b->props & MC_PROP)
+       && !((src->props & HET_PROP) || (b->props & HET_PROP))
+       && strcmp(src->r->chain, b->r->chain) == 0) { return 0; }
+   if (DoWatWat == FALSE && (src->props & WATER_PROP) && (b->props & WATER_PROP)) { return 0; }
+   if (b->elem == atomHOd && !extHBondPair(src, b, maskHB)) { return 0; }
+   return 1;
+}
+
+/* Extra dot vectors (relative to src, length src->radius) for all close
+   pairs of src. Returns the count; *out must be freed by the caller. */
+static int extremaDots(atom *src, atom *scratch, int targFlg, int maskHB, point3d **out)
+{
+   extList L = {NULL, 0, 0};
+   extNbr *nb = NULL, *msk = NULL, *cmp = NULL;
+   extPair P;
+   int nn = 0, i, j, k, allMasked;
+   atom *a, *b;
+   double rs = src->radius, need, ang, angt;
+
+   *out = NULL;
+   for (a = scratch; a; a = a->scratch) { nn++; }
+   if (nn == 0) { return 0; }
+   nb  = (extNbr *)malloc(nn*sizeof(extNbr));
+   msk = (extNbr *)malloc(nn*sizeof(extNbr));
+   cmp = (extNbr *)malloc(nn*sizeof(extNbr));
+   if (!nb || !msk || !cmp) { free(nb); free(msk); free(cmp); return 0; }
+
+   for (a = scratch, i = 0; a; a = a->scratch, i++) {
+      nb[i].u[0] = a->loc.x - src->loc.x;
+      nb[i].u[1] = a->loc.y - src->loc.y;
+      nb[i].u[2] = a->loc.z - src->loc.z;
+      nb[i].d = sqrt(extDot(nb[i].u, nb[i].u));
+      nb[i].r = a->radius;
+      if (!extUnit(nb[i].u)) { nb[i].d = 0.0; }
+      nb[i].lam = (rs*rs + nb[i].d*nb[i].d - nb[i].r*nb[i].r) / (2.0*rs*(nb[i].d > 0.0 ? nb[i].d : 1.0));
+      nb[i].at = a;
+   }
+
+   P.src = src; P.rs = rs; P.msk = msk; P.cmp = cmp;
+   for (a = scratch, i = 0; a; a = a->scratch, i++) {
+      P.t = &nb[i];
+      if (!(a->flags & targFlg) || a->elem == atomHOd || nb[i].d <= 0.0
+          || !extCanCause(src, a, maskHB)) { continue; }
+      /* only pairs that can be a bad overlap; an H-bond pair only when too close */
+      need = -LowGoodCut;
+      if (extHBondPair(src, a, maskHB)) { need += extMin(Min_regular_hb_cutoff, Min_charged_hb_cutoff); }
+      if (rs + nb[i].r - nb[i].d < need) { continue; }
+      P.y0 = nb[i].lam;
+      if (P.y0 >= 1.0) { continue; }                      /* t inside src: no overlap */
+      angt = acos(extMax(-1.0, P.y0));
+
+      /* constraints that can reach the cap n.u_t >= y0 */
+      P.nm = P.nc = 0; allMasked = FALSE;
+      for (b = scratch, j = 0; b; b = b->scratch, j++) {
+         const extNbr *c = &nb[j];
+         if (j == i || c->d <= 0.0 || c->lam >= 1.0) { continue; }
+         ang = acos(extMax(-1.0, extMin(1.0, extDot(c->u, P.t->u))));
+         if (b->mark && b->elem != atomHOd) {
+            if (c->lam <= -1.0) { allMasked = TRUE; break; }
+            if (ang < angt + acos(c->lam) + 1.0e-9) { msk[P.nm++] = *c; }
+         }
+         else if (extCanCause(src, b, maskHB)) {
+            if (ang < angt + acos(extMax(c->lam, -1.0)) + 1.0e-9) { cmp[P.nc++] = *c; }
+         }
+      }
+      if (allMasked) { continue; }
+
+      /* 1. facing t */
+      extEmit(&L, &P, P.t->u, NULL, NULL, NULL, NULL);
+
+      /* 2. nearest point of each exclusion circle */
+      for (j = 0; j < P.nm; j++) {
+         double e1[3], n[3], rho = sqrt(extMax(0.0, 1.0 - msk[j].lam*msk[j].lam));
+         double c = extDot(P.t->u, msk[j].u);
+         for (k = 0; k < 3; k++) { e1[k] = P.t->u[k] - c*msk[j].u[k]; }
+         if (extUnit(e1)) {
+            for (k = 0; k < 3; k++) { n[k] = msk[j].lam*msk[j].u[k] + rho*e1[k]; }
+            extEmit(&L, &P, n, &msk[j], NULL, NULL, NULL);
+         }
+         else {   /* circle centred on the axis: every point is equally near */
+            double f1[3], f2[3], s, ref[3] = {1.0, 0.0, 0.0};
+            if (fabs(msk[j].u[0]) > 0.9) { ref[0] = 0.0; ref[1] = 1.0; }
+            extCross(msk[j].u, ref, f1); extUnit(f1); extCross(msk[j].u, f1, f2);
+            for (s = 0.0; s < 2.0*EXT_PI - 1.0e-9; s += EXT_PI/8.0) {
+               for (k = 0; k < 3; k++) {
+                  n[k] = msk[j].lam*msk[j].u[k] + rho*(cos(s)*f1[k] + sin(s)*f2[k]);
+               }
+               extEmit(&L, &P, n, &msk[j], NULL, NULL, NULL);
+            }
+         }
+      }
+
+      /* 3. crossings of two exclusion circles */
+      for (j = 0; j < P.nm; j++) {
+         for (k = j + 1; k < P.nm; k++) {
+            double nn2[2][3];
+            if (extCircleCircle(msk[j].u, msk[j].lam, msk[k].u, msk[k].lam, nn2)) {
+               extEmit(&L, &P, nn2[0], &msk[j], &msk[k], NULL, NULL);
+               extEmit(&L, &P, nn2[1], &msk[j], &msk[k], NULL, NULL);
+            }
+         }
+      }
+
+      /* 4. nearest point of each border */
+      for (j = 0; j < P.nc; j++) { extNearestOnBorder(&L, &P, &cmp[j]); }
+
+      /* 5. crossings of an exclusion circle and a border */
+      for (j = 0; j < P.nm; j++) {
+         for (k = 0; k < P.nc; k++) { extRimBorder(&L, &P, &msk[j], &cmp[k]); }
+      }
+
+      /* 6. crossings of two borders */
+      for (j = 0; j < P.nc; j++) {
+         for (k = j + 1; k < P.nc; k++) { extBorderBorder(&L, &P, &cmp[j], &cmp[k]); }
+      }
+   }
+   free(nb); free(msk); free(cmp);
+   *out = L.p;
+   return L.n;
+}
+/*}}}extremaDots()_________________________________________________________*/
+
 /*{{{examineDots()*********** called from genDotIntersect() ******************/
 void examineDots(atom *src, int type, atom *scratch,
 		pointSet dots[], float probeRad,
@@ -3713,6 +4377,8 @@ void examineDots(atom *src, int type, atom *scratch,
    pointSet *srcDots = NULL;
    char ptmaster = ' '; /*pointmaster character  dcr041009*/
    int idx = 0; /*dcr041020*/
+   int nExtra = 0;              /* -EXTREMA dots, examined after the dot sphere */
+   point3d *extraDots = NULL;
 
    if (src->elem == ignoreAtom) { return; }
    /*050119 but there seems no way to ever set an atom->elem = ignoreAtom !?*/
@@ -3739,9 +4405,13 @@ void examineDots(atom *src, int type, atom *scratch,
       maskHB = DONOR_PROP;
    }
 
-   for(i=0; i < srcDots->n; i++)
-   {/*loop over dots on src dot-ball */
-      dotvect = srcDots->p[i];
+   if (ExactExtrema && src->elem != atomHOd) {
+      nExtra = extremaDots(src, scratch, targFlg, maskHB, &extraDots);
+   }
+
+   for(i=0; i < srcDots->n + nExtra; i++)
+   {/*loop over dots on src dot-ball, then the -EXTREMA dots */
+      dotvect = (i < srcDots->n) ? srcDots->p[i] : extraDots[i - srcDots->n];
 
       v3add(&(src->loc), &dotvect, &dotloc);
 
@@ -3960,6 +4630,7 @@ void examineDots(atom *src, int type, atom *scratch,
             sl = spikelen*mingap;
             ovrlaptype =-1;
          }
+         if (i >= srcDots->n && ovrlaptype != -1) { continue; } /* -EXTREMA: bumps only */
 
          /*NOTE: atomHOd : hb-only-dummy, phantom H atom*/
          /* ovrlaptype : -1 bump, 0 touch, +1 H bond */
@@ -3998,9 +4669,9 @@ void examineDots(atom *src, int type, atom *scratch,
                         if( !(( src->props & HET_PROP) || (cause->props & HET_PROP)) )
                         {/*neither can be a HET, what wierd condition is avoided?*/
                            ptmaster = 'M'; /*McMc interaction*/
-                           mcmccont[0][idx]++;
+                           mcmccont[0][idx] += (i < srcDots->n); /* not -EXTREMA dots */
                            //mcmccont[0][5]++;
-                           mcmccont[0][7]++; /* SJ 04/15/2015 changing the second dimension to 7 to match new initialization*/
+                           mcmccont[0][7] += (i < srcDots->n); /* SJ 04/15/2015 changing the second dimension to 7 to match new initialization*/
                         }
                      }
                      else if( (src->props & SC_PROP)  && (cause->props & SC_PROP) )
@@ -4008,9 +4679,9 @@ void examineDots(atom *src, int type, atom *scratch,
                         if( !(( src->props & HET_PROP) || (cause->props & HET_PROP)) )
                         {/*neither can be a HET, what wierd condition is avoided?*/
                            ptmaster = 'S'; /*ScSc interaction*/
-                           scsccont[0][idx]++;
+                           scsccont[0][idx] += (i < srcDots->n); /* not -EXTREMA dots */
                            //scsccont[0][5]++;
-                           scsccont[0][7]++;/* SJ 04/15/2015 changing the second dimension to 7 to match new initialization*/
+                           scsccont[0][7] += (i < srcDots->n);/* SJ 04/15/2015 changing the second dimension to 7 to match new initialization*/
                         }
                      }
                      else if(  ((src->props & SC_PROP)  && (cause->props & MC_PROP))
@@ -4019,27 +4690,30 @@ void examineDots(atom *src, int type, atom *scratch,
                         if( !(( src->props & HET_PROP) || (cause->props & HET_PROP)) )
                         {/*neither can be a HET, what wierd condition is avoided?*/
                            ptmaster = 'P'; /*McSc or ScMc interaction*/
-                           mcsccont[0][idx]++;
+                           mcsccont[0][idx] += (i < srcDots->n); /* not -EXTREMA dots */
                            //mcsccont[0][5]++;
-                           mcsccont[0][7]++;/* SJ 04/15/2015 changing the second dimension to 7 to match new initialization*/
+                           mcsccont[0][7] += (i < srcDots->n);/* SJ 04/15/2015 changing the second dimension to 7 to match new initialization*/
                         }
                      }
                      else
                      {
                         ptmaster = 'O'; /*Oh for Other, general default*/
-                        othrcont[0][idx]++;
+                        othrcont[0][idx] += (i < srcDots->n); /* not -EXTREMA dots */
                         //othrcont[0][5]++;
-                        othrcont[0][7]++;/* SJ 04/15/2015 changing the second dimension to 7 to match new initialization*/
+                        othrcont[0][7] += (i < srcDots->n);/* SJ 04/15/2015 changing the second dimension to 7 to match new initialization*/
                      }
 
+                     ExtraDotNow = (i >= srcDots->n);
                      saveDot(src, cause, type, &dotloc, &spikeloc,
         	               results, ovrlaptype, mingap, ptmaster,0); /* dcr041009 */
+                     ExtraDotNow = FALSE;
                    /*XHTangle dummy dcr20120120*/
                }/*logicals allow the overlaptype of this dot*/
             }/*could use this dot/spike, */
          }
       }/*dot is ok, atom that this dot hits is called cause */
    }/*loop over dots on src dot-ball */
+   if (extraDots) { free(extraDots); }
 }/*examineDots()*/
 /*}}}examineDots()___________________________________________________________*/
 
@@ -5698,6 +6372,7 @@ void enumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
        {
            gs = hs = hslen = bs = bslen = score = psas = 0.0;
            node = results[i][j];
+           while (node && node->extra) { node = node->next; } /* -EXTREMA dots only: nothing to list */
            doit = (node != NULL);
            if (doit) {
                fprintf(outf, "%3s %s ", getAtomName(i),
@@ -5705,6 +6380,7 @@ void enumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
            }
            while(node)
            {
+         if (node->extra) { node = node->next; continue; } /* -EXTREMA dot */
                if (spike)/* 04/10/2015 SJ changed the if statements in this block to reflect change in dots ordering, see NODEWIDTH in probe.h*/
                {
                   // if (j == 0 || j == 1) { /* contact dot */
@@ -5850,9 +6526,11 @@ void rawEnumerate(FILE *outf, char* groupname, dotNode *results[][NODEWIDTH],
    {
       gs = hs = hslen = bs = bslen = score = 0.0;
       node = results[i][j];
+      while (node && node->extra) { node = node->next; } /* -EXTREMA dots only: nothing to list */
       doit = (node != NULL);
       while(node)
       {
+         if (node->extra) { node = node->next; continue; } /* -EXTREMA dot */
          if (spike)/* 04/10/2015 SJ changed the if statements in this block to reflect change in dots ordering, see NODEWIDTH in probe.h*/
          {
             // if (j == 0 || j == 1) { /* contact dot */
