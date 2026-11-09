@@ -63,6 +63,7 @@ typedef struct dotNode_t {
     char ptmaster; /* point master, kinemage output, (M for mc) dcr041009*/
     int dotCount;  /*added by SJ -10/07/2011 for keeping count of number of dots in the interaction, used only in writeRaw and Condense functions*/
     float angle;   /*dcr20120120 angle: dot's: parent, self, cause, esp for H */
+    char extra;    /* added by -EXTREMA: written out, but not counted or scored */
 } dotNode;
 
 /* data structure used to determine if N and O are at chain ends */
